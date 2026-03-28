@@ -7,6 +7,7 @@ import {
   reorderTouchpoints,
 } from "@/lib/api/touchpoints";
 import { type InsertTables, type UpdateTables } from "@/types/database.types";
+import { type Touchpoint } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
 import { sequenceKeys } from "./useSequences";
@@ -25,10 +26,10 @@ export function useTouchpoints(sequenceId: string) {
 
   return useQuery({
     queryKey: touchpointKeys.list(sequenceId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Touchpoint[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getTouchpoints(sequenceId);
+        return sandboxStore.getTouchpoints(sequenceId) as Touchpoint[];
       }
       return getTouchpoints(sequenceId);
     },
@@ -46,7 +47,7 @@ export function useCreateTouchpoint() {
     mutationFn: async (touchpoint: InsertTables<"touchpoints">) => {
       if (isSandbox) {
         await simulateDelay(500);
-        return sandboxStore.createTouchpoint(touchpoint);
+        return sandboxStore.createTouchpoint(touchpoint as Omit<Touchpoint, "id" | "created_at" | "updated_at">);
       }
       return createTouchpoint(touchpoint);
     },

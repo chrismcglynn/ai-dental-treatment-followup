@@ -9,7 +9,16 @@ import {
   getChannelBreakdown,
   getSequenceConversions,
   getFunnelData,
+  type RecentActivityItem,
+  type SequencePerformanceItem,
 } from "@/lib/api/analytics";
+import {
+  type DashboardStats,
+  type AnalyticsStats,
+  type ChannelBreakdownItem,
+  type SequenceConversionRow,
+  type FunnelStageItem,
+} from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useSandbox } from "@/lib/sandbox";
 import { simulateDelay } from "@/lib/sandbox/utils";
@@ -43,10 +52,10 @@ export function useDashboardStats() {
 
   return useQuery({
     queryKey: analyticsKeys.dashboard(activePracticeId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<DashboardStats> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getDashboardStats();
+        return sandboxStore.getDashboardStats() as DashboardStats;
       }
       return getDashboardStats(activePracticeId!);
     },
@@ -61,10 +70,10 @@ export function useRevenueOverTime(days = 30) {
 
   return useQuery({
     queryKey: analyticsKeys.revenue(activePracticeId!, days),
-    queryFn: async () => {
+    queryFn: async (): Promise<{ date: string; amount: number }[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getRevenueOverTime(days);
+        return sandboxStore.getRevenueOverTime(days) as { date: string; amount: number }[];
       }
       return getRevenueOverTime(activePracticeId!, days);
     },
@@ -78,15 +87,15 @@ export function useRecentActivity() {
 
   return useQuery({
     queryKey: analyticsKeys.recentActivity(activePracticeId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<RecentActivityItem[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getRecentActivity();
+        return sandboxStore.getRecentActivity() as RecentActivityItem[];
       }
       return getRecentActivity(activePracticeId!);
     },
     enabled: !!activePracticeId,
-    refetchInterval: 1000 * 30, // 30s refetch
+    refetchInterval: 1000 * 30,
   });
 }
 
@@ -96,10 +105,10 @@ export function useSequencePerformance() {
 
   return useQuery({
     queryKey: analyticsKeys.sequencePerformance(activePracticeId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<SequencePerformanceItem[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getSequencePerformance();
+        return sandboxStore.getSequencePerformance() as SequencePerformanceItem[];
       }
       return getSequencePerformance(activePracticeId!);
     },
@@ -113,10 +122,10 @@ export function usePendingTreatments() {
 
   return useQuery({
     queryKey: analyticsKeys.pendingTreatments(activePracticeId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<number> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPendingTreatmentsCount();
+        return sandboxStore.getPendingTreatmentsCount() as number;
       }
       return getPendingTreatmentsCount(activePracticeId!);
     },
@@ -131,10 +140,10 @@ export function useAnalyticsStats(days = 30) {
 
   return useQuery({
     queryKey: analyticsKeys.analyticsStats(activePracticeId!, days),
-    queryFn: async () => {
+    queryFn: async (): Promise<AnalyticsStats> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getAnalyticsStats();
+        return sandboxStore.getAnalyticsStats() as AnalyticsStats;
       }
       return getAnalyticsStats(activePracticeId!, days);
     },
@@ -148,10 +157,10 @@ export function useChannelBreakdown(days = 30) {
 
   return useQuery({
     queryKey: analyticsKeys.channelBreakdown(activePracticeId!, days),
-    queryFn: async () => {
+    queryFn: async (): Promise<ChannelBreakdownItem[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getChannelBreakdown();
+        return sandboxStore.getChannelBreakdown() as ChannelBreakdownItem[];
       }
       return getChannelBreakdown(activePracticeId!, days);
     },
@@ -165,10 +174,10 @@ export function useSequenceConversions(days = 30) {
 
   return useQuery({
     queryKey: analyticsKeys.sequenceConversions(activePracticeId!, days),
-    queryFn: async () => {
+    queryFn: async (): Promise<SequenceConversionRow[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getSequenceConversions();
+        return sandboxStore.getSequenceConversions() as SequenceConversionRow[];
       }
       return getSequenceConversions(activePracticeId!, days);
     },
@@ -182,10 +191,10 @@ export function useFunnelData(days = 30) {
 
   return useQuery({
     queryKey: analyticsKeys.funnel(activePracticeId!, days),
-    queryFn: async () => {
+    queryFn: async (): Promise<FunnelStageItem[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getFunnelData();
+        return sandboxStore.getFunnelData() as FunnelStageItem[];
       }
       return getFunnelData(activePracticeId!, days);
     },

@@ -36,10 +36,10 @@ export function usePractices(userId: string) {
 
   return useQuery({
     queryKey: practiceKeys.list(userId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Practice[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        const practice = sandboxStore.getPractice();
+        const practice = sandboxStore.getPractice() as Practice;
         if (!activePractice) {
           setActivePractice(practice);
         }
@@ -60,10 +60,10 @@ export function usePractice(practiceId: string) {
 
   return useQuery({
     queryKey: practiceKeys.detail(practiceId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Practice> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPractice();
+        return sandboxStore.getPractice() as Practice;
       }
       const supabase = createClient();
       const { data, error } = await supabase

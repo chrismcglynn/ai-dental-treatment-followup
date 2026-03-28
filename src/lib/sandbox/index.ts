@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { createElement } from "react";
-import { useSandboxStore, type SandboxActivity } from "@/stores/sandbox-store";
+import { useSandboxStore, type SandboxActivity, type SandboxStore } from "@/stores/sandbox-store";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ interface SandboxContextValue {
   isSandbox: boolean;
 
   /** The sandbox Zustand store (getters, mutations, simulation helpers). */
-  sandboxStore: ReturnType<typeof useSandboxStore>;
+  sandboxStore: SandboxStore;
 
   /** Whether the background simulation engine is running. */
   simulationActive: boolean;
@@ -127,10 +127,13 @@ export function useSandbox(): SandboxContextValue {
   return ctx;
 }
 
-/** Static singleton for non-sandbox mode — avoids re-creating objects. */
+/** Static singleton for non-sandbox mode — avoids re-creating objects.
+ *  sandboxStore is set to the real store instance so TypeScript infers
+ *  correct return types through hooks. It's safe because isSandbox=false
+ *  means the sandbox branch in queryFn is never reached at runtime. */
 const NO_SANDBOX: SandboxContextValue = {
   isSandbox: false,
-  sandboxStore: null as unknown as SandboxContextValue["sandboxStore"],
+  sandboxStore: useSandboxStore.getState() as SandboxStore,
   simulationActive: false,
   simulationSpeed: "normal",
   activityFeed: [],

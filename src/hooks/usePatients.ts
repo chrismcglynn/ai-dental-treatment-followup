@@ -9,8 +9,8 @@ import {
   getPatientMessages,
   getPatientEnrollments,
 } from "@/lib/api/patients";
-import { type InsertTables, type UpdateTables } from "@/types/database.types";
-import { type PatientFilters } from "@/types/app.types";
+import { type InsertTables, type UpdateTables, type Tables } from "@/types/database.types";
+import { type PatientFilters, type Patient, type Treatment, type Message, type EnrollmentWithSequence, type PaginatedResponse } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useSandbox } from "@/lib/sandbox";
@@ -39,10 +39,10 @@ export function usePatients(filters?: PatientFilters) {
 
   return useQuery({
     queryKey: patientKeys.list(activePracticeId!, filters),
-    queryFn: async () => {
+    queryFn: async (): Promise<PaginatedResponse<Patient>> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getPatients(filters);
+        return sandboxStore.getPatients(filters) as PaginatedResponse<Patient>;
       }
       return getPatients(activePracticeId!, filters);
     },
@@ -54,12 +54,13 @@ export function usePatientsWithStats(filters?: PatientFilters) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const { isSandbox, sandboxStore } = useSandbox();
 
+  type PatientWithStats = Tables<"patients"> & { treatments: Tables<"treatments">[]; sequence_enrollments: { id: string; status: string }[] };
   return useQuery({
     queryKey: patientKeys.listWithStats(activePracticeId!, filters),
-    queryFn: async () => {
+    queryFn: async (): Promise<PaginatedResponse<PatientWithStats>> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getPatientsWithStats(filters);
+        return sandboxStore.getPatientsWithStats(filters) as PaginatedResponse<PatientWithStats>;
       }
       return getPatientsWithStats(activePracticeId!, filters);
     },
@@ -73,10 +74,10 @@ export function usePatient(patientId: string) {
 
   return useQuery({
     queryKey: patientKeys.detail(activePracticeId!, patientId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Patient | undefined> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPatient(patientId);
+        return sandboxStore.getPatient(patientId) as Patient | undefined;
       }
       return getPatient(patientId);
     },
@@ -90,10 +91,10 @@ export function usePatientTreatments(patientId: string) {
 
   return useQuery({
     queryKey: patientKeys.treatments(activePracticeId!, patientId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Treatment[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPatientTreatments(patientId);
+        return sandboxStore.getPatientTreatments(patientId) as Treatment[];
       }
       return getPatientTreatments(patientId);
     },
@@ -107,10 +108,10 @@ export function usePatientMessages(patientId: string) {
 
   return useQuery({
     queryKey: patientKeys.messages(activePracticeId!, patientId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Message[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPatientMessages(patientId);
+        return sandboxStore.getPatientMessages(patientId) as Message[];
       }
       return getPatientMessages(patientId);
     },
@@ -124,10 +125,10 @@ export function usePatientEnrollments(patientId: string) {
 
   return useQuery({
     queryKey: patientKeys.enrollments(activePracticeId!, patientId),
-    queryFn: async () => {
+    queryFn: async (): Promise<EnrollmentWithSequence[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getPatientEnrollments(patientId);
+        return sandboxStore.getPatientEnrollments(patientId) as EnrollmentWithSequence[];
       }
       return getPatientEnrollments(patientId);
     },

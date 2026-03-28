@@ -203,7 +203,7 @@ interface SandboxStoreActions {
   reset: () => void;
 }
 
-type SandboxStore = SandboxStoreState & SandboxStoreActions;
+export type SandboxStore = SandboxStoreState & SandboxStoreActions;
 
 // ─── Initial state ───────────────────────────────────────────────────────────
 

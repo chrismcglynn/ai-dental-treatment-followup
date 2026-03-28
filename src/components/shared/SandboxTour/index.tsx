@@ -89,7 +89,7 @@ function loadCompleted(): Set<string> {
 
 function saveCompleted(completed: Set<string>) {
   if (typeof window === "undefined") return;
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────

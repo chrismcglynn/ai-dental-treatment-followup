@@ -11,7 +11,7 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSandbox, type SimulationSpeed } from "@/lib/sandbox";
-import { useSandboxStore, type SandboxActivity } from "@/stores/sandbox-store";
+import { useSandboxStore, type SandboxActivity, type SandboxStore } from "@/stores/sandbox-store";
 import { useUiStore } from "@/stores/ui-store";
 import { patientKeys } from "@/hooks/usePatients";
 import { sequenceKeys } from "@/hooks/useSequences";
@@ -114,7 +114,7 @@ type EventResult = {
   invalidateKeys: string[][]; // query key prefixes to invalidate
 };
 
-function handleNewPlanDetected(store: ReturnType<typeof useSandboxStore>): EventResult {
+function handleNewPlanDetected(store: SandboxStore): EventResult {
   const firstName = pick(FIRST_NAMES);
   const lastName = pick(LAST_NAMES);
   const procedure = pick(PROCEDURES);
@@ -167,7 +167,7 @@ function handleNewPlanDetected(store: ReturnType<typeof useSandboxStore>): Event
   };
 }
 
-function handleSequenceStepSent(store: ReturnType<typeof useSandboxStore>): EventResult | null {
+function handleSequenceStepSent(store: SandboxStore): EventResult | null {
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
 
@@ -214,7 +214,7 @@ function handleSequenceStepSent(store: ReturnType<typeof useSandboxStore>): Even
   };
 }
 
-function handleMessageDelivered(store: ReturnType<typeof useSandboxStore>): EventResult | null {
+function handleMessageDelivered(store: SandboxStore): EventResult | null {
   const sentMessages = store.messages.filter(
     (m) => m.direction === "outbound" && m.status === "sent"
   );
@@ -248,7 +248,7 @@ function handleMessageDelivered(store: ReturnType<typeof useSandboxStore>): Even
   };
 }
 
-function handlePatientReplied(store: ReturnType<typeof useSandboxStore>): EventResult | null {
+function handlePatientReplied(store: SandboxStore): EventResult | null {
   // Pick a patient who is in an active enrollment and hasn't replied recently
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
@@ -321,7 +321,7 @@ function handlePatientReplied(store: ReturnType<typeof useSandboxStore>): EventR
   };
 }
 
-function handlePlanBooked(store: ReturnType<typeof useSandboxStore>): EventResult | null {
+function handlePlanBooked(store: SandboxStore): EventResult | null {
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
 
@@ -367,7 +367,7 @@ function handlePlanBooked(store: ReturnType<typeof useSandboxStore>): EventResul
   };
 }
 
-function handleSequenceAdvanced(store: ReturnType<typeof useSandboxStore>): EventResult | null {
+function handleSequenceAdvanced(store: SandboxStore): EventResult | null {
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
 
@@ -415,7 +415,7 @@ function handleSequenceAdvanced(store: ReturnType<typeof useSandboxStore>): Even
 
 function dispatchEvent(
   eventType: SimulationEventType,
-  store: ReturnType<typeof useSandboxStore>
+  store: SandboxStore
 ): EventResult | null {
   switch (eventType) {
     case "NEW_PLAN_DETECTED":

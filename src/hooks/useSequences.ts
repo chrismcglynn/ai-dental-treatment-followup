@@ -7,7 +7,7 @@ import {
   deleteSequence,
 } from "@/lib/api/sequences";
 import { type InsertTables, type UpdateTables } from "@/types/database.types";
-import { type SequenceFilters } from "@/types/app.types";
+import { type SequenceFilters, type Sequence, type SequenceWithTouchpoints } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useSandbox } from "@/lib/sandbox";
@@ -28,10 +28,10 @@ export function useSequences(filters?: SequenceFilters) {
 
   return useQuery({
     queryKey: sequenceKeys.list(activePracticeId!, filters),
-    queryFn: async () => {
+    queryFn: async (): Promise<Sequence[]> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getSequences(filters);
+        return sandboxStore.getSequences(filters) as Sequence[];
       }
       return getSequences(activePracticeId!, filters?.status);
     },
@@ -45,10 +45,10 @@ export function useSequence(sequenceId: string) {
 
   return useQuery({
     queryKey: sequenceKeys.detail(activePracticeId!, sequenceId),
-    queryFn: async () => {
+    queryFn: async (): Promise<SequenceWithTouchpoints | undefined> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getSequence(sequenceId);
+        return sandboxStore.getSequence(sequenceId) as SequenceWithTouchpoints | undefined;
       }
       return getSequence(sequenceId);
     },
@@ -66,7 +66,7 @@ export function useCreateSequence() {
     mutationFn: async (sequence: InsertTables<"sequences">) => {
       if (isSandbox) {
         await simulateDelay(600);
-        return sandboxStore.createSequence(sequence);
+        return sandboxStore.createSequence(sequence as Omit<Sequence, "id" | "created_at" | "updated_at">);
       }
       return createSequence(sequence);
     },

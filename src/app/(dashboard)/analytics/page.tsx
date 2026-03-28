@@ -222,7 +222,7 @@ export default function AnalyticsPage() {
           <CardContent>
             {funnelLoading ? (
               <Skeleton className="h-[300px] w-full" />
-            ) : funnel && funnel.some((s: { value: number }) => s.value > 0) ? (
+            ) : funnel && funnel.some((s) => s.value > 0) ? (
               <ConversionFunnelChart data={funnel} />
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">

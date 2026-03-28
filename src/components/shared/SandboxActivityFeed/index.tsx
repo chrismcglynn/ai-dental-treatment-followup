@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Activity } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useSandbox } from "@/lib/sandbox";
 import { cn } from "@/lib/utils";
 import type { SandboxActivity } from "@/stores/sandbox-store";

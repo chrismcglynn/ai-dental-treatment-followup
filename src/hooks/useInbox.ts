@@ -6,6 +6,7 @@ import {
   sendReply,
   type InboxFilter,
 } from "@/lib/api/inbox";
+import type { ConversationWithPatient, Message } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useInboxStore } from "@/stores/inbox-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -27,10 +28,10 @@ export function useConversations() {
 
   return useQuery({
     queryKey: inboxKeys.conversations(activePracticeId!, filter),
-    queryFn: async () => {
+    queryFn: async (): Promise<ConversationWithPatient[]> => {
       if (isSandbox) {
         await simulateDelay(300);
-        return sandboxStore.getConversations(filter);
+        return sandboxStore.getConversations(filter) as ConversationWithPatient[];
       }
       return getConversations(activePracticeId!, filter);
     },
@@ -47,10 +48,10 @@ export function useConversationMessages(
 
   return useQuery({
     queryKey: inboxKeys.messages(activePracticeId!, conversationId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<Message[]> => {
       if (isSandbox) {
         await simulateDelay(200);
-        return sandboxStore.getConversationMessages(conversationId!, patientId!);
+        return sandboxStore.getConversationMessages(conversationId!, patientId!) as Message[];
       }
       return getConversationMessages(conversationId!, patientId!);
     },
