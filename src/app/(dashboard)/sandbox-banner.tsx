@@ -29,6 +29,8 @@ import { useSimulationEngine } from "@/lib/sandbox/simulationEngine";
 import { useUiStore } from "@/stores/ui-store";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import {cn} from "@/lib/utils";
+import {usePracticeStore} from "@/stores/practice-store";
 
 export function SandboxBanner() {
   const {
@@ -46,6 +48,7 @@ export function SandboxBanner() {
   const [resetting, setResetting] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
+  const isOpen = usePracticeStore((s) => s.sidebarOpen);
   // Mount the simulation engine so it runs while the banner is rendered
   useSimulationEngine();
 
@@ -75,7 +78,11 @@ export function SandboxBanner() {
       <div
         role="status"
         aria-label="Sandbox mode active"
-        className="relative z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200"
+        // className="z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200"
+        className={cn(
+          "z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200",
+          isOpen ? "lg:ml-60" : "lg:ml-16"
+        )}
       >
         <div className="flex items-center gap-2">
           <FlaskConical className="h-4 w-4 shrink-0" />
