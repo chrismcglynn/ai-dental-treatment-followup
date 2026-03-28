@@ -75,6 +75,8 @@ export const SANDBOX_PRACTICE: Practice = {
   stripe_customer_id: null,
   stripe_subscription_id: null,
   subscription_status: "trialing",
+  sandbox_mode: true,
+  sandbox_seeded_at: daysAgo(30),
   created_at: daysAgo(30),
   updated_at: daysAgo(1),
 };
