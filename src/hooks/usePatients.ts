@@ -13,6 +13,8 @@ import { type InsertTables, type UpdateTables } from "@/types/database.types";
 import { type PatientFilters } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useSandbox } from "@/lib/sandbox";
+import { simulateDelay } from "@/lib/sandbox/utils";
 
 // Query keys factory
 export const patientKeys = {
@@ -33,60 +35,102 @@ export const patientKeys = {
 
 export function usePatients(filters?: PatientFilters) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.list(activePracticeId!, filters),
-    queryFn: () => getPatients(activePracticeId!, filters),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getPatients(filters);
+      }
+      return getPatients(activePracticeId!, filters);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function usePatientsWithStats(filters?: PatientFilters) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.listWithStats(activePracticeId!, filters),
-    queryFn: () => getPatientsWithStats(activePracticeId!, filters),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getPatientsWithStats(filters);
+      }
+      return getPatientsWithStats(activePracticeId!, filters);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function usePatient(patientId: string) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.detail(activePracticeId!, patientId),
-    queryFn: () => getPatient(patientId),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPatient(patientId);
+      }
+      return getPatient(patientId);
+    },
     enabled: !!activePracticeId && !!patientId,
   });
 }
 
 export function usePatientTreatments(patientId: string) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.treatments(activePracticeId!, patientId),
-    queryFn: () => getPatientTreatments(patientId),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPatientTreatments(patientId);
+      }
+      return getPatientTreatments(patientId);
+    },
     enabled: !!activePracticeId && !!patientId,
   });
 }
 
 export function usePatientMessages(patientId: string) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.messages(activePracticeId!, patientId),
-    queryFn: () => getPatientMessages(patientId),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPatientMessages(patientId);
+      }
+      return getPatientMessages(patientId);
+    },
     enabled: !!activePracticeId && !!patientId,
   });
 }
 
 export function usePatientEnrollments(patientId: string) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: patientKeys.enrollments(activePracticeId!, patientId),
-    queryFn: () => getPatientEnrollments(patientId),
+    queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPatientEnrollments(patientId);
+      }
+      return getPatientEnrollments(patientId);
+    },
     enabled: !!activePracticeId && !!patientId,
   });
 }
@@ -114,15 +158,24 @@ export function useUpdatePatient() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       data,
     }: {
       id: string;
       data: UpdateTables<"patients">;
-    }) => updatePatient(id, data),
+    }) => {
+      if (isSandbox) {
+        await simulateDelay(500);
+        const updated = sandboxStore.updatePatient(id, data);
+        if (!updated) throw new Error("Patient not found");
+        return updated;
+      }
+      return updatePatient(id, data);
+    },
     onMutate: async ({ id, data }) => {
       // Optimistic update for status toggle (DNC)
       if (data.status) {

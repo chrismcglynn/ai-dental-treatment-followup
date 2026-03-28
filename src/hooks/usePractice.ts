@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { usePracticeStore } from "@/stores/practice-store";
 import { type Practice } from "@/types/app.types";
+import { useSandbox } from "@/lib/sandbox";
+import { simulateDelay } from "@/lib/sandbox/utils";
 
 // Query keys factory
 export const practiceKeys = {
@@ -30,10 +32,19 @@ async function fetchUserPractices(userId: string): Promise<Practice[]> {
 export function usePractices(userId: string) {
   const setActivePractice = usePracticeStore((s) => s.setActivePractice);
   const activePractice = usePracticeStore((s) => s.activePractice);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: practiceKeys.list(userId),
     queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        const practice = sandboxStore.getPractice();
+        if (!activePractice) {
+          setActivePractice(practice);
+        }
+        return [practice];
+      }
       const practices = await fetchUserPractices(userId);
       if (practices.length > 0 && !activePractice) {
         setActivePractice(practices[0]);
@@ -45,9 +56,15 @@ export function usePractices(userId: string) {
 }
 
 export function usePractice(practiceId: string) {
+  const { isSandbox, sandboxStore } = useSandbox();
+
   return useQuery({
     queryKey: practiceKeys.detail(practiceId),
     queryFn: async () => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPractice();
+      }
       const supabase = createClient();
       const { data, error } = await supabase
         .from("practices")
