@@ -38,6 +38,7 @@ import {
   useUpdatePatient,
 } from "@/hooks/usePatients";
 import { cn } from "@/lib/utils";
+import { isSandboxId } from "@/lib/sandbox/sandboxData";
 
 const avatarColors = [
   "bg-blue-500",
@@ -183,6 +184,11 @@ export default function PatientDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <h2 className="font-semibold text-lg">{fullName}</h2>
+                {isSandboxId(patient.id) && (
+                  <Badge variant="outline" className="mt-1 text-[9px] px-1.5 py-0 text-muted-foreground border-muted-foreground/30">
+                    DEMO
+                  </Badge>
+                )}
                 <Badge variant="outline" className="mt-1">
                   {getPreferredContactBadge(patient)}
                 </Badge>

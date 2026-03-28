@@ -52,6 +52,43 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Sandbox guard — never send real messages for sandbox practices
+  const { data: practiceCheck } = await supabase
+    .from("practices")
+    .select("sandbox_mode")
+    .eq("id", practiceId)
+    .single();
+
+  if (practiceCheck?.sandbox_mode) {
+    console.log(`[SANDBOX] Would have sent SMS to ${patient.phone}: "${body.trim()}"`);
+
+    // Insert a fake outbound message record
+    const { data: sandboxMsg, error: sandboxMsgError } = await supabase
+      .from("messages")
+      .insert({
+        practice_id: practiceId,
+        patient_id: patientId,
+        channel: "sms",
+        direction: "outbound",
+        status: "delivered",
+        body: body.trim(),
+        external_id: `sandbox-sms-${Date.now()}`,
+        sent_at: new Date().toISOString(),
+        delivered_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (sandboxMsgError) {
+      return NextResponse.json(
+        { error: "Failed to save sandbox message", code: "INTERNAL_ERROR" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(sandboxMsg);
+  }
+
   // Send via Twilio
   let externalId: string | null = null;
   const twilioSid = process.env.TWILIO_ACCOUNT_SID;

@@ -38,6 +38,7 @@ import { type Tables } from "@/types/database.types";
 import { cn } from "@/lib/utils";
 import { usePracticeStore } from "@/stores/practice-store";
 import { getPatient } from "@/lib/api/patients";
+import { isSandboxId } from "@/lib/sandbox/sandboxData";
 
 type PatientRow = Tables<"patients"> & {
   treatments: Tables<"treatments">[];
@@ -126,6 +127,11 @@ const columns: ColumnDef<PatientRow, unknown>[] = [
             </AvatarFallback>
           </Avatar>
           <span className="font-medium">{fullName}</span>
+          {isSandboxId(patient.id) && (
+            <Badge variant="outline" className="ml-2 text-[9px] px-1 py-0 text-muted-foreground border-muted-foreground/30">
+              DEMO
+            </Badge>
+          )}
         </div>
       );
     },

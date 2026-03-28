@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { type Tables, type InsertTables, type UpdateTables } from "@/types/database.types";
+import { isSandboxId } from "@/lib/sandbox/sandboxData";
 
 export async function getTouchpoints(
   sequenceId: string
@@ -33,6 +34,9 @@ export async function updateTouchpoint(
   touchpointId: string,
   updates: UpdateTables<"touchpoints">
 ): Promise<Tables<"touchpoints">> {
+  if (isSandboxId(touchpointId)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
   const supabase = createClient();
   const { data, error } = await supabase
     .from("touchpoints")
@@ -46,6 +50,9 @@ export async function updateTouchpoint(
 }
 
 export async function deleteTouchpoint(touchpointId: string): Promise<void> {
+  if (isSandboxId(touchpointId)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
   const supabase = createClient();
   const { error } = await supabase
     .from("touchpoints")
