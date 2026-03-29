@@ -36,9 +36,12 @@ import {
   usePatientMessages,
   usePatientEnrollments,
   useUpdatePatient,
+  useCreateEnrollment,
 } from "@/hooks/usePatients";
+import { useSequences } from "@/hooks/useSequences";
 import { cn } from "@/lib/utils";
 import { isSandboxId } from "@/lib/sandbox/sandboxData";
+import { type Sequence } from "@/types/app.types";
 
 const avatarColors = [
   "bg-blue-500",
@@ -93,15 +96,32 @@ function getPreferredContactBadge(patient: { phone: string | null; email: string
 export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [dncDialogOpen, setDncDialogOpen] = useState(false);
+  const [sequenceDialogOpen, setSequenceDialogOpen] = useState(false);
+  const [selectedSequenceId, setSelectedSequenceId] = useState<string | null>(null);
 
   const { data: patient, isLoading: patientLoading } = usePatient(id);
   const { data: treatments, isLoading: treatmentsLoading } = usePatientTreatments(id);
   const { data: messages, isLoading: messagesLoading } = usePatientMessages(id);
   const { data: enrollments } = usePatientEnrollments(id);
+  const { data: sequences, isLoading: sequencesLoading } = useSequences({ status: "active" });
   const updatePatient = useUpdatePatient();
+  const createEnrollment = useCreateEnrollment();
 
   const isDnc = patient?.status === "archived";
   const fullName = patient ? `${patient.first_name} ${patient.last_name}` : "";
+
+  const handleStartSequence = () => {
+    if (!patient || !selectedSequenceId) return;
+    createEnrollment.mutate(
+      { sequenceId: selectedSequenceId, patientId: patient.id },
+      {
+        onSuccess: () => {
+          setSequenceDialogOpen(false);
+          setSelectedSequenceId(null);
+        },
+      }
+    );
+  };
 
   const handleToggleDnc = () => {
     if (!patient) return;
@@ -145,6 +165,9 @@ export default function PatientDetailPage() {
   }
 
   const activeEnrollments = enrollments?.filter((e) => e.status === "active") ?? [];
+  const availableSequences = sequences?.filter(
+    (seq) => !activeEnrollments.some((e) => e.sequence_id === seq.id)
+  ) ?? [];
 
   return (
     <div className="space-y-6">
@@ -242,6 +265,10 @@ export default function PatientDetailPage() {
                 size="sm"
                 className="w-full mt-2"
                 disabled={isDnc}
+                onClick={() => {
+                  setSelectedSequenceId(null);
+                  setSequenceDialogOpen(true);
+                }}
               >
                 <Play className="mr-2 h-4 w-4" />
                 Start Manual Sequence
@@ -346,6 +373,65 @@ export default function PatientDetailPage() {
                 : isDnc
                   ? "Allow Contact"
                   : "Mark DNC"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Start Sequence Dialog */}
+      <Dialog open={sequenceDialogOpen} onOpenChange={setSequenceDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start Manual Sequence</DialogTitle>
+            <DialogDescription>
+              Select a sequence to enroll {fullName} in. Only active sequences not already assigned are shown.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto py-2">
+            {sequencesLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-12 rounded-lg" />
+                <Skeleton className="h-12 rounded-lg" />
+                <Skeleton className="h-12 rounded-lg" />
+              </div>
+            ) : availableSequences.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No available sequences. All active sequences are already assigned to this patient.
+              </p>
+            ) : (
+              availableSequences.map((seq) => (
+                <button
+                  key={seq.id}
+                  onClick={() => setSelectedSequenceId(seq.id)}
+                  className={cn(
+                    "w-full text-left rounded-lg border p-3 transition-colors",
+                    selectedSequenceId === seq.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/50"
+                  )}
+                >
+                  <div className="font-medium text-sm">{seq.name}</div>
+                  {seq.description && (
+                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                      {seq.description}
+                    </div>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSequenceDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStartSequence}
+              disabled={!selectedSequenceId || createEnrollment.isPending}
+            >
+              {createEnrollment.isPending ? "Enrolling..." : "Start Sequence"}
             </Button>
           </DialogFooter>
         </DialogContent>

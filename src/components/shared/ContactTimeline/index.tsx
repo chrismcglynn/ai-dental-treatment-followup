@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { type Tables } from "@/types/database.types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MessageSquare,
@@ -14,8 +16,11 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useConversations } from "@/hooks/useInbox";
+import { useInboxStore } from "@/stores/inbox-store";
 
 interface ContactTimelineProps {
   messages: Tables<"messages">[];
@@ -55,7 +60,13 @@ function formatDateTime(dateStr: string): string {
   return format(new Date(dateStr), "MMM d, yyyy h:mm a");
 }
 
-function TimelineItem({ message }: { message: Tables<"messages"> }) {
+function TimelineItem({
+  message,
+  onGoToInbox,
+}: {
+  message: Tables<"messages">;
+  onGoToInbox?: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const ChannelIcon = channelIcons[message.channel];
   const isInbound = message.direction === "inbound";
@@ -134,6 +145,15 @@ function TimelineItem({ message }: { message: Tables<"messages"> }) {
             {message.delivered_at && <p>Delivered: {formatDateTime(message.delivered_at)}</p>}
             {message.read_at && <p>Read: {formatDateTime(message.read_at)}</p>}
             {message.error && <p className="text-red-500">Error: {message.error}</p>}
+            {onGoToInbox && (
+              <button
+                onClick={onGoToInbox}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                View in Inbox
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -142,6 +162,12 @@ function TimelineItem({ message }: { message: Tables<"messages"> }) {
 }
 
 export function ContactTimeline({ messages, loading }: ContactTimelineProps) {
+  const router = useRouter();
+  const { data: conversations } = useConversations();
+  const setSelectedConversation = useInboxStore(
+    (s) => s.setSelectedConversation
+  );
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -169,10 +195,38 @@ export function ContactTimeline({ messages, loading }: ContactTimelineProps) {
     );
   }
 
+  // Find conversation for this patient to enable "View in Inbox" links
+  const patientId = messages[0]?.patient_id;
+  const conversation = conversations?.find((c) => c.patient_id === patientId);
+
+  function handleGoToInbox() {
+    if (conversation) {
+      setSelectedConversation(conversation.id);
+    }
+    router.push("/inbox");
+  }
+
   return (
     <div className="relative">
+      {conversation && (
+        <div className="flex justify-end mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleGoToInbox}
+            className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            Open in Inbox
+          </Button>
+        </div>
+      )}
       {messages.map((message) => (
-        <TimelineItem key={message.id} message={message} />
+        <TimelineItem
+          key={message.id}
+          message={message}
+          onGoToInbox={conversation ? handleGoToInbox : undefined}
+        />
       ))}
     </div>
   );

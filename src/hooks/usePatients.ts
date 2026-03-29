@@ -8,8 +8,9 @@ import {
   getPatientTreatments,
   getPatientMessages,
   getPatientEnrollments,
+  createEnrollment,
 } from "@/lib/api/patients";
-import { type InsertTables, type UpdateTables, type Tables } from "@/types/database.types";
+import { type InsertTables, type UpdateTables, type Tables, type Database } from "@/types/database.types";
 import { type PatientFilters, type Patient, type Treatment, type Message, type EnrollmentWithSequence, type PaginatedResponse } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -214,6 +215,58 @@ export function useUpdatePatient() {
           context.previous
         );
       }
+    },
+  });
+}
+
+export function useCreateEnrollment() {
+  const queryClient = useQueryClient();
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useMutation({
+    mutationFn: async ({
+      sequenceId,
+      patientId,
+    }: {
+      sequenceId: string;
+      patientId: string;
+    }) => {
+      const enrollment: InsertTables<"sequence_enrollments"> = {
+        sequence_id: sequenceId,
+        patient_id: patientId,
+        practice_id: activePracticeId!,
+        status: "active",
+        current_touchpoint: 0,
+      };
+
+      if (isSandbox) {
+        await simulateDelay(600);
+        const now = new Date().toISOString();
+        const sandboxEnrollment: Tables<"sequence_enrollments"> = {
+          id: crypto.randomUUID(),
+          ...enrollment,
+          enrolled_at: now,
+          completed_at: null,
+          converted_at: null,
+        };
+        sandboxStore.addEnrollment(sandboxEnrollment);
+        return sandboxEnrollment;
+      }
+      return createEnrollment(enrollment);
+    },
+    onSuccess: (_, { patientId }) => {
+      addToast({ title: "Patient enrolled in sequence", variant: "success" });
+      queryClient.invalidateQueries({
+        queryKey: patientKeys.enrollments(activePracticeId!, patientId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: patientKeys.listWithStats(activePracticeId!),
+      });
+    },
+    onError: () => {
+      addToast({ title: "Failed to enroll patient", variant: "destructive" });
     },
   });
 }

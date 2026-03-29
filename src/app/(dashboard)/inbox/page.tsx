@@ -38,7 +38,7 @@ export default function InboxPage() {
           description="Patient replies and conversations"
         />
         <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-12rem)]">
-          <div className="grid grid-cols-[340px_1fr] h-full">
+          <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
             <div className="border-r border-border p-3 space-y-0">
               <Skeleton className="h-9 w-full mb-3" />
               {Array.from({ length: 6 }).map((_, i) => (
@@ -88,7 +88,7 @@ export default function InboxPage() {
       />
 
       <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-12rem)]">
-        <div className="grid grid-cols-[340px_1fr] h-full">
+        <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
           {/* Left pane — conversation list */}
           <ConversationList />
 

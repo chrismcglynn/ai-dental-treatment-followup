@@ -185,3 +185,20 @@ export async function getPatientEnrollments(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as unknown as (Tables<"sequence_enrollments"> & { sequences: Tables<"sequences"> })[]) ?? [];
 }
+
+export async function createEnrollment(
+  enrollment: InsertTables<"sequence_enrollments">
+): Promise<Tables<"sequence_enrollments">> {
+  if (isSandboxId(enrollment.patient_id)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("sequence_enrollments")
+    .insert(enrollment)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
