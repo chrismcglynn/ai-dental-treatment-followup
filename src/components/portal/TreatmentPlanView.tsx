@@ -1,36 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {
-  Calendar,
-  Phone,
-  Loader2,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-  ListChecks,
-} from "lucide-react";
+import { Calendar, Phone, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingConfirmationScreen } from "./BookingConfirmationScreen";
 import { useSandboxStore } from "@/stores/sandbox-store";
 import { useUiStore } from "@/stores/ui-store";
 import { broadcastPortalBooking } from "@/lib/sandbox/portalBroadcast";
-import {
-  format,
-  addMonths,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameMonth,
-  isSameDay,
-  isToday,
-  isBefore,
-  startOfDay,
-  getDay,
-} from "date-fns";
+import { format, addMonths } from "date-fns";
 
 // ─── Practice hours types ───────────────────────────────────────────────────
 
@@ -60,12 +38,6 @@ const DAY_NAMES = [
   "friday",
   "saturday",
 ] as const;
-
-const DAY_LABELS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-// ─── Scheduling mode types ──────────────────────────────────────────────────
-
-type ScheduleMode = "book" | "availability";
 
 export interface AvailabilityPreferences {
   months: string[];
@@ -110,33 +82,6 @@ function formatTime12(time24: string): string {
   const period = h >= 12 ? "PM" : "AM";
   const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
-}
-
-function generateTimeSlots(open: string, close: string): string[] {
-  const slots: string[] = [];
-  const [openH, openM] = open.split(":").map(Number);
-  const [closeH, closeM] = close.split(":").map(Number);
-  const startMinutes = openH * 60 + openM;
-  const endMinutes = closeH * 60 + closeM;
-
-  for (let m = startMinutes; m < endMinutes; m += 30) {
-    const h = Math.floor(m / 60);
-    const min = m % 60;
-    slots.push(
-      `${h.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`
-    );
-  }
-  return slots;
-}
-
-function isDayOpen(date: Date, hours: PracticeHours): boolean {
-  const dayName = DAY_NAMES[getDay(date)];
-  return hours[dayName] !== null && hours[dayName] !== undefined;
-}
-
-function getDayHours(date: Date, hours: PracticeHours): DayHours | null {
-  const dayName = DAY_NAMES[getDay(date)];
-  return hours[dayName] ?? null;
 }
 
 function toggleInArray(arr: string[], value: string): string[] {
@@ -218,45 +163,6 @@ function HoursOfOperation({ hours }: { hours: PracticeHours }) {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── Schedule mode toggle ───────────────────────────────────────────────────
-
-function ScheduleModeToggle({
-  mode,
-  onModeChange,
-}: {
-  mode: ScheduleMode;
-  onModeChange: (mode: ScheduleMode) => void;
-}) {
-  return (
-    <div className="flex rounded-lg border border-stone-200 bg-stone-100 p-1">
-      <button
-        type="button"
-        onClick={() => onModeChange("book")}
-        className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
-          mode === "book"
-            ? "bg-white text-stone-900 shadow-sm"
-            : "text-stone-500 hover:text-stone-700"
-        }`}
-      >
-        <CalendarDays className="h-3.5 w-3.5" />
-        Book Appointment
-      </button>
-      <button
-        type="button"
-        onClick={() => onModeChange("availability")}
-        className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
-          mode === "availability"
-            ? "bg-white text-stone-900 shadow-sm"
-            : "text-stone-500 hover:text-stone-700"
-        }`}
-      >
-        <ListChecks className="h-3.5 w-3.5" />
-        Share Availability
-      </button>
     </div>
   );
 }
@@ -415,159 +321,10 @@ function AvailabilityPicker({
   );
 }
 
-// ─── Calendar picker ────────────────────────────────────────────────────────
-
-function CalendarPicker({
-  selected,
-  onSelect,
-  hours,
-}: {
-  selected: Date | null;
-  onSelect: (date: Date) => void;
-  hours: PracticeHours;
-}) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-
-  const days = useMemo(() => {
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
-    const allDays = eachDayOfInterval({ start, end });
-
-    const startDow = getDay(start);
-    const padded: (Date | null)[] = Array.from(
-      { length: startDow },
-      () => null
-    );
-    return [...padded, ...allDays];
-  }, [currentMonth]);
-
-  const today = startOfDay(new Date());
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="p-1 rounded hover:bg-stone-100 text-stone-500"
-          aria-label="Previous month"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <span className="text-sm font-semibold text-stone-800">
-          {format(currentMonth, "MMMM yyyy")}
-        </span>
-        <button
-          type="button"
-          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="p-1 rounded hover:bg-stone-100 text-stone-500"
-          aria-label="Next month"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 mb-1">
-        {DAY_LABELS_SHORT.map((d) => (
-          <div
-            key={d}
-            className="text-center text-[10px] font-medium text-stone-400 uppercase"
-          >
-            {d}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day, i) => {
-          if (!day) {
-            return <div key={`empty-${i}`} />;
-          }
-
-          const inMonth = isSameMonth(day, currentMonth);
-          const isPast = isBefore(day, today);
-          const open = isDayOpen(day, hours);
-          const disabled = !inMonth || isPast || !open;
-          const isSelected = selected && isSameDay(day, selected);
-          const todayHighlight = isToday(day);
-
-          return (
-            <button
-              key={day.toISOString()}
-              type="button"
-              disabled={disabled}
-              onClick={() => onSelect(day)}
-              className={`
-                h-9 w-full rounded-md text-sm transition-all
-                ${disabled ? "text-stone-300 cursor-not-allowed" : "hover:bg-amber-50 text-stone-700 cursor-pointer"}
-                ${isSelected ? "bg-amber-500 text-white hover:bg-amber-600 font-semibold" : ""}
-                ${todayHighlight && !isSelected ? "ring-1 ring-amber-300" : ""}
-              `}
-            >
-              {format(day, "d")}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── Time slot picker ───────────────────────────────────────────────────────
-
-function TimeSlotPicker({
-  date,
-  hours,
-  selected,
-  onSelect,
-}: {
-  date: Date;
-  hours: PracticeHours;
-  selected: string | null;
-  onSelect: (time: string) => void;
-}) {
-  const dayHours = getDayHours(date, hours);
-  if (!dayHours) return null;
-
-  const slots = generateTimeSlots(dayHours.open, dayHours.close);
-
-  return (
-    <div>
-      <p className="text-xs font-medium text-stone-500 mb-2">
-        Available times for {format(date, "EEEE, MMMM d")}
-      </p>
-      <div className="grid grid-cols-3 gap-1.5 max-h-[200px] overflow-y-auto">
-        {slots.map((slot) => (
-          <button
-            key={slot}
-            type="button"
-            onClick={() => onSelect(slot)}
-            className={`
-              rounded-md border px-2 py-2 text-xs font-medium transition-all
-              ${
-                selected === slot
-                  ? "bg-amber-500 text-white border-amber-500"
-                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
-              }
-            `}
-          >
-            {formatTime12(slot)}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── Submission data type ───────────────────────────────────────────────────
 
 interface BookingSubmission {
-  mode: ScheduleMode;
-  // "book" mode
-  date?: Date;
-  time?: string;
-  // "availability" mode
-  availability?: AvailabilityPreferences;
+  availability: AvailabilityPreferences;
 }
 
 // ─── Main component ─────────────────────────────────────────────────────────
@@ -580,32 +337,21 @@ export function TreatmentPlanView({
   practiceHours = DEFAULT_PRACTICE_HOURS,
 }: TreatmentPlanViewProps) {
   const [step, setStep] = useState<"plan" | "schedule" | "confirmed">("plan");
-  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("book");
   const [loading, setLoading] = useState(false);
-
-  // Book mode state
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-
-  // Availability mode state
   const [availability, setAvailability] = useState<AvailabilityPreferences>({
     months: [],
     daysOfWeek: [],
     timesOfDay: [],
   });
-
   const [submission, setSubmission] = useState<BookingSubmission | null>(null);
 
   const sandboxStore = useSandboxStore();
   const addToast = useUiStore((s) => s.addToast);
 
-  const isBookValid = selectedDate !== null && selectedTime !== null;
-  const isAvailabilityValid =
+  const canSubmit =
     availability.months.length > 0 &&
     availability.daysOfWeek.length > 0 &&
     availability.timesOfDay.length > 0;
-  const canSubmit =
-    scheduleMode === "book" ? isBookValid : isAvailabilityValid;
 
   if (step === "confirmed" && submission) {
     return (
@@ -616,23 +362,10 @@ export function TreatmentPlanView({
     );
   }
 
-  function buildMessageBody(): string {
-    if (scheduleMode === "book" && selectedDate && selectedTime) {
-      const dateStr = format(selectedDate, "EEEE, MMMM d, yyyy");
-      const timeStr = formatTime12(selectedTime);
-      return `I'd like to schedule my appointment. My preferred time is ${dateStr} at ${timeStr}.`;
-    }
-    return formatAvailabilityMessage(availability);
-  }
-
   async function handleSubmit() {
     setLoading(true);
-    const messageBody = buildMessageBody();
-
-    const sub: BookingSubmission =
-      scheduleMode === "book"
-        ? { mode: "book", date: selectedDate!, time: selectedTime! }
-        : { mode: "availability", availability: { ...availability } };
+    const messageBody = formatAvailabilityMessage(availability);
+    const sub: BookingSubmission = { availability: { ...availability } };
 
     try {
       if (isSandbox) {
@@ -731,20 +464,13 @@ export function TreatmentPlanView({
           variant: "success",
         });
       } else {
-        const body: Record<string, unknown> = {
-          treatmentId: plan.id,
-          mode: scheduleMode,
-        };
-        if (scheduleMode === "book" && selectedDate && selectedTime) {
-          body.preferredDate = format(selectedDate, "yyyy-MM-dd");
-          body.preferredTime = selectedTime;
-        } else {
-          body.availability = availability;
-        }
         await fetch("/api/portal/request-booking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            treatmentId: plan.id,
+            availability,
+          }),
         });
       }
 
@@ -768,52 +494,20 @@ export function TreatmentPlanView({
               {plan.practice.name}
             </h1>
             <p className="text-sm text-stone-500">
-              {scheduleMode === "book"
-                ? "Select your preferred appointment time"
-                : "Tell us when works best for you"}
+              Tell us when works best for you
             </p>
           </div>
 
           <Card className="border-stone-200 shadow-sm bg-white text-stone-900">
             <CardContent className="pt-5 space-y-4">
-              {/* Mode toggle */}
-              <ScheduleModeToggle
-                mode={scheduleMode}
-                onModeChange={setScheduleMode}
-              />
-
-              {/* Hours of operation — shown in both modes */}
               <HoursOfOperation hours={practiceHours} />
 
-              {scheduleMode === "book" ? (
-                <>
-                  <CalendarPicker
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date);
-                      setSelectedTime(null);
-                    }}
-                    hours={practiceHours}
-                  />
+              <AvailabilityPicker
+                preferences={availability}
+                onUpdate={setAvailability}
+                practiceHours={practiceHours}
+              />
 
-                  {selectedDate && (
-                    <TimeSlotPicker
-                      date={selectedDate}
-                      hours={practiceHours}
-                      selected={selectedTime}
-                      onSelect={setSelectedTime}
-                    />
-                  )}
-                </>
-              ) : (
-                <AvailabilityPicker
-                  preferences={availability}
-                  onUpdate={setAvailability}
-                  practiceHours={practiceHours}
-                />
-              )}
-
-              {/* Submit */}
               <Button
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white"
                 size="lg"
@@ -825,9 +519,7 @@ export function TreatmentPlanView({
                 ) : (
                   <Calendar className="mr-2 h-4 w-4" />
                 )}
-                {scheduleMode === "book"
-                  ? "Confirm Preferred Time"
-                  : "Submit Availability"}
+                Submit Availability
               </Button>
 
               {/* Back link */}

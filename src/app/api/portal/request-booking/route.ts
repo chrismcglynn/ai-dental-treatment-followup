@@ -9,56 +9,32 @@ const TIME_LABELS: Record<string, string> = {
   late_afternoon: "Late Afternoon (2–5 PM)",
 };
 
-function formatTime12(time24: string): string {
-  const [h, m] = time24.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
-}
-
-function buildMessageBody(data: {
-  mode?: string;
-  preferredDate?: string;
-  preferredTime?: string;
-  availability?: {
-    months: string[];
-    daysOfWeek: string[];
-    timesOfDay: string[];
-  };
+function buildMessageBody(availability?: {
+  months: string[];
+  daysOfWeek: string[];
+  timesOfDay: string[];
 }): string {
-  if (data.mode === "availability" && data.availability) {
-    const months = data.availability.months
-      .map((m) => {
-        const [year, month] = m.split("-").map(Number);
-        return new Date(year, month - 1).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        });
-      })
-      .join(", ");
-    const days = data.availability.daysOfWeek
-      .map((d) => d.charAt(0).toUpperCase() + d.slice(1) + "s")
-      .join(", ");
-    const times = data.availability.timesOfDay
-      .map((t) => TIME_LABELS[t] ?? t)
-      .join(", ");
-
-    return `I'd like to schedule my appointment. Here's my availability:\n• Months: ${months}\n• Days: ${days}\n• Preferred times: ${times}`;
+  if (!availability) {
+    return "Patient requested booking via portal.";
   }
 
-  if (data.preferredDate && data.preferredTime) {
-    const dateObj = new Date(data.preferredDate + "T00:00:00");
-    const dateStr = dateObj.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-    const timeStr = formatTime12(data.preferredTime);
-    return `I'd like to schedule my appointment. My preferred time is ${dateStr} at ${timeStr}.`;
-  }
+  const months = availability.months
+    .map((m) => {
+      const [year, month] = m.split("-").map(Number);
+      return new Date(year, month - 1).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+    })
+    .join(", ");
+  const days = availability.daysOfWeek
+    .map((d) => d.charAt(0).toUpperCase() + d.slice(1) + "s")
+    .join(", ");
+  const times = availability.timesOfDay
+    .map((t) => TIME_LABELS[t] ?? t)
+    .join(", ");
 
-  return "Patient requested booking via portal.";
+  return `I'd like to schedule my appointment. Here's my availability:\n• Months: ${months}\n• Days: ${days}\n• Preferred times: ${times}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -106,7 +82,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const messageBody = buildMessageBody(body);
+  const messageBody = buildMessageBody(body.availability);
 
   // Insert inbound message: patient requested booking via portal
   await supabase.from("messages").insert({
