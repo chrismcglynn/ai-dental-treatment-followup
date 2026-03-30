@@ -5,11 +5,14 @@ import { type Tables } from "@/types/database.types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileText, ExternalLink } from "lucide-react";
+import { useSandbox } from "@/lib/sandbox";
 
 interface TreatmentPlansListProps {
   treatments: Tables<"treatments">[];
   loading?: boolean;
+  patientFirstName?: string;
 }
 
 const statusColors: Record<Tables<"treatments">["status"], string> = {
@@ -31,7 +34,15 @@ function formatDate(dateStr: string): string {
   return format(new Date(dateStr), "MMM d, yyyy");
 }
 
-export function TreatmentPlansList({ treatments, loading }: TreatmentPlansListProps) {
+function generateSandboxPortalToken(
+  patientId: string,
+  treatmentId: string
+): string {
+  return `sandbox-token-${patientId}-${Date.now()}`;
+}
+
+export function TreatmentPlansList({ treatments, loading, patientFirstName }: TreatmentPlansListProps) {
+  const { isSandbox, sandboxStore } = useSandbox();
   if (loading) {
     return (
       <div className="space-y-3">
@@ -89,6 +100,42 @@ export function TreatmentPlansList({ treatments, loading }: TreatmentPlansListPr
                 {formatCurrency(treatment.amount)}
               </span>
             </div>
+            {isSandbox && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 h-7 px-2 text-xs text-muted-foreground"
+                onClick={() => {
+                  const rawToken = generateSandboxPortalToken(
+                    treatment.patient_id,
+                    treatment.id
+                  );
+                  sandboxStore.addPortalToken({
+                    rawToken,
+                    patientId: treatment.patient_id,
+                    treatmentId: treatment.id,
+                    practiceId: "sandbox-practice-001",
+                    expiresAt: Date.now() + 72 * 60 * 60 * 1000,
+                    usedAt: null,
+                  });
+                  const params = new URLSearchParams({
+                    patient: patientFirstName || "Patient",
+                    treatment: treatment.description,
+                    treatmentId: treatment.id,
+                    practice: "Riverside Family Dental",
+                    phone: "(555) 123-4567",
+                    email: "front-desk@riverside.demo",
+                  });
+                  window.open(
+                    `/portal/${rawToken}?${params.toString()}`,
+                    "_blank"
+                  );
+                }}
+              >
+                <ExternalLink className="mr-1 h-3 w-3" />
+                Simulate patient view →
+              </Button>
+            )}
           </CardContent>
         </Card>
       ))}

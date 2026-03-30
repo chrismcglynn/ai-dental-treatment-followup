@@ -318,6 +318,7 @@ export default function PatientDetailPage() {
               <TreatmentPlansList
                 treatments={treatments ?? []}
                 loading={treatmentsLoading}
+                patientFirstName={patient?.first_name}
               />
             </CardContent>
           </Card>
