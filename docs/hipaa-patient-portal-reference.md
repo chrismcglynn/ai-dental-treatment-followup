@@ -61,11 +61,13 @@ Token expired or already used? → Redirect to /portal/expired or /portal/alread
 ## Database Schema
 
 ```sql
+-- supabase/migrations/00003_portal_tokens.sql
+
 create table portal_tokens (
   id uuid primary key default uuid_generate_v4(),
   token_hash text unique not null,          -- SHA-256 hash of raw token; never store raw
   patient_id uuid references patients(id) on delete cascade not null,
-  treatment_plan_id uuid references treatment_plans(id) on delete cascade,
+  treatment_id uuid references treatments(id) on delete cascade,
   practice_id uuid references practices(id) on delete cascade not null,
   purpose text default 'view_plan'
     check (purpose in ('view_plan', 'book')),
@@ -82,6 +84,7 @@ create index portal_tokens_expires_idx on portal_tokens(expires_at);
 ```
 
 **Key design decisions:**
+- `treatment_id` references the `treatments` table (not `treatment_plans` — the codebase uses `treatments` as the table name)
 - `token_hash` stores the SHA-256 hash of the raw token — the raw token only ever exists in memory and in the SMS link
 - `used_at` enforces single-use: once set, the token is invalid
 - `ip_address` + `user_agent` provide the audit trail required for HIPAA access logging
@@ -96,7 +99,7 @@ create index portal_tokens_expires_idx on portal_tokens(expires_at);
 
 export async function generatePortalToken(
   patientId: string,
-  treatmentPlanId: string,
+  treatmentId: string,
   practiceId: string
 ): Promise<string> {
   // Cryptographically secure random token
@@ -114,12 +117,12 @@ export async function generatePortalToken(
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  // Invalidate any existing unused tokens for this patient+plan (idempotency)
+  // Invalidate any existing unused tokens for this patient+treatment (idempotency)
   await supabase
     .from('portal_tokens')
     .update({ used_at: new Date().toISOString() })
     .eq('patient_id', patientId)
-    .eq('treatment_plan_id', treatmentPlanId)
+    .eq('treatment_id', treatmentId)
     .is('used_at', null)
 
   const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000) // 72 hours
@@ -127,7 +130,7 @@ export async function generatePortalToken(
   await supabase.from('portal_tokens').insert({
     token_hash: tokenHash,
     patient_id: patientId,
-    treatment_plan_id: treatmentPlanId,
+    treatment_id: treatmentId,
     practice_id: practiceId,
     expires_at: expiresAt.toISOString(),
   })
@@ -142,10 +145,10 @@ export async function generatePortalToken(
 ## Portal Page Route
 
 ```typescript
-// app/portal/[token]/page.tsx
+// src/app/portal/[token]/page.tsx
 
 export default async function PortalPage({ params }: { params: { token: string } }) {
-  const supabase = createClient()
+  const supabase = createServerSupabaseClient()  // from @/lib/supabase/server
   const headersList = headers()
 
   // Hash the incoming token for lookup
@@ -159,9 +162,9 @@ export default async function PortalPage({ params }: { params: { token: string }
     .from('portal_tokens')
     .select(`
       *,
-      patient:patients(id, first_name, last_name, preferred_contact),
-      treatment_plan:treatment_plans(
-        id, procedure_description, estimated_value, status, plan_date,
+      patient:patients(id, first_name, last_name),
+      treatment:treatments(
+        id, description, amount, status, code, presented_at,
         practice:practices(name, phone, email)
       )
     `)
@@ -185,7 +188,7 @@ export default async function PortalPage({ params }: { params: { token: string }
   return (
     <TreatmentPlanView
       patient={portalToken.patient}
-      plan={portalToken.treatment_plan}
+      plan={portalToken.treatment}
     />
   )
 }
@@ -287,19 +290,48 @@ Before issuing a new token for a patient+plan pair, all existing unused tokens f
 
 ## Sandbox / Demo Behavior
 
-In sandbox mode, portal token generation must be mocked:
+In sandbox mode, portal token generation must be mocked. The sandbox store lives in `src/stores/sandbox-store.ts` (Zustand with sessionStorage persistence). Portal token methods should be added directly to the store interface following the existing mutation pattern:
 
 ```typescript
-// In sandboxMutations.ts
-export async function generateSandboxPortalToken(patientId: string, planId: string): Promise<string> {
-  const fakeToken = `sandbox-token-${patientId}-${Date.now()}`
-  // Store in Zustand sandbox store, not Supabase
-  sandboxStore.addPortalToken({ token: fakeToken, patientId, planId, expiresAt: Date.now() + 72 * 3600 * 1000 })
-  return fakeToken
+// In stores/sandbox-store.ts — add to SandboxStoreActions interface
+addPortalToken: (token: SandboxPortalToken) => void
+getPortalToken: (rawToken: string) => SandboxPortalToken | null
+markPortalTokenUsed: (rawToken: string) => void
+
+// SandboxPortalToken type (add to sandbox-store.ts)
+interface SandboxPortalToken {
+  rawToken: string          // prefixed with 'sandbox-token-'
+  patientId: string
+  treatmentId: string
+  practiceId: string
+  expiresAt: number         // Date.now() + 72hr in ms
+  usedAt: number | null
 }
 ```
 
-The `/portal/[token]` route must check the sandbox store first when `isSandbox` is true. No real Supabase queries. No real token generation. The demo patient portal must render with sandbox patient + plan data.
+Token generation helper (called from the TreatmentPlansList component):
+
+```typescript
+// Inline in the component or a small util — NOT a separate sandboxMutations file
+async function generateSandboxPortalToken(
+  store: SandboxStore,
+  patientId: string,
+  treatmentId: string
+): Promise<string> {
+  const rawToken = `sandbox-token-${patientId}-${Date.now()}`
+  store.addPortalToken({
+    rawToken,
+    patientId,
+    treatmentId,
+    practiceId: 'sandbox-practice-001',
+    expiresAt: Date.now() + 72 * 60 * 60 * 1000,
+    usedAt: null,
+  })
+  return rawToken
+}
+```
+
+The `/portal/[token]` route must detect sandbox tokens (prefix `sandbox-token-`). For the POC, sandbox portal pages use URL search params to pass patient/treatment data (since the Zustand store is client-side only and unavailable in server components). No real Supabase queries. No real token generation. The demo patient portal must render with sandbox patient + plan data.
 
 ---
 
@@ -330,16 +362,28 @@ src/
         request-booking/
           route.ts        ← Handles booking intent from portal
         resend-link/
-          route.ts        ← Issues a fresh token on request
+          route.ts        ← Issues a fresh token on request (future)
   components/
     portal/
       TreatmentPlanView.tsx
       BookingConfirmationScreen.tsx
-      PracticeHeader.tsx
-  supabase/
-    functions/
-      generate-portal-token/
-        index.ts
-    migrations/
-      portal_tokens.sql
+  stores/
+    sandbox-store.ts      ← Extend with portalTokens state + actions
+supabase/
+  functions/
+    generate-portal-token/
+      index.ts
+  migrations/
+    00003_portal_tokens.sql
 ```
+
+**Codebase conventions:**
+- Supabase server client: `createServerSupabaseClient()` from `@/lib/supabase/server`
+- Supabase browser client: `createClient()` from `@/lib/supabase/client`
+- Sandbox store: `useSandboxStore` from `@/stores/sandbox-store`
+- Sandbox context: `useSandbox()` from `@/lib/sandbox`
+- Toast system: `useUiStore((s) => s.addToast)` from `@/stores/ui-store`
+- Treatment plans component: `TreatmentPlansList` in `src/components/shared/TreatmentPlansList/`
+- DB table is `treatments` (not `treatment_plans`), FK is `treatment_id`
+- Migration naming: `00NNN_description.sql` (zero-padded sequential numbers)
+- Sandbox IDs: all prefixed with `sandbox-` — detected by `isSandboxId()` from `@/lib/sandbox/sandboxData`

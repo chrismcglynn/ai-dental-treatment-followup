@@ -43,17 +43,17 @@ The portal POC must work in **two modes**:
 
 **Mode A — Sandbox (for demo):**
 - No real Supabase calls
-- Token generated and stored in Zustand sandbox store (`sandboxStore.portalTokens`)
-- `/portal/[token]` reads from sandbox store when token starts with `sandbox-token-`
+- Token generated and stored in Zustand sandbox store (`useSandboxStore` in `src/stores/sandbox-store.ts`, persisted to sessionStorage)
+- `/portal/[token]` detects sandbox tokens by `sandbox-token-` prefix → reads patient/treatment data from URL search params (since the Zustand store is client-side only and not accessible in server components)
 - Sandbox patient + plan data renders in the portal UI
-- A "Simulate patient click" button on the dashboard opens the portal in a new tab
+- A "Simulate patient view →" button on treatment plan cards opens the portal in a new tab
 
 **Mode B — Production (future):**
 - Real token generated via Edge Function → SHA-256 hashed → stored in `portal_tokens` table
-- `/portal/[token]` validates against Supabase → marks used → renders real patient + plan data
+- `/portal/[token]` uses `createServerSupabaseClient()` → validates against Supabase → marks used → renders real patient + plan data
 - Full HIPAA compliance path (requires BAA + HIPAA Supabase plan)
 
-Use the `isSandboxId()` utility (already in the codebase) as the routing mechanism. If the token starts with `sandbox-token-`, use the sandbox store. Otherwise, use the real Supabase path.
+Use the `sandbox-token-` prefix as the routing mechanism in the portal page. Use `isSandboxId()` from `@/lib/sandbox/sandboxData` for sandbox detection in API routes and components.
 
 ---
 
@@ -65,14 +65,16 @@ Complete in this exact order. Do not skip ahead.
 
 ### STEP 1 — Database migration
 
-Create `supabase/migrations/[timestamp]_portal_tokens.sql`:
+Create `supabase/migrations/00003_portal_tokens.sql`:
+
+> **Convention:** Existing migrations are `00001_initial_schema.sql` and `00002_add_sandbox_mode.sql`. Use sequential zero-padded numbering.
 
 ```sql
 create table portal_tokens (
   id uuid primary key default uuid_generate_v4(),
   token_hash text unique not null,
   patient_id uuid references patients(id) on delete cascade not null,
-  treatment_plan_id uuid references treatment_plans(id) on delete cascade,
+  treatment_id uuid references treatments(id) on delete cascade,
   practice_id uuid references practices(id) on delete cascade not null,
   purpose text default 'view_plan'
     check (purpose in ('view_plan', 'book')),
@@ -94,17 +96,19 @@ create policy "service_role_only" on portal_tokens
   using (false);
 ```
 
+> **Note:** The FK is `treatment_id` referencing the `treatments` table (not `treatment_plans` — the codebase uses `treatments`).
+
 ---
 
 ### STEP 2 — Token generation Edge Function
 
 Create `supabase/functions/generate-portal-token/index.ts`.
 
-Implement `generatePortalToken(patientId, treatmentPlanId, practiceId)`:
+Implement `generatePortalToken(patientId, treatmentId, practiceId)`:
 - Generate raw token: `crypto.randomUUID() + '-' + Date.now()`
 - SHA-256 hash it using `crypto.subtle.digest`
-- Invalidate any existing unused tokens for this patient+plan
-- Insert `{ token_hash, patient_id, treatment_plan_id, practice_id, expires_at }` into `portal_tokens`
+- Invalidate any existing unused tokens for this patient+treatment
+- Insert `{ token_hash, patient_id, treatment_id, practice_id, expires_at }` into `portal_tokens`
 - Return the raw token (not the hash)
 
 Expiry: 72 hours from creation.
@@ -113,40 +117,47 @@ Expiry: 72 hours from creation.
 
 ### STEP 3 — Sandbox store extension
 
-Extend `src/lib/sandbox/sandboxData.ts` and the Zustand sandbox store to support portal tokens:
+Extend the Zustand sandbox store at `src/stores/sandbox-store.ts` to support portal tokens. Follow the existing store patterns (state + actions, `set()` for immutable updates, `get()` for reads).
+
+> **Important:** There is no `sandboxMutations.ts` file. All sandbox state and mutations live in `src/stores/sandbox-store.ts`. The sandbox context provider is in `src/lib/sandbox/index.ts`.
 
 ```typescript
-// Add to SandboxStore interface
+// Add to SandboxStoreState interface
 portalTokens: SandboxPortalToken[]
+
+// Add to SandboxStoreActions interface
 addPortalToken: (token: SandboxPortalToken) => void
 getPortalToken: (rawToken: string) => SandboxPortalToken | null
 markPortalTokenUsed: (rawToken: string) => void
 
-// Type
-interface SandboxPortalToken {
+// Add type (in same file, near SandboxActivity)
+export interface SandboxPortalToken {
   rawToken: string          // prefixed with 'sandbox-token-'
   patientId: string
-  treatmentPlanId: string
+  treatmentId: string       // references sandbox treatment ID
   practiceId: string
   expiresAt: number         // Date.now() + 72hr in ms
   usedAt: number | null
 }
 ```
 
-Add a sandbox-aware token generator to `sandboxMutations.ts`:
+Initialize `portalTokens: []` in `getInitialState()`.
+
+The token generation helper should be called inline from the component that triggers it (the TreatmentPlansList), using the store instance from `useSandbox().sandboxStore`:
 
 ```typescript
-export async function generateSandboxPortalToken(
+// Called from component — no separate mutations file needed
+function generateSandboxPortalToken(
+  store: SandboxStore,
   patientId: string,
-  treatmentPlanId: string
-): Promise<string> {
-  await simulateDelay(400)
+  treatmentId: string
+): string {
   const rawToken = `sandbox-token-${patientId}-${Date.now()}`
-  sandboxStore.addPortalToken({
+  store.addPortalToken({
     rawToken,
     patientId,
-    treatmentPlanId,
-    practiceId: SANDBOX_PRACTICE.id,
+    treatmentId,
+    practiceId: 'sandbox-practice-001',
     expiresAt: Date.now() + 72 * 60 * 60 * 1000,
     usedAt: null,
   })
@@ -158,11 +169,13 @@ export async function generateSandboxPortalToken(
 
 ### STEP 4 — Portal page route
 
-Create `src/app/portal/[token]/page.tsx` as a **server component**.
+Create `src/app/portal/[token]/page.tsx`.
+
+> **Architecture note:** The Zustand sandbox store is client-side only (sessionStorage). Server components cannot read it. For sandbox tokens, pass patient/treatment data via URL search params when opening the portal from the dashboard. The portal page detects sandbox tokens by the `sandbox-token-` prefix and reads data from search params instead of querying Supabase.
 
 Logic:
-1. If token starts with `sandbox-token-` → read from a temporary server-side sandbox token store (use cookies or a module-level Map for the POC — this is dev-only). In the POC, you can make sandbox portal pages readable without marking used, so demo users can visit the link multiple times.
-2. If token is a real token → hash it → query `portal_tokens` table → validate expiry + used_at → mark used → fetch patient + plan with joins.
+1. If token starts with `sandbox-token-` → read patient name, treatment description, and practice info from URL search params (passed when the link is generated in Step 8). Render directly — no Supabase query needed.
+2. If token is a real token → use `createServerSupabaseClient()` from `@/lib/supabase/server` → hash it → query `portal_tokens` table with joins on `patients`, `treatments`, and `practices` → validate expiry + used_at → mark used → render.
 3. If not found → `notFound()`
 4. If expired → `redirect('/portal/expired')`
 5. If already used → `redirect('/portal/already-used')`
@@ -192,7 +205,7 @@ Create `src/components/portal/TreatmentPlanView.tsx`.
 3. **Procedure block** — gray card showing `procedure_description`. Do not show `estimated_value` — price creates anxiety and is not required in the HIPAA minimum-necessary standard.
 
 4. **Primary CTA** — "Yes, I'd like to schedule this" → amber button, full width. On click:
-    - POST to `/api/portal/request-booking` with `{ planId }`
+    - POST to `/api/portal/request-booking` with `{ treatmentId }`
     - Show loading spinner on button
     - On success → render `<BookingConfirmationScreen />`
 
@@ -227,48 +240,61 @@ Create `src/app/portal/already-used/page.tsx`:
 Create `src/app/api/portal/request-booking/route.ts`:
 
 ```typescript
-// POST { planId: string }
-// 1. Look up treatment plan by planId
-// 2. Update treatment_plan status to 'booked' (or a new 'booking_requested' status)
-// 3. Insert a touchpoint row: direction='inbound', status='replied', channel='sms', 
-//    message_body='Patient requested booking via portal'
+// POST { treatmentId: string }
+// 1. Look up treatment by treatmentId in `treatments` table
+// 2. Update treatment status to 'accepted' (matching the existing status enum: pending/accepted/declined/completed)
+// 3. Insert a message row: direction='inbound', status='received', channel='sms',
+//    body='Patient requested booking via portal'
 // 4. TODO (future): Send notification email to practice via Resend
 // 5. Return { success: true }
 
-// Sandbox path: if planId starts with 'sandbox-', update sandboxStore instead
-// Use the sandbox guard pattern already in the codebase
+// Sandbox path: if treatmentId starts with 'sandbox-', return success without DB writes.
+// The sandbox booking flow is handled client-side — the TreatmentPlanView component
+// updates the sandbox store directly via useSandboxStore when isSandboxId(treatmentId).
+// Use isSandboxId() from @/lib/sandbox/sandboxData for detection.
 ```
 
 ---
 
 ### STEP 8 — Dashboard integration (sandbox only)
 
-On the treatment plan card component (`src/components/features/patients/TreatmentPlanCard.tsx` or equivalent), add a **"Simulate patient view →"** button that:
+On the treatment plan list component (`src/components/shared/TreatmentPlansList/index.tsx`), add a **"Simulate patient view →"** button to each treatment card that:
 
-1. Is only visible when `isSandbox === true`
-2. On click → calls `generateSandboxPortalToken(patientId, planId)` → opens `/portal/[token]` in a new tab
-3. Button style: small, ghost variant, text "Simulate patient view →" with an external link icon
-4. Shown inline with the existing plan action buttons
+1. Is only visible when `isSandbox === true` (from `useSandbox()` hook in `@/lib/sandbox`)
+2. On click → generates a sandbox token → opens `/portal/[token]?patient=...&treatment=...&practice=...` in a new tab (search params carry the data since the Zustand store isn't accessible from server components)
+3. Button style: small, ghost variant, text "Simulate patient view →" with an external link icon (`ExternalLink` from lucide-react)
+4. Shown below each treatment card's existing content
+
+> **Note:** The component needs the patient's first name to construct the portal URL. Add an optional `patientFirstName` prop to `TreatmentPlansListProps`. The patient detail page already has the patient object and can pass it down.
 
 This is the **primary demo trigger** — a prospect watching a demo can click this button on any treatment plan card to see exactly what their patient would experience.
 
 ---
 
-### STEP 9 — SandboxActivityFeed integration
+### STEP 9 — SandboxActivityFeed + Toast integration
 
-When `generateSandboxPortalToken` is called (Step 8), emit a simulation event to the activity feed:
+When the "Simulate patient view" button is clicked (Step 8), emit an activity feed item using the existing `SandboxActivity` type and `addActivityFeedItem()` method:
 
 ```typescript
-sandboxStore.addActivity({
-  type: 'PORTAL_LINK_OPENED',
-  icon: '🔗',
-  message: `Portal link generated for ${patient.first_name} ${patient.last_name} — ${plan.procedure_description}`,
-  timestamp: Date.now(),
-  color: 'blue',
+// Uses the existing SandboxActivity interface from stores/sandbox-store.ts
+// Valid types: "sms_sent" | "email_sent" | "voicemail_sent" | "delivered" | "replied" | "booked" | "plan_detected"
+sandboxStore.addActivityFeedItem({
+  id: `portal-${Date.now()}`,
+  type: 'sms_sent',  // closest existing type — portal link sent via SMS
+  description: `Portal link generated for ${treatment.description}`,
+  patientName: `${patient.first_name} ${patient.last_name}`,
+  timestamp: new Date().toISOString(),
 })
 ```
 
-When the patient "books" (POSTs to `/api/portal/request-booking`), also emit a `PLAN_BOOKED` simulation event — so the revenue counter in the dashboard updates, the green toast fires, and the analytics chart animates. This completes the end-to-end demo loop.
+When the patient "books" from the portal, the `TreatmentPlanView` component should (for sandbox tokens only):
+
+1. Update the sandbox store directly: `store.updateTreatment(treatmentId, { status: 'accepted', decided_at: now })`
+2. Update dashboard stats: `store.updateDashboardStats({ revenue_recovered: current + amount })`
+3. Emit a "booked" activity feed item via `store.addActivityFeedItem()`
+4. Fire a success toast via `useUiStore.getState().addToast({ title: "Treatment plan booked!", description: "...", variant: "success" })`
+
+> **Note:** The toast system uses `useUiStore` from `@/stores/ui-store`, not a custom event. The simulation engine's `handlePlanBooked()` in `simulationEngine.ts` shows the exact pattern. Query invalidation uses `useQueryClient().invalidateQueries()` with keys from the hook modules (`patientKeys`, `analyticsKeys`, etc.).
 
 ---
 
@@ -281,7 +307,7 @@ Before considering this complete, verify:
 - [ ] Expired and already-used error pages render without crashing
 - [ ] "Simulate patient view →" button appears on treatment plan cards in sandbox mode only
 - [ ] Clicking the button opens a new tab with the portal pre-populated with correct patient data
-- [ ] Tapping "Yes, I'd like to schedule this" → triggers `PLAN_BOOKED` event → revenue counter animates → green toast fires
+- [ ] Tapping "Yes, I'd like to schedule this" → updates sandbox store (treatment accepted, revenue updated) → `addActivityFeedItem()` with type `"booked"` → `addToast()` fires green success toast
 - [ ] Portal page is mobile-responsive at 390px width
 - [ ] No Followdent product branding visible on the portal page (practice-branded only)
 - [ ] `estimated_value` is NOT shown on the portal (price creates patient anxiety)
@@ -296,7 +322,7 @@ Before considering this complete, verify:
 ```
 supabase/
   migrations/
-    [timestamp]_portal_tokens.sql
+    00003_portal_tokens.sql
   functions/
     generate-portal-token/
       index.ts
@@ -325,11 +351,11 @@ src/
 ## FILES TO MODIFY
 
 ```
-src/lib/sandbox/sandboxData.ts          ← Add SandboxPortalToken type + initial empty array
-src/lib/sandbox/index.ts                ← Add portalTokens to SandboxStore interface
-src/lib/sandbox/sandboxMutations.ts     ← Add generateSandboxPortalToken()
-src/components/features/patients/
-  TreatmentPlanCard.tsx (or equivalent) ← Add "Simulate patient view →" button
+src/stores/sandbox-store.ts                        ← Add SandboxPortalToken type, portalTokens state,
+                                                      addPortalToken/getPortalToken/markPortalTokenUsed actions
+src/components/shared/TreatmentPlansList/index.tsx  ← Add "Simulate patient view →" button (sandbox only),
+                                                      add optional patientFirstName prop
+src/app/(dashboard)/patients/[id]/page.tsx          ← Pass patient.first_name to TreatmentPlansList
 ```
 
 ---
@@ -338,11 +364,15 @@ src/components/features/patients/
 
 Read these before writing any code:
 
-- `hipaa-patient-portal-reference.md` — full architecture, HIPAA checklist, token flow
-- `src/lib/sandbox/index.ts` — existing SandboxProvider + useSandbox hook
-- `src/lib/sandbox/sandboxData.ts` — existing seed data patterns
-- `src/lib/sandbox/sandboxMutations.ts` — existing mutation patterns + simulateDelay usage
-- `src/lib/sandbox/simulationEngine.ts` — how PLAN_BOOKED events are emitted
+- `docs/hipaa-patient-portal-reference.md` — full architecture, HIPAA checklist, token flow
+- `src/lib/sandbox/index.ts` — SandboxProvider + useSandbox hook + SandboxContextValue interface
+- `src/lib/sandbox/sandboxData.ts` — seed data patterns + isSandboxId() utility + SANDBOX_PRACTICE constant
+- `src/lib/sandbox/simulationEngine.ts` — how "booked" events are emitted, toast firing pattern, query invalidation
+- `src/stores/sandbox-store.ts` — SandboxStore type, all state/actions, mutation patterns (this is where portal token support goes)
+- `src/stores/ui-store.ts` — Toast system: addToast({ title, description, variant })
+- `src/lib/supabase/server.ts` — createServerSupabaseClient() for server components
+- `src/components/shared/TreatmentPlansList/index.tsx` — existing treatment card component to extend
+- `src/app/(dashboard)/patients/[id]/page.tsx` — patient detail page that renders TreatmentPlansList
 
 ---
 
@@ -351,11 +381,11 @@ Read these before writing any code:
 After this is built, the sandbox demo flow is:
 
 1. Prospect opens the demo → sees Riverside Family Dental dashboard
-2. Navigates to Patients → clicks Maria Castellano
-3. Sees her crown treatment plan card → clicks "Simulate patient view →"
+2. Navigates to Patients → clicks Maria Castellano (`sandbox-patient-001`)
+3. Sees her crown treatment plan card (D2740 — Crown — upper left molar, `sandbox-treatment-001`, $1,450) → clicks "Simulate patient view →"
 4. New tab opens with the patient portal, showing: "Hi Maria, your treatment plan is ready to schedule" + the procedure description
 5. Prospect clicks "Yes, I'd like to schedule this"
-6. Portal shows booking confirmation
-7. Back on the dashboard tab: green toast fires ("Maria Castellano just booked her crown appointment 🎉"), revenue counter animates up by $1,450
+6. Portal shows booking confirmation with Riverside Family Dental branding
+7. Back on the dashboard tab: green toast fires via `addToast()` ("Treatment plan booked! — Maria Castellano — $1,450 recovered"), revenue counter animates up, activity feed shows "booked" event
 
 This is the **money moment** of the demo. Every implementation decision should optimize for making this sequence feel fast, realistic, and impressive.
