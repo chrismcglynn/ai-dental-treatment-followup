@@ -41,7 +41,6 @@ import {
 import { useSequences } from "@/hooks/useSequences";
 import { cn } from "@/lib/utils";
 import { isSandboxId } from "@/lib/sandbox/sandboxData";
-import { type Sequence } from "@/types/app.types";
 
 const avatarColors = [
   "bg-blue-500",

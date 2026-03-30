@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   MessageSquare,
   Mail,
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { type StepData, type Channel, type Tone, TONE_CONFIG } from "./types";
+import { ProcedureCodeSelect } from "./ProcedureCodeSelect";
 
 interface StepConfigPanelProps {
   sequenceName: string;
@@ -48,19 +48,6 @@ export function StepConfigPanel({
   onPreviewStep,
 }: StepConfigPanelProps) {
   const selectedStep = steps.find((s) => s.id === selectedStepId);
-  const [procedureInput, setProcedureInput] = useState("");
-
-  function addProcedure() {
-    const trimmed = procedureInput.trim();
-    if (trimmed && !procedures.includes(trimmed)) {
-      onProceduresChange([...procedures, trimmed]);
-      setProcedureInput("");
-    }
-  }
-
-  function removeProcedure(p: string) {
-    onProceduresChange(procedures.filter((x) => x !== p));
-  }
 
   if (selectedStep) {
     return (
@@ -190,46 +177,10 @@ export function StepConfigPanel({
         <Label className="text-xs text-muted-foreground uppercase tracking-wider">
           Procedure filters
         </Label>
-        <div className="flex gap-2">
-          <Input
-            value={procedureInput}
-            onChange={(e) => setProcedureInput(e.target.value)}
-            placeholder="e.g., D2740 - Crown"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addProcedure();
-              }
-            }}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={addProcedure}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-        {procedures.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {procedures.map((p) => (
-              <span
-                key={p}
-                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
-              >
-                {p}
-                <button
-                  onClick={() => removeProcedure(p)}
-                  className="ml-0.5 text-muted-foreground hover:text-foreground"
-                >
-                  &times;
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
+        <ProcedureCodeSelect
+          selected={procedures}
+          onSelectedChange={onProceduresChange}
+        />
       </div>
 
       <div className="border-t pt-4">

@@ -10,7 +10,7 @@ import {
   getPatientEnrollments,
   createEnrollment,
 } from "@/lib/api/patients";
-import { type InsertTables, type UpdateTables, type Tables, type Database } from "@/types/database.types";
+import { type InsertTables, type UpdateTables, type Tables } from "@/types/database.types";
 import { type PatientFilters, type Patient, type Treatment, type Message, type EnrollmentWithSequence, type PaginatedResponse } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
