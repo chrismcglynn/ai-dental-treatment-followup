@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { type Tables, type InsertTables, type UpdateTables } from "@/types/database.types";
 import { type PaginatedResponse } from "@/types/app.types";
+import { isSandboxId } from "@/lib/sandbox/sandboxData";
 
 export async function getPatients(
   practiceId: string,
@@ -127,6 +128,9 @@ export async function updatePatient(
   patientId: string,
   updates: UpdateTables<"patients">
 ): Promise<Tables<"patients">> {
+  if (isSandboxId(patientId)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
   const supabase = createClient();
   const { data, error } = await supabase
     .from("patients")
@@ -180,4 +184,21 @@ export async function getPatientEnrollments(
   if (error) throw error;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as unknown as (Tables<"sequence_enrollments"> & { sequences: Tables<"sequences"> })[]) ?? [];
+}
+
+export async function createEnrollment(
+  enrollment: InsertTables<"sequence_enrollments">
+): Promise<Tables<"sequence_enrollments">> {
+  if (isSandboxId(enrollment.patient_id)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("sequence_enrollments")
+    .insert(enrollment)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }

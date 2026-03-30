@@ -541,7 +541,7 @@ Before considering this complete, verify:
 - [ ] Dashboard loads in sandbox mode in < 1.5 seconds (all data is in-memory)
 - [ ] Simulation fires events and updates UI without any page refresh
 - [ ] Revenue stat card animates upward when a `PLAN_BOOKED` event fires
-- [ ] Inbox shows unread inbound replies from seed data on first load
+- [ ] Inbox shows unread inbound replies from seed data on a first load
 - [ ] `/demo` page is accessible without auth and shows full dashboard
 - [ ] "Reset sandbox" returns all data to exact initial state
 - [ ] No real Twilio/Resend/Supabase calls are made from any sandbox action

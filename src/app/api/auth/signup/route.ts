@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { seedSandboxData, flagPracticeAsSandbox } from "@/lib/sandbox/seedSandboxData";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -77,6 +78,16 @@ export async function POST(request: NextRequest) {
       { error: "Failed to create membership", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
+  }
+
+  // 4. Seed sandbox data so new users see a pre-populated dashboard
+  try {
+    await seedSandboxData(practice.id);
+    await flagPracticeAsSandbox(practice.id);
+  } catch (seedError) {
+    // Non-fatal: sandbox seeding failure should not block signup.
+    // The user will just see an empty dashboard.
+    console.error("[Sandbox] Failed to seed demo data:", seedError);
   }
 
   return NextResponse.json({

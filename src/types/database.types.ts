@@ -23,6 +23,8 @@ export interface Database {
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
+          sandbox_mode: boolean;
+          sandbox_seeded_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -39,6 +41,8 @@ export interface Database {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
+          sandbox_mode?: boolean;
+          sandbox_seeded_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -55,6 +59,8 @@ export interface Database {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           subscription_status?: "trialing" | "active" | "past_due" | "canceled" | "free";
+          sandbox_mode?: boolean;
+          sandbox_seeded_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

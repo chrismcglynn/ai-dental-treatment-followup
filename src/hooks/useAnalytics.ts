@@ -9,8 +9,19 @@ import {
   getChannelBreakdown,
   getSequenceConversions,
   getFunnelData,
+  type RecentActivityItem,
+  type SequencePerformanceItem,
 } from "@/lib/api/analytics";
+import {
+  type DashboardStats,
+  type AnalyticsStats,
+  type ChannelBreakdownItem,
+  type SequenceConversionRow,
+  type FunnelStageItem,
+} from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
+import { useSandbox } from "@/lib/sandbox";
+import { simulateDelay } from "@/lib/sandbox/utils";
 
 // Query keys factory
 export const analyticsKeys = {
@@ -37,10 +48,17 @@ export const analyticsKeys = {
 
 export function useDashboardStats() {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.dashboard(activePracticeId!),
-    queryFn: () => getDashboardStats(activePracticeId!),
+    queryFn: async (): Promise<DashboardStats> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getDashboardStats() as DashboardStats;
+      }
+      return getDashboardStats(activePracticeId!);
+    },
     enabled: !!activePracticeId,
     refetchInterval: 1000 * 60 * 5,
   });
@@ -48,41 +66,69 @@ export function useDashboardStats() {
 
 export function useRevenueOverTime(days = 30) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.revenue(activePracticeId!, days),
-    queryFn: () => getRevenueOverTime(activePracticeId!, days),
+    queryFn: async (): Promise<{ date: string; amount: number }[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getRevenueOverTime(days) as { date: string; amount: number }[];
+      }
+      return getRevenueOverTime(activePracticeId!, days);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function useRecentActivity() {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.recentActivity(activePracticeId!),
-    queryFn: () => getRecentActivity(activePracticeId!),
+    queryFn: async (): Promise<RecentActivityItem[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getRecentActivity() as RecentActivityItem[];
+      }
+      return getRecentActivity(activePracticeId!);
+    },
     enabled: !!activePracticeId,
-    refetchInterval: 1000 * 30, // 30s refetch
+    refetchInterval: 1000 * 30,
   });
 }
 
 export function useSequencePerformance() {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.sequencePerformance(activePracticeId!),
-    queryFn: () => getSequencePerformance(activePracticeId!),
+    queryFn: async (): Promise<SequencePerformanceItem[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getSequencePerformance() as SequencePerformanceItem[];
+      }
+      return getSequencePerformance(activePracticeId!);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function usePendingTreatments() {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.pendingTreatments(activePracticeId!),
-    queryFn: () => getPendingTreatmentsCount(activePracticeId!),
+    queryFn: async (): Promise<number> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getPendingTreatmentsCount() as number;
+      }
+      return getPendingTreatmentsCount(activePracticeId!);
+    },
     enabled: !!activePracticeId,
     refetchInterval: 1000 * 60 * 5,
   });
@@ -90,40 +136,68 @@ export function usePendingTreatments() {
 
 export function useAnalyticsStats(days = 30) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.analyticsStats(activePracticeId!, days),
-    queryFn: () => getAnalyticsStats(activePracticeId!, days),
+    queryFn: async (): Promise<AnalyticsStats> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getAnalyticsStats() as AnalyticsStats;
+      }
+      return getAnalyticsStats(activePracticeId!, days);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function useChannelBreakdown(days = 30) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.channelBreakdown(activePracticeId!, days),
-    queryFn: () => getChannelBreakdown(activePracticeId!, days),
+    queryFn: async (): Promise<ChannelBreakdownItem[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getChannelBreakdown() as ChannelBreakdownItem[];
+      }
+      return getChannelBreakdown(activePracticeId!, days);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function useSequenceConversions(days = 30) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.sequenceConversions(activePracticeId!, days),
-    queryFn: () => getSequenceConversions(activePracticeId!, days),
+    queryFn: async (): Promise<SequenceConversionRow[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getSequenceConversions() as SequenceConversionRow[];
+      }
+      return getSequenceConversions(activePracticeId!, days);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function useFunnelData(days = 30) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: analyticsKeys.funnel(activePracticeId!, days),
-    queryFn: () => getFunnelData(activePracticeId!, days),
+    queryFn: async (): Promise<FunnelStageItem[]> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getFunnelData() as FunnelStageItem[];
+      }
+      return getFunnelData(activePracticeId!, days);
+    },
     enabled: !!activePracticeId,
   });
 }

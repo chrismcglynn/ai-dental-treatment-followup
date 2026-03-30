@@ -7,9 +7,11 @@ import {
   deleteSequence,
 } from "@/lib/api/sequences";
 import { type InsertTables, type UpdateTables } from "@/types/database.types";
-import { type SequenceFilters } from "@/types/app.types";
+import { type SequenceFilters, type Sequence, type SequenceWithTouchpoints } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useSandbox } from "@/lib/sandbox";
+import { simulateDelay } from "@/lib/sandbox/utils";
 
 // Query keys factory
 export const sequenceKeys = {
@@ -22,20 +24,34 @@ export const sequenceKeys = {
 
 export function useSequences(filters?: SequenceFilters) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: sequenceKeys.list(activePracticeId!, filters),
-    queryFn: () => getSequences(activePracticeId!, filters?.status),
+    queryFn: async (): Promise<Sequence[]> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getSequences(filters) as Sequence[];
+      }
+      return getSequences(activePracticeId!, filters?.status);
+    },
     enabled: !!activePracticeId,
   });
 }
 
 export function useSequence(sequenceId: string) {
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useQuery({
     queryKey: sequenceKeys.detail(activePracticeId!, sequenceId),
-    queryFn: () => getSequence(sequenceId),
+    queryFn: async (): Promise<SequenceWithTouchpoints | undefined> => {
+      if (isSandbox) {
+        await simulateDelay(200);
+        return sandboxStore.getSequence(sequenceId) as SequenceWithTouchpoints | undefined;
+      }
+      return getSequence(sequenceId);
+    },
     enabled: !!activePracticeId && !!sequenceId,
   });
 }
@@ -44,10 +60,16 @@ export function useCreateSequence() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useMutation({
-    mutationFn: (sequence: InsertTables<"sequences">) =>
-      createSequence(sequence),
+    mutationFn: async (sequence: InsertTables<"sequences">) => {
+      if (isSandbox) {
+        await simulateDelay(600);
+        return sandboxStore.createSequence(sequence as Omit<Sequence, "id" | "created_at" | "updated_at">);
+      }
+      return createSequence(sequence);
+    },
     onSuccess: () => {
       addToast({ title: "Sequence created", variant: "success" });
       queryClient.invalidateQueries({
@@ -64,15 +86,24 @@ export function useUpdateSequence() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       data,
     }: {
       id: string;
       data: UpdateTables<"sequences">;
-    }) => updateSequence(id, data),
+    }) => {
+      if (isSandbox) {
+        await simulateDelay(500);
+        const updated = sandboxStore.updateSequence(id, data);
+        if (!updated) throw new Error("Sequence not found");
+        return updated;
+      }
+      return updateSequence(id, data);
+    },
     onMutate: async ({ id, data }) => {
       // Optimistic update for status toggle
       if (data.status) {
@@ -117,9 +148,17 @@ export function useDeleteSequence() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
 
   return useMutation({
-    mutationFn: (sequenceId: string) => deleteSequence(sequenceId),
+    mutationFn: async (sequenceId: string) => {
+      if (isSandbox) {
+        await simulateDelay(500);
+        sandboxStore.deleteSequence(sequenceId);
+        return;
+      }
+      return deleteSequence(sequenceId);
+    },
     onSuccess: () => {
       addToast({ title: "Sequence deleted", variant: "success" });
       queryClient.invalidateQueries({

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useMemo } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { MessageSquareText } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "./MessageBubble";
@@ -107,9 +106,9 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   const patient = conversation.patient;
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Thread header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Thread header — pinned top */}
+      <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-border bg-background">
         <div>
           <h3 className="text-sm font-semibold">
             {patient.first_name} {patient.last_name}
@@ -120,7 +119,7 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages — scrollable middle */}
       {isLoading ? (
         <ThreadSkeleton />
       ) : !messages?.length ? (
@@ -129,8 +128,13 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
           <p className="text-sm text-muted-foreground">No messages yet</p>
         </div>
       ) : (
-        <ScrollArea className="flex-1" aria-live="polite" aria-label="Messages">
-          <div ref={scrollRef} className="p-4 space-y-1">
+        <div
+          ref={scrollRef}
+          className="flex-1 min-h-0 overflow-y-auto scrollbar-thin"
+          aria-live="polite"
+          aria-label="Messages"
+        >
+          <div className="p-4 space-y-1">
             {messageGroups.map((group, gi) => (
               <div key={gi}>
                 <DateSeparator date={group.date} />
@@ -142,20 +146,22 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
               </div>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       )}
 
-      {/* Reply composer */}
-      <ReplyComposer
-        onSend={(body) =>
-          sendReply.mutate({
-            patientId: conversation.patient_id,
-            conversationId: conversation.id,
-            body,
-          })
-        }
-        isSending={sendReply.isPending}
-      />
+      {/* Reply composer — pinned bottom */}
+      <div className="shrink-0">
+        <ReplyComposer
+          onSend={(body) =>
+            sendReply.mutate({
+              patientId: conversation.patient_id,
+              conversationId: conversation.id,
+              body,
+            })
+          }
+          isSending={sendReply.isPending}
+        />
+      </div>
     </div>
   );
 }

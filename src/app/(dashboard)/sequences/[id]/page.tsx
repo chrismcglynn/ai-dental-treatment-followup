@@ -15,9 +15,10 @@ import { usePracticeStore } from "@/stores/practice-store";
 export default function EditSequencePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }> | { id: string };
 }) {
-  const { id } = use(params);
+  const resolved = params instanceof Promise ? use(params) : params;
+  const { id } = resolved;
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const { data: sequence, isLoading } = useSequence(id);
   const updateSequence = useUpdateSequence();

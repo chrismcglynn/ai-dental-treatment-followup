@@ -5,6 +5,10 @@ import { Sidebar } from "@/components/shared/Sidebar";
 import { TopNav } from "@/components/shared/TopNav";
 import { MobileNav } from "@/components/shared/MobileNav";
 import { MobileSidebar } from "./mobile-sidebar";
+import { SandboxBanner } from "@/app/(dashboard)/sandbox-banner";
+import { SandboxActivityFeed } from "@/components/shared/SandboxActivityFeed";
+import { SandboxTour } from "@/components/shared/SandboxTour";
+import { ToastRenderer } from "@/components/shared/ToastRenderer";
 import { usePracticeStore } from "@/stores/practice-store";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +21,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <SandboxBanner />
       <Sidebar />
       <MobileSidebar />
       <div
@@ -31,6 +36,9 @@ export function AppShell({ children }: AppShellProps) {
         </main>
       </div>
       <MobileNav />
+      <SandboxTour />
+      <SandboxActivityFeed />
+      <ToastRenderer />
     </div>
   );
 }
