@@ -1,5 +1,5 @@
 create table portal_tokens (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   token_hash text unique not null,
   patient_id uuid references patients(id) on delete cascade not null,
   treatment_id uuid references treatments(id) on delete cascade,

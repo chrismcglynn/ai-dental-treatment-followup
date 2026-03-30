@@ -9,7 +9,12 @@ import {
   type ReactNode,
 } from "react";
 import { createElement } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSandboxStore, type SandboxActivity, type SandboxStore } from "@/stores/sandbox-store";
+import {
+  listenForPortalBroadcasts,
+  type PortalBroadcastMessage,
+} from "@/lib/sandbox/portalBroadcast";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -74,12 +79,44 @@ export function SandboxProvider({
   const [simulationSpeed, setSimulationSpeed] =
     useState<SimulationSpeed>(initialSpeed);
 
+  const queryClient = useQueryClient();
+
   // Auto-start simulation after a short delay (for /demo page)
   useEffect(() => {
     if (!enabled || !autoStart) return;
     const timer = setTimeout(() => setSimulationActive(true), 3000);
     return () => clearTimeout(timer);
   }, [enabled, autoStart]);
+
+  // Listen for portal booking broadcasts from other tabs
+  useEffect(() => {
+    if (!enabled) return;
+
+    return listenForPortalBroadcasts((data: PortalBroadcastMessage) => {
+      if (data.type === "portal_booking") {
+        // Apply the booking changes to this tab's store
+        store.updateTreatment(data.treatmentId, data.treatmentUpdate as { status: "accepted"; decided_at: string });
+        const currentStats = store.getDashboardStats();
+        store.updateDashboardStats({
+          revenue_recovered: currentStats.revenue_recovered + data.revenueRecovered,
+        });
+        store.addActivityFeedItem(data.activityItem);
+        store.addMessage(data.message);
+        if (data.conversationUpdate) {
+          store.updateConversation(
+            data.conversationUpdate.conversationId,
+            data.conversationUpdate.data
+          );
+        }
+
+        // Invalidate React Query caches so inbox/dashboard re-render
+        queryClient.invalidateQueries({ queryKey: ["inbox"] });
+        queryClient.invalidateQueries({ queryKey: ["patients"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      }
+    });
+  }, [enabled, store, queryClient]);
 
   const startSimulation = useCallback(() => setSimulationActive(true), []);
   const stopSimulation = useCallback(() => setSimulationActive(false), []);

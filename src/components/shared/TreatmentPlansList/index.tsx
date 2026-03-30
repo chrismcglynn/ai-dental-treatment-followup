@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { FileText, ExternalLink } from "lucide-react";
 import { useSandbox } from "@/lib/sandbox";
+import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 
 interface TreatmentPlansListProps {
   treatments: Tables<"treatments">[];
@@ -133,6 +134,7 @@ export function TreatmentPlansList({ treatments, loading, patientFirstName }: Tr
                     practicePhone: "(555) 123-4567",
                     practiceEmail: "front-desk@riverside.demo",
                     treatmentAmount: String(treatment.amount),
+                    practiceHours: JSON.stringify(DEFAULT_PRACTICE_HOURS),
                   });
                   window.open(
                     `/portal/${rawToken}?${params.toString()}`,

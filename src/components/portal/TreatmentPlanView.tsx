@@ -1,12 +1,169 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Phone, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Calendar,
+  Phone,
+  Loader2,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  ListChecks,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingConfirmationScreen } from "./BookingConfirmationScreen";
 import { useSandboxStore } from "@/stores/sandbox-store";
 import { useUiStore } from "@/stores/ui-store";
+import { broadcastPortalBooking } from "@/lib/sandbox/portalBroadcast";
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  isToday,
+  isBefore,
+  startOfDay,
+  getDay,
+} from "date-fns";
+
+// ─── Practice hours types ───────────────────────────────────────────────────
+
+export interface DayHours {
+  open: string; // "08:00"
+  close: string; // "17:00"
+}
+
+export type PracticeHours = Record<string, DayHours | null>; // null = closed
+
+export const DEFAULT_PRACTICE_HOURS: PracticeHours = {
+  sunday: null,
+  monday: { open: "08:00", close: "17:00" },
+  tuesday: { open: "08:00", close: "17:00" },
+  wednesday: { open: "08:00", close: "17:00" },
+  thursday: { open: "08:00", close: "17:00" },
+  friday: { open: "08:00", close: "14:00" },
+  saturday: null,
+};
+
+const DAY_NAMES = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
+
+const DAY_LABELS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// ─── Scheduling mode types ──────────────────────────────────────────────────
+
+type ScheduleMode = "book" | "availability";
+
+export interface AvailabilityPreferences {
+  months: string[];
+  daysOfWeek: string[];
+  timesOfDay: string[];
+}
+
+// ─── Preference option constants ────────────────────────────────────────────
+
+function getUpcomingMonths(): { value: string; label: string }[] {
+  const now = new Date();
+  const months: { value: string; label: string }[] = [];
+  for (let i = 0; i < 4; i++) {
+    const d = addMonths(now, i);
+    months.push({
+      value: format(d, "yyyy-MM"),
+      label: format(d, "MMMM yyyy"),
+    });
+  }
+  return months;
+}
+
+const DAYS_OF_WEEK_OPTIONS = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+] as const;
+
+const TIME_OF_DAY_OPTIONS = [
+  { value: "early_morning", label: "Early Morning", desc: "8:00 – 10:00 AM" },
+  { value: "late_morning", label: "Late Morning", desc: "10:00 AM – 12:00 PM" },
+  { value: "early_afternoon", label: "Early Afternoon", desc: "12:00 – 2:00 PM" },
+  { value: "late_afternoon", label: "Late Afternoon", desc: "2:00 – 5:00 PM" },
+] as const;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function formatTime12(time24: string): string {
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
+function generateTimeSlots(open: string, close: string): string[] {
+  const slots: string[] = [];
+  const [openH, openM] = open.split(":").map(Number);
+  const [closeH, closeM] = close.split(":").map(Number);
+  const startMinutes = openH * 60 + openM;
+  const endMinutes = closeH * 60 + closeM;
+
+  for (let m = startMinutes; m < endMinutes; m += 30) {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    slots.push(
+      `${h.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`
+    );
+  }
+  return slots;
+}
+
+function isDayOpen(date: Date, hours: PracticeHours): boolean {
+  const dayName = DAY_NAMES[getDay(date)];
+  return hours[dayName] !== null && hours[dayName] !== undefined;
+}
+
+function getDayHours(date: Date, hours: PracticeHours): DayHours | null {
+  const dayName = DAY_NAMES[getDay(date)];
+  return hours[dayName] ?? null;
+}
+
+function toggleInArray(arr: string[], value: string): string[] {
+  return arr.includes(value)
+    ? arr.filter((v) => v !== value)
+    : [...arr, value];
+}
+
+function formatAvailabilityMessage(prefs: AvailabilityPreferences): string {
+  const monthLabels = getUpcomingMonths();
+  const months = prefs.months
+    .map((m) => monthLabels.find((o) => o.value === m)?.label ?? m)
+    .join(", ");
+  const days = prefs.daysOfWeek
+    .map((d) => d.charAt(0).toUpperCase() + d.slice(1) + "s")
+    .join(", ");
+  const times = prefs.timesOfDay
+    .map(
+      (t) =>
+        TIME_OF_DAY_OPTIONS.find((o) => o.value === t)?.label ?? t
+    )
+    .join(", ");
+
+  return `I'd like to schedule my appointment. Here's my availability:\n• Months: ${months}\n• Days: ${days}\n• Preferred times: ${times}`;
+}
+
+// ─── Component interfaces ───────────────────────────────────────────────────
 
 interface PortalPatient {
   first_name: string;
@@ -30,48 +187,543 @@ interface TreatmentPlanViewProps {
   plan: PortalPlan;
   isSandbox: boolean;
   treatmentAmount?: number;
+  practiceHours?: PracticeHours;
 }
+
+// ─── Hours of Operation display ─────────────────────────────────────────────
+
+function HoursOfOperation({ hours }: { hours: PracticeHours }) {
+  return (
+    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Clock className="h-3.5 w-3.5 text-stone-500" />
+        <span className="text-xs font-semibold text-stone-600 uppercase tracking-wider">
+          Hours of Operation
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+        {DAY_NAMES.map((day) => {
+          const dayHours = hours[day];
+          return (
+            <div key={day} className="flex justify-between text-xs">
+              <span className="text-stone-500 capitalize">
+                {day.slice(0, 3)}
+              </span>
+              <span className={dayHours ? "text-stone-700" : "text-stone-400"}>
+                {dayHours
+                  ? `${formatTime12(dayHours.open)} – ${formatTime12(dayHours.close)}`
+                  : "Closed"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Schedule mode toggle ───────────────────────────────────────────────────
+
+function ScheduleModeToggle({
+  mode,
+  onModeChange,
+}: {
+  mode: ScheduleMode;
+  onModeChange: (mode: ScheduleMode) => void;
+}) {
+  return (
+    <div className="flex rounded-lg border border-stone-200 bg-stone-100 p-1">
+      <button
+        type="button"
+        onClick={() => onModeChange("book")}
+        className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
+          mode === "book"
+            ? "bg-white text-stone-900 shadow-sm"
+            : "text-stone-500 hover:text-stone-700"
+        }`}
+      >
+        <CalendarDays className="h-3.5 w-3.5" />
+        Book Appointment
+      </button>
+      <button
+        type="button"
+        onClick={() => onModeChange("availability")}
+        className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all ${
+          mode === "availability"
+            ? "bg-white text-stone-900 shadow-sm"
+            : "text-stone-500 hover:text-stone-700"
+        }`}
+      >
+        <ListChecks className="h-3.5 w-3.5" />
+        Share Availability
+      </button>
+    </div>
+  );
+}
+
+// ─── Availability preference picker ─────────────────────────────────────────
+
+function AvailabilityPicker({
+  preferences,
+  onUpdate,
+  practiceHours,
+}: {
+  preferences: AvailabilityPreferences;
+  onUpdate: (prefs: AvailabilityPreferences) => void;
+  practiceHours: PracticeHours;
+}) {
+  const upcomingMonths = useMemo(() => getUpcomingMonths(), []);
+
+  // Filter day-of-week options to only days the practice is open
+  const openDays = DAYS_OF_WEEK_OPTIONS.filter(
+    (d) => practiceHours[d.value] !== null && practiceHours[d.value] !== undefined
+  );
+
+  // Filter time-of-day options to times that overlap with practice hours
+  const availableTimes = useMemo(() => {
+    // Find earliest open and latest close across all open days
+    let earliestOpen = 24 * 60;
+    let latestClose = 0;
+    for (const day of DAY_NAMES) {
+      const h = practiceHours[day];
+      if (!h) continue;
+      const [oh, om] = h.open.split(":").map(Number);
+      const [ch, cm] = h.close.split(":").map(Number);
+      earliestOpen = Math.min(earliestOpen, oh * 60 + om);
+      latestClose = Math.max(latestClose, ch * 60 + cm);
+    }
+
+    const timeRanges: Record<string, [number, number]> = {
+      early_morning: [8 * 60, 10 * 60],
+      late_morning: [10 * 60, 12 * 60],
+      early_afternoon: [12 * 60, 14 * 60],
+      late_afternoon: [14 * 60, 17 * 60],
+    };
+
+    return TIME_OF_DAY_OPTIONS.filter((opt) => {
+      const [start, end] = timeRanges[opt.value];
+      // Time slot overlaps with practice hours if slot starts before latest close
+      // and slot ends after earliest open
+      return start < latestClose && end > earliestOpen;
+    });
+  }, [practiceHours]);
+
+  return (
+    <div className="space-y-5">
+      {/* Month preference */}
+      <div>
+        <label className="text-sm font-medium text-stone-700 mb-2 block">
+          What month works best for you?
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {upcomingMonths.map((month) => (
+            <button
+              key={month.value}
+              type="button"
+              onClick={() =>
+                onUpdate({
+                  ...preferences,
+                  months: toggleInArray(preferences.months, month.value),
+                })
+              }
+              className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                preferences.months.includes(month.value)
+                  ? "bg-amber-500 text-white border-amber-500"
+                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+              }`}
+            >
+              {month.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-stone-400 mt-1">Select all that apply</p>
+      </div>
+
+      {/* Day of week preference */}
+      <div>
+        <label className="text-sm font-medium text-stone-700 mb-2 block">
+          What day of the week works best?
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {openDays.map((day) => (
+            <button
+              key={day.value}
+              type="button"
+              onClick={() =>
+                onUpdate({
+                  ...preferences,
+                  daysOfWeek: toggleInArray(
+                    preferences.daysOfWeek,
+                    day.value
+                  ),
+                })
+              }
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                preferences.daysOfWeek.includes(day.value)
+                  ? "bg-amber-500 text-white border-amber-500"
+                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+              }`}
+            >
+              {day.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-stone-400 mt-1">Select all that apply</p>
+      </div>
+
+      {/* Time of day preference */}
+      <div>
+        <label className="text-sm font-medium text-stone-700 mb-2 block">
+          What time of day works best?
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {availableTimes.map((time) => (
+            <button
+              key={time.value}
+              type="button"
+              onClick={() =>
+                onUpdate({
+                  ...preferences,
+                  timesOfDay: toggleInArray(
+                    preferences.timesOfDay,
+                    time.value
+                  ),
+                })
+              }
+              className={`rounded-lg border px-3 py-2.5 text-left transition-all ${
+                preferences.timesOfDay.includes(time.value)
+                  ? "bg-amber-500 text-white border-amber-500"
+                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+              }`}
+            >
+              <span className="text-sm font-medium block">{time.label}</span>
+              <span
+                className={`text-[11px] ${
+                  preferences.timesOfDay.includes(time.value)
+                    ? "text-amber-100"
+                    : "text-stone-400"
+                }`}
+              >
+                {time.desc}
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-stone-400 mt-1">Select all that apply</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Calendar picker ────────────────────────────────────────────────────────
+
+function CalendarPicker({
+  selected,
+  onSelect,
+  hours,
+}: {
+  selected: Date | null;
+  onSelect: (date: Date) => void;
+  hours: PracticeHours;
+}) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const days = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    const allDays = eachDayOfInterval({ start, end });
+
+    const startDow = getDay(start);
+    const padded: (Date | null)[] = Array.from(
+      { length: startDow },
+      () => null
+    );
+    return [...padded, ...allDays];
+  }, [currentMonth]);
+
+  const today = startOfDay(new Date());
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+          className="p-1 rounded hover:bg-stone-100 text-stone-500"
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="text-sm font-semibold text-stone-800">
+          {format(currentMonth, "MMMM yyyy")}
+        </span>
+        <button
+          type="button"
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+          className="p-1 rounded hover:bg-stone-100 text-stone-500"
+          aria-label="Next month"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {DAY_LABELS_SHORT.map((d) => (
+          <div
+            key={d}
+            className="text-center text-[10px] font-medium text-stone-400 uppercase"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, i) => {
+          if (!day) {
+            return <div key={`empty-${i}`} />;
+          }
+
+          const inMonth = isSameMonth(day, currentMonth);
+          const isPast = isBefore(day, today);
+          const open = isDayOpen(day, hours);
+          const disabled = !inMonth || isPast || !open;
+          const isSelected = selected && isSameDay(day, selected);
+          const todayHighlight = isToday(day);
+
+          return (
+            <button
+              key={day.toISOString()}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelect(day)}
+              className={`
+                h-9 w-full rounded-md text-sm transition-all
+                ${disabled ? "text-stone-300 cursor-not-allowed" : "hover:bg-amber-50 text-stone-700 cursor-pointer"}
+                ${isSelected ? "bg-amber-500 text-white hover:bg-amber-600 font-semibold" : ""}
+                ${todayHighlight && !isSelected ? "ring-1 ring-amber-300" : ""}
+              `}
+            >
+              {format(day, "d")}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Time slot picker ───────────────────────────────────────────────────────
+
+function TimeSlotPicker({
+  date,
+  hours,
+  selected,
+  onSelect,
+}: {
+  date: Date;
+  hours: PracticeHours;
+  selected: string | null;
+  onSelect: (time: string) => void;
+}) {
+  const dayHours = getDayHours(date, hours);
+  if (!dayHours) return null;
+
+  const slots = generateTimeSlots(dayHours.open, dayHours.close);
+
+  return (
+    <div>
+      <p className="text-xs font-medium text-stone-500 mb-2">
+        Available times for {format(date, "EEEE, MMMM d")}
+      </p>
+      <div className="grid grid-cols-3 gap-1.5 max-h-[200px] overflow-y-auto">
+        {slots.map((slot) => (
+          <button
+            key={slot}
+            type="button"
+            onClick={() => onSelect(slot)}
+            className={`
+              rounded-md border px-2 py-2 text-xs font-medium transition-all
+              ${
+                selected === slot
+                  ? "bg-amber-500 text-white border-amber-500"
+                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+              }
+            `}
+          >
+            {formatTime12(slot)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Submission data type ───────────────────────────────────────────────────
+
+interface BookingSubmission {
+  mode: ScheduleMode;
+  // "book" mode
+  date?: Date;
+  time?: string;
+  // "availability" mode
+  availability?: AvailabilityPreferences;
+}
+
+// ─── Main component ─────────────────────────────────────────────────────────
 
 export function TreatmentPlanView({
   patient,
   plan,
   isSandbox,
   treatmentAmount,
+  practiceHours = DEFAULT_PRACTICE_HOURS,
 }: TreatmentPlanViewProps) {
-  const [booked, setBooked] = useState(false);
+  const [step, setStep] = useState<"plan" | "schedule" | "confirmed">("plan");
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("book");
   const [loading, setLoading] = useState(false);
+
+  // Book mode state
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  // Availability mode state
+  const [availability, setAvailability] = useState<AvailabilityPreferences>({
+    months: [],
+    daysOfWeek: [],
+    timesOfDay: [],
+  });
+
+  const [submission, setSubmission] = useState<BookingSubmission | null>(null);
+
   const sandboxStore = useSandboxStore();
   const addToast = useUiStore((s) => s.addToast);
 
-  if (booked) {
-    return <BookingConfirmationScreen practice={plan.practice} />;
+  const isBookValid = selectedDate !== null && selectedTime !== null;
+  const isAvailabilityValid =
+    availability.months.length > 0 &&
+    availability.daysOfWeek.length > 0 &&
+    availability.timesOfDay.length > 0;
+  const canSubmit =
+    scheduleMode === "book" ? isBookValid : isAvailabilityValid;
+
+  if (step === "confirmed" && submission) {
+    return (
+      <BookingConfirmationScreen
+        practice={plan.practice}
+        submission={submission}
+      />
+    );
   }
 
-  async function handleBooking() {
+  function buildMessageBody(): string {
+    if (scheduleMode === "book" && selectedDate && selectedTime) {
+      const dateStr = format(selectedDate, "EEEE, MMMM d, yyyy");
+      const timeStr = formatTime12(selectedTime);
+      return `I'd like to schedule my appointment. My preferred time is ${dateStr} at ${timeStr}.`;
+    }
+    return formatAvailabilityMessage(availability);
+  }
+
+  async function handleSubmit() {
     setLoading(true);
+    const messageBody = buildMessageBody();
+
+    const sub: BookingSubmission =
+      scheduleMode === "book"
+        ? { mode: "book", date: selectedDate!, time: selectedTime! }
+        : { mode: "availability", availability: { ...availability } };
+
     try {
       if (isSandbox) {
         const now = new Date().toISOString();
         const amount = treatmentAmount ?? 0;
+        const ts = Date.now();
 
-        sandboxStore.updateTreatment(plan.id, {
-          status: "accepted",
-          decided_at: now,
-        });
-
-        const currentStats = sandboxStore.getDashboardStats();
-        sandboxStore.updateDashboardStats({
-          revenue_recovered: currentStats.revenue_recovered + amount,
-        });
-
-        sandboxStore.addActivityFeedItem({
-          id: `portal-booked-${Date.now()}`,
-          type: "booked",
+        const treatmentUpdate = { status: "accepted" as const, decided_at: now };
+        const activityItem = {
+          id: `portal-booked-${ts}`,
+          type: "booked" as const,
           description: `Booked ${plan.description} — $${amount.toLocaleString()} recovered`,
           patientName: patient.first_name,
           amount,
           timestamp: now,
+        };
+
+        // Find patient ID from first name (portal only has first_name)
+        const patientId = sandboxStore.patients.find(
+          (p) => p.first_name === patient.first_name
+        )?.id;
+
+        const message = patientId
+          ? {
+              id: `sandbox-portal-msg-${ts}`,
+              practice_id: "sandbox-practice-001",
+              patient_id: patientId,
+              enrollment_id: null,
+              touchpoint_id: null,
+              channel: "sms" as const,
+              direction: "inbound" as const,
+              status: "received" as const,
+              subject: null,
+              body: messageBody,
+              external_id: `portal-booking-${ts}`,
+              error: null,
+              sent_at: now,
+              delivered_at: null,
+              read_at: null,
+              created_at: now,
+            }
+          : null;
+
+        let conversationUpdate: {
+          conversationId: string;
+          data: { last_message_at: string; last_message_preview: string; unread_count: number };
+        } | null = null;
+
+        if (patientId) {
+          const conversation = sandboxStore.conversations.find(
+            (c) => c.patient_id === patientId
+          );
+          if (conversation) {
+            conversationUpdate = {
+              conversationId: conversation.id,
+              data: {
+                last_message_at: now,
+                last_message_preview: messageBody.slice(0, 100),
+                unread_count: conversation.unread_count + 1,
+              },
+            };
+          }
+        }
+
+        // Apply to local store (this tab)
+        sandboxStore.updateTreatment(plan.id, treatmentUpdate);
+        const currentStats = sandboxStore.getDashboardStats();
+        sandboxStore.updateDashboardStats({
+          revenue_recovered: currentStats.revenue_recovered + amount,
         });
+        sandboxStore.addActivityFeedItem(activityItem);
+        if (message) sandboxStore.addMessage(message);
+        if (conversationUpdate) {
+          sandboxStore.updateConversation(
+            conversationUpdate.conversationId,
+            conversationUpdate.data
+          );
+        }
+
+        // Broadcast to admin tab so it picks up the changes
+        if (message) {
+          broadcastPortalBooking({
+            type: "portal_booking",
+            treatmentId: plan.id,
+            treatmentUpdate,
+            revenueRecovered: amount,
+            activityItem,
+            message,
+            conversationUpdate,
+          });
+        }
 
         addToast({
           title: "Treatment plan booked!",
@@ -79,22 +731,127 @@ export function TreatmentPlanView({
           variant: "success",
         });
       } else {
+        const body: Record<string, unknown> = {
+          treatmentId: plan.id,
+          mode: scheduleMode,
+        };
+        if (scheduleMode === "book" && selectedDate && selectedTime) {
+          body.preferredDate = format(selectedDate, "yyyy-MM-dd");
+          body.preferredTime = selectedTime;
+        } else {
+          body.availability = availability;
+        }
         await fetch("/api/portal/request-booking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ treatmentId: plan.id }),
+          body: JSON.stringify(body),
         });
       }
-      setBooked(true);
+
+      setSubmission(sub);
+      setStep("confirmed");
     } finally {
       setLoading(false);
     }
   }
 
+  // ── Schedule step ─────────────────────────────────────────────────────────
+  if (step === "schedule") {
+    return (
+      <div
+        className="min-h-screen bg-stone-50 p-6 flex items-center justify-center"
+        style={{ colorScheme: "light" }}
+      >
+        <div className="w-full max-w-[420px] space-y-4">
+          <div className="text-center pt-4">
+            <h1 className="text-lg font-semibold text-stone-900">
+              {plan.practice.name}
+            </h1>
+            <p className="text-sm text-stone-500">
+              {scheduleMode === "book"
+                ? "Select your preferred appointment time"
+                : "Tell us when works best for you"}
+            </p>
+          </div>
+
+          <Card className="border-stone-200 shadow-sm bg-white text-stone-900">
+            <CardContent className="pt-5 space-y-4">
+              {/* Mode toggle */}
+              <ScheduleModeToggle
+                mode={scheduleMode}
+                onModeChange={setScheduleMode}
+              />
+
+              {/* Hours of operation — shown in both modes */}
+              <HoursOfOperation hours={practiceHours} />
+
+              {scheduleMode === "book" ? (
+                <>
+                  <CalendarPicker
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setSelectedTime(null);
+                    }}
+                    hours={practiceHours}
+                  />
+
+                  {selectedDate && (
+                    <TimeSlotPicker
+                      date={selectedDate}
+                      hours={practiceHours}
+                      selected={selectedTime}
+                      onSelect={setSelectedTime}
+                    />
+                  )}
+                </>
+              ) : (
+                <AvailabilityPicker
+                  preferences={availability}
+                  onUpdate={setAvailability}
+                  practiceHours={practiceHours}
+                />
+              )}
+
+              {/* Submit */}
+              <Button
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                size="lg"
+                onClick={handleSubmit}
+                disabled={!canSubmit || loading}
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Calendar className="mr-2 h-4 w-4" />
+                )}
+                {scheduleMode === "book"
+                  ? "Confirm Preferred Time"
+                  : "Submit Availability"}
+              </Button>
+
+              {/* Back link */}
+              <button
+                type="button"
+                onClick={() => setStep("plan")}
+                className="w-full text-center text-sm text-stone-500 hover:text-stone-700 transition-colors"
+              >
+                &larr; Back to treatment plan
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Initial plan view ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-stone-50 p-6 flex items-center justify-center" style={{ colorScheme: "light" }}>
+    <div
+      className="min-h-screen bg-stone-50 p-6 flex items-center justify-center"
+      style={{ colorScheme: "light" }}
+    >
       <div className="w-full max-w-[420px] space-y-6">
-        {/* Practice header */}
         <div className="text-center pt-4">
           <h1 className="text-lg font-semibold text-stone-900">
             {plan.practice.name}
@@ -102,7 +859,6 @@ export function TreatmentPlanView({
           <p className="text-sm text-stone-500">Treatment plan follow-up</p>
         </div>
 
-        {/* Greeting + procedure + CTAs */}
         <Card className="border-stone-200 shadow-sm bg-white text-stone-900">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl font-normal text-stone-900">
@@ -110,7 +866,6 @@ export function TreatmentPlanView({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Procedure block */}
             <div className="rounded-lg bg-stone-100 p-4">
               <p
                 className="text-stone-700 leading-relaxed"
@@ -120,22 +875,15 @@ export function TreatmentPlanView({
               </p>
             </div>
 
-            {/* Primary CTA */}
             <Button
               className="w-full bg-amber-500 hover:bg-amber-600 text-white"
               size="lg"
-              onClick={handleBooking}
-              disabled={loading}
+              onClick={() => setStep("schedule")}
             >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Calendar className="mr-2 h-4 w-4" />
-              )}
+              <Calendar className="mr-2 h-4 w-4" />
               Yes, I&apos;d like to schedule this
             </Button>
 
-            {/* Secondary CTA */}
             <Button
               variant="outline"
               className="w-full bg-white text-stone-900 border-stone-300 hover:bg-stone-100"
@@ -148,7 +896,6 @@ export function TreatmentPlanView({
               </a>
             </Button>
 
-            {/* Footer */}
             <p className="text-center text-xs text-stone-400">
               To stop receiving these reminders, reply STOP to any of our
               messages.

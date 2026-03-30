@@ -15,6 +15,7 @@ import {
 } from "@/hooks/useInbox";
 import { usePatientTreatments } from "@/hooks/usePatients";
 import { useSandbox } from "@/lib/sandbox";
+import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 import { type ConversationWithPatient } from "@/types/app.types";
 import { type Tables } from "@/types/database.types";
 
@@ -146,6 +147,7 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
                 practicePhone: "(555) 123-4567",
                 practiceEmail: "front-desk@riverside.demo",
                 treatmentAmount: String(treatment.amount),
+                practiceHours: JSON.stringify(DEFAULT_PRACTICE_HOURS),
               });
               window.open(`/portal/${rawToken}?${params.toString()}`, "_blank");
             }}

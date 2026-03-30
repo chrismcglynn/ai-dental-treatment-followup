@@ -1,7 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { TreatmentPlanView } from "@/components/portal/TreatmentPlanView";
+import {
+  TreatmentPlanView,
+  DEFAULT_PRACTICE_HOURS,
+  type PracticeHours,
+} from "@/components/portal/TreatmentPlanView";
 
 interface PortalPageProps {
   params: { token: string };
@@ -14,7 +18,17 @@ interface PortalPageProps {
     practicePhone?: string;
     practiceEmail?: string;
     treatmentAmount?: string;
+    practiceHours?: string; // JSON-encoded PracticeHours
   };
+}
+
+function parsePracticeHours(raw: string | undefined): PracticeHours {
+  if (!raw) return DEFAULT_PRACTICE_HOURS;
+  try {
+    return JSON.parse(raw) as PracticeHours;
+  } catch {
+    return DEFAULT_PRACTICE_HOURS;
+  }
 }
 
 export default async function PortalPage({
@@ -34,13 +48,13 @@ export default async function PortalPage({
       practicePhone,
       practiceEmail,
       treatmentAmount,
+      practiceHours: practiceHoursRaw,
     } = searchParams;
 
     if (!patientFirstName || !treatmentDescription || !practiceName) {
       return notFound();
     }
 
-    // TODO: enforce single-use in production path only
     return (
       <TreatmentPlanView
         patient={{ first_name: patientFirstName }}
@@ -56,6 +70,7 @@ export default async function PortalPage({
         }}
         isSandbox={true}
         treatmentAmount={treatmentAmount ? Number(treatmentAmount) : undefined}
+        practiceHours={parsePracticeHours(practiceHoursRaw)}
       />
     );
   }
