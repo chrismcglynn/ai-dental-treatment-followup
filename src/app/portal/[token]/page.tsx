@@ -13,6 +13,7 @@ interface PortalPageProps {
     practiceName?: string;
     practicePhone?: string;
     practiceEmail?: string;
+    treatmentAmount?: string;
   };
 }
 
@@ -32,6 +33,7 @@ export default async function PortalPage({
       practiceName,
       practicePhone,
       practiceEmail,
+      treatmentAmount,
     } = searchParams;
 
     if (!patientFirstName || !treatmentDescription || !practiceName) {
@@ -53,6 +55,7 @@ export default async function PortalPage({
           },
         }}
         isSandbox={true}
+        treatmentAmount={treatmentAmount ? Number(treatmentAmount) : undefined}
       />
     );
   }

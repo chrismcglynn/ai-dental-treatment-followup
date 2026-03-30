@@ -5,6 +5,8 @@ import { Calendar, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingConfirmationScreen } from "./BookingConfirmationScreen";
+import { useSandboxStore } from "@/stores/sandbox-store";
+import { useUiStore } from "@/stores/ui-store";
 
 interface PortalPatient {
   first_name: string;
@@ -27,15 +29,19 @@ interface TreatmentPlanViewProps {
   patient: PortalPatient;
   plan: PortalPlan;
   isSandbox: boolean;
+  treatmentAmount?: number;
 }
 
 export function TreatmentPlanView({
   patient,
   plan,
   isSandbox,
+  treatmentAmount,
 }: TreatmentPlanViewProps) {
   const [booked, setBooked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const sandboxStore = useSandboxStore();
+  const addToast = useUiStore((s) => s.addToast);
 
   if (booked) {
     return <BookingConfirmationScreen practice={plan.practice} />;
@@ -44,7 +50,35 @@ export function TreatmentPlanView({
   async function handleBooking() {
     setLoading(true);
     try {
-      if (!isSandbox) {
+      if (isSandbox) {
+        const now = new Date().toISOString();
+        const amount = treatmentAmount ?? 0;
+
+        sandboxStore.updateTreatment(plan.id, {
+          status: "accepted",
+          decided_at: now,
+        });
+
+        const currentStats = sandboxStore.getDashboardStats();
+        sandboxStore.updateDashboardStats({
+          revenue_recovered: currentStats.revenue_recovered + amount,
+        });
+
+        sandboxStore.addActivityFeedItem({
+          id: `portal-booked-${Date.now()}`,
+          type: "booked",
+          description: `Booked ${plan.description} — $${amount.toLocaleString()} recovered`,
+          patientName: patient.first_name,
+          amount,
+          timestamp: now,
+        });
+
+        addToast({
+          title: "Treatment plan booked!",
+          description: `${patient.first_name} — $${amount.toLocaleString()} recovered`,
+          variant: "success",
+        });
+      } else {
         await fetch("/api/portal/request-booking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

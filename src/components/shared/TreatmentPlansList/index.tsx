@@ -118,13 +118,22 @@ export function TreatmentPlansList({ treatments, loading, patientFirstName }: Tr
                     expiresAt: Date.now() + 72 * 60 * 60 * 1000,
                     usedAt: null,
                   });
+                  sandboxStore.addActivityFeedItem({
+                    id: `portal-${Date.now()}`,
+                    type: "sms_sent",
+                    description: `Portal link generated for ${treatment.description}`,
+                    patientName: patientFirstName || "Patient",
+                    timestamp: new Date().toISOString(),
+                  });
                   const params = new URLSearchParams({
-                    patient: patientFirstName || "Patient",
-                    treatment: treatment.description,
+                    patientFirstName: patientFirstName || "Patient",
+                    treatmentDescription: treatment.description,
                     treatmentId: treatment.id,
-                    practice: "Riverside Family Dental",
-                    phone: "(555) 123-4567",
-                    email: "front-desk@riverside.demo",
+                    treatmentCode: treatment.code,
+                    practiceName: "Riverside Family Dental",
+                    practicePhone: "(555) 123-4567",
+                    practiceEmail: "front-desk@riverside.demo",
+                    treatmentAmount: String(treatment.amount),
                   });
                   window.open(
                     `/portal/${rawToken}?${params.toString()}`,
