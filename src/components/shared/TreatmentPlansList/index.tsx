@@ -37,7 +37,6 @@ function formatDate(dateStr: string): string {
 
 function generateSandboxPortalToken(
   patientId: string,
-  treatmentId: string
 ): string {
   return `sandbox-token-${patientId}-${Date.now()}`;
 }

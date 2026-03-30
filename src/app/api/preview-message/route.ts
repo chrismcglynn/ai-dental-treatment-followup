@@ -117,7 +117,6 @@ export async function POST(request: NextRequest) {
 function generateFallbackMessage(
   channel: string,
   tone: string,
-  dayOffset: number,
 ): string {
   const toneStyle = {
     friendly: { greeting: "Hi {{first_name}}!", closing: "Have a great day!" },

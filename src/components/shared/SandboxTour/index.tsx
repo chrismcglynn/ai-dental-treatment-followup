@@ -11,7 +11,6 @@ import {
   X,
   ChevronRight,
   CheckCircle2,
-  BarChart3,
   Users,
   type LucideIcon,
 } from "lucide-react";
