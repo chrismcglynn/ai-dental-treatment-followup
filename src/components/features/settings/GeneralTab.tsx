@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Upload, Clock } from "lucide-react";
+import { Building2, Upload, Clock, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUpdatePractice } from "@/hooks/useSettings";
+import { useSandbox } from "@/lib/sandbox";
+import { useSandboxStore } from "@/stores/sandbox-store";
 
 const TIMEZONES = [
   { value: "America/New_York", label: "Eastern (ET)" },
@@ -55,11 +57,17 @@ const DEFAULT_HOURS: Record<string, { open: string; close: string; enabled: bool
 export function GeneralTab() {
   const practice = usePracticeStore((s) => s.activePractice);
   const updatePractice = useUpdatePractice();
+  const { isSandbox } = useSandbox();
+  const demoUser = useSandboxStore((s) => s.demoUser);
+  const sandboxMembers = useSandboxStore((s) => s.teamMembers);
+  const isAdmin = isSandbox
+    ? sandboxMembers.some((m) => m.email === demoUser?.email && m.isAdmin)
+    : true;
 
   const [name, setName] = useState(practice?.name ?? "");
   const [phone, setPhone] = useState(practice?.phone ?? "");
   const [email, setEmail] = useState(practice?.email ?? "");
-  const [timezone, setTimezone] = useState(practice?.timezone ?? "America/Denver");
+  const [timezone, setTimezone] = useState(practice?.timezone ?? "");
   const [businessHours, setBusinessHours] = useState(DEFAULT_HOURS);
 
   const handleSave = () => {
@@ -82,6 +90,12 @@ export function GeneralTab() {
 
   return (
     <div className="space-y-6">
+      {!isAdmin && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+          <Lock className="h-4 w-4 shrink-0" />
+          <span>Only admins can edit practice settings. Contact your admin for changes.</span>
+        </div>
+      )}
       {/* Practice Information */}
       <Card>
         <CardHeader>
@@ -99,6 +113,7 @@ export function GeneralTab() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Bright Smiles Dental"
+                disabled={!isAdmin}
               />
             </div>
             <div className="space-y-2">
@@ -109,6 +124,7 @@ export function GeneralTab() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(555) 123-4567"
+                disabled={!isAdmin}
               />
             </div>
             <div className="space-y-2">
@@ -119,13 +135,14 @@ export function GeneralTab() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="office@brightsmiles.com"
+                disabled={!isAdmin}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="practice-timezone">Timezone</Label>
-              <Select value={timezone} onValueChange={setTimezone}>
+              <Select value={timezone || undefined} onValueChange={setTimezone} disabled={!isAdmin}>
                 <SelectTrigger id="practice-timezone">
-                  <SelectValue />
+                  <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
                 <SelectContent>
                   {TIMEZONES.map((tz) => (
@@ -138,14 +155,16 @@ export function GeneralTab() {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSave}
-              disabled={updatePractice.isPending}
-            >
-              {updatePractice.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={updatePractice.isPending}
+              >
+                {updatePractice.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -163,7 +182,7 @@ export function GeneralTab() {
               <Building2 className="h-8 w-8 text-muted-foreground/50" />
             </div>
             <div className="space-y-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" disabled={!isAdmin}>
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Logo
               </Button>
@@ -194,8 +213,9 @@ export function GeneralTab() {
                 <div key={day} className="flex items-center gap-4">
                   <button
                     type="button"
-                    onClick={() => toggleDay(day)}
+                    onClick={() => isAdmin && toggleDay(day)}
                     className="w-24 text-left text-sm font-medium"
+                    disabled={!isAdmin}
                   >
                     <span className={hours.enabled ? "" : "text-muted-foreground line-through"}>
                       {day}
@@ -209,6 +229,7 @@ export function GeneralTab() {
                         value={hours.open}
                         onChange={(e) => updateHour(day, "open", e.target.value)}
                         className="w-[130px] text-sm"
+                        disabled={!isAdmin}
                       />
                       <span className="text-sm text-muted-foreground">to</span>
                       <Input
@@ -216,6 +237,7 @@ export function GeneralTab() {
                         value={hours.close}
                         onChange={(e) => updateHour(day, "close", e.target.value)}
                         className="w-[130px] text-sm"
+                        disabled={!isAdmin}
                       />
                     </div>
                   ) : (
@@ -226,11 +248,13 @@ export function GeneralTab() {
             })}
           </div>
           <Separator className="my-4" />
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm">
-              Save Hours
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm">
+                Save Hours
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

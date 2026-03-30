@@ -5,11 +5,15 @@ import { type Tables } from "@/types/database.types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileText, ExternalLink } from "lucide-react";
+import { useSandbox } from "@/lib/sandbox";
+import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 
 interface TreatmentPlansListProps {
   treatments: Tables<"treatments">[];
   loading?: boolean;
+  patientFirstName?: string;
 }
 
 const statusColors: Record<Tables<"treatments">["status"], string> = {
@@ -31,7 +35,14 @@ function formatDate(dateStr: string): string {
   return format(new Date(dateStr), "MMM d, yyyy");
 }
 
-export function TreatmentPlansList({ treatments, loading }: TreatmentPlansListProps) {
+function generateSandboxPortalToken(
+  patientId: string,
+): string {
+  return `sandbox-token-${patientId}-${Date.now()}`;
+}
+
+export function TreatmentPlansList({ treatments, loading, patientFirstName }: TreatmentPlansListProps) {
+  const { isSandbox, sandboxStore } = useSandbox();
   if (loading) {
     return (
       <div className="space-y-3">
@@ -89,6 +100,50 @@ export function TreatmentPlansList({ treatments, loading }: TreatmentPlansListPr
                 {formatCurrency(treatment.amount)}
               </span>
             </div>
+            {isSandbox && (
+              <Button
+                size="sm"
+                className="mt-2 h-7 px-3 text-xs"
+                onClick={() => {
+                  const rawToken = generateSandboxPortalToken(
+                    treatment.patient_id
+                  );
+                  sandboxStore.addPortalToken({
+                    rawToken,
+                    patientId: treatment.patient_id,
+                    treatmentId: treatment.id,
+                    practiceId: "sandbox-practice-001",
+                    expiresAt: Date.now() + 72 * 60 * 60 * 1000,
+                    usedAt: null,
+                  });
+                  sandboxStore.addActivityFeedItem({
+                    id: `portal-${Date.now()}`,
+                    type: "sms_sent",
+                    description: `Portal link generated for ${treatment.description}`,
+                    patientName: patientFirstName || "Patient",
+                    timestamp: new Date().toISOString(),
+                  });
+                  const params = new URLSearchParams({
+                    patientFirstName: patientFirstName || "Patient",
+                    treatmentDescription: treatment.description,
+                    treatmentId: treatment.id,
+                    treatmentCode: treatment.code,
+                    practiceName: "Riverside Family Dental",
+                    practicePhone: "(555) 123-4567",
+                    practiceEmail: "front-desk@riverside.demo",
+                    treatmentAmount: String(treatment.amount),
+                    practiceHours: JSON.stringify(DEFAULT_PRACTICE_HOURS),
+                  });
+                  window.open(
+                    `/portal/${rawToken}?${params.toString()}`,
+                    "_blank"
+                  );
+                }}
+              >
+                <ExternalLink className="mr-1 h-3 w-3" />
+                Simulate patient booking view →
+              </Button>
+            )}
           </CardContent>
         </Card>
       ))}

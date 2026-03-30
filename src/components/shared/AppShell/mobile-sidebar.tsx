@@ -29,14 +29,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { usePracticeStore } from "@/stores/practice-store";
+import { useUnreadCount } from "@/hooks/useInbox";
 import { type NavItem } from "@/types/navigation";
-import { SidebarUserMenu } from "@/components/shared/Sidebar/user-menu";
+
 
 const mainNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Patients", href: "/patients", icon: Users, badge: 142 },
+  { title: "Patients", href: "/patients", icon: Users },
   { title: "Sequences", href: "/sequences", icon: Zap },
-  { title: "Inbox", href: "/inbox", icon: Inbox, badge: 5 },
+  { title: "Inbox", href: "/inbox", icon: Inbox },
   { title: "Analytics", href: "/analytics", icon: BarChart3 },
 ];
 
@@ -55,6 +56,7 @@ export function MobileSidebar() {
   const setMobileOpen = usePracticeStore((s) => s.setMobileNavOpen);
 
   const activePractice = practices[0];
+  const inboxUnread = useUnreadCount();
 
   return (
     <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
@@ -115,7 +117,8 @@ export function MobileSidebar() {
                 pathname === item.href ||
                 pathname.startsWith(item.href + "/");
               const isInbox = item.title === "Inbox";
-              const hasBadge = item.badge && Number(item.badge) > 0;
+              const badgeValue = isInbox ? inboxUnread : item.badge;
+              const hasBadge = badgeValue && Number(badgeValue) > 0;
               return (
                 <Link
                   key={item.href}
@@ -131,15 +134,8 @@ export function MobileSidebar() {
                   <item.icon className="h-4 w-4 shrink-0" />
                   <span>{item.title}</span>
                   {hasBadge && (
-                    <span
-                      className={cn(
-                        "ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
-                        isInbox
-                          ? "bg-primary text-primary-foreground animate-pulse"
-                          : "bg-primary/20 text-[hsl(var(--sidebar-active))]"
-                      )}
-                    >
-                      {item.badge}
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium bg-primary text-primary-foreground animate-pulse">
+                      {badgeValue}
                     </span>
                   )}
                 </Link>
@@ -173,9 +169,6 @@ export function MobileSidebar() {
               );
             })}
           </nav>
-        </div>
-        <div className="p-3 pt-0">
-          <SidebarUserMenu collapsed={false} />
         </div>
       </SheetContent>
     </Sheet>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -8,42 +9,58 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
+import { useSandboxStore } from "@/stores/sandbox-store";
 
-interface SidebarUserMenuProps {
-  collapsed: boolean;
-}
+const ROLE_LABELS: Record<string, string> = {
+  dentist: "Dentist",
+  hygienist: "Hygienist",
+  front_office: "Front Office",
+  office_manager: "Office Manager",
+  dental_assistant: "Dental Assistant",
+};
 
-export function SidebarUserMenu({ collapsed }: SidebarUserMenuProps) {
+export function SidebarUserMenu() {
+  const { theme, setTheme } = useTheme();
+  const demoUser = useSandboxStore((s) => s.demoUser);
+
+  const name = demoUser?.full_name ?? "User";
+  const role = demoUser?.role ? ROLE_LABELS[demoUser.role] ?? demoUser.role : "";
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-white/5">
-          <Avatar className="h-7 w-7 shrink-0">
-            <AvatarFallback className="bg-primary/20 text-[hsl(var(--sidebar-active))] text-xs">
-              JS
+        <button className="flex items-center rounded-full transition-colors hover:bg-muted p-0.5">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary/20 text-primary text-xs">
+              {initials}
             </AvatarFallback>
           </Avatar>
-          {!collapsed && (
-            <div className="flex flex-col items-start overflow-hidden">
-              <span className="text-sm font-medium truncate text-[hsl(var(--sidebar-fg))]">
-                Jane Smith
-              </span>
-              <span className="text-xs text-[hsl(var(--sidebar-fg))]/50 truncate">
-                Practice Manager
-              </span>
-            </div>
-          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem>
-          <User className="mr-2 h-4 w-4" />
-          Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
+        <div className="px-2 py-1.5">
+          <p className="text-sm font-medium">{name}</p>
+          {role && (
+            <p className="text-xs text-muted-foreground">{role}</p>
+          )}
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          {theme === "dark" ? (
+            <Sun className="mr-2 h-4 w-4" />
+          ) : (
+            <Moon className="mr-2 h-4 w-4" />
+          )}
+          {theme === "dark" ? "Light mode" : "Dark mode"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-destructive">

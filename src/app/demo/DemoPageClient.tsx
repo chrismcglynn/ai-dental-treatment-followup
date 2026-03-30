@@ -7,19 +7,35 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/shared/AppShell";
 import { SandboxActivityFeed } from "@/components/shared/SandboxActivityFeed";
 import { DemoSessionProvider } from "./DemoSessionProvider";
+import { DemoSignupForm, type DemoSignupData } from "./DemoSignupForm";
 import DashboardPage from "@/app/(dashboard)/dashboard/page";
 
-export function DemoPageClient() {
-  const [showDashboard, setShowDashboard] = useState(false);
+type DemoStep = "landing" | "signup" | "dashboard";
 
-  if (showDashboard) {
+export function DemoPageClient() {
+  const [step, setStep] = useState<DemoStep>("landing");
+  const [signupData, setSignupData] = useState<DemoSignupData | null>(null);
+
+  if (step === "dashboard" && signupData) {
     return (
-      <DemoSessionProvider>
+      <DemoSessionProvider signupData={signupData}>
         <AppShell>
           <DashboardPage />
         </AppShell>
         <SandboxActivityFeed defaultOpen />
       </DemoSessionProvider>
+    );
+  }
+
+  if (step === "signup") {
+    return (
+      <DemoSignupForm
+        onSubmit={(data) => {
+          setSignupData(data);
+          setStep("dashboard");
+        }}
+        onBack={() => setStep("landing")}
+      />
     );
   }
 
@@ -29,7 +45,7 @@ export function DemoPageClient() {
       <div className="flex flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
         <div className="mx-auto max-w-3xl space-y-6">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            See exactly how Followdent recovers unscheduled treatment revenue
+            Followdent recovers unscheduled treatment revenue
           </h1>
           <p className="mx-auto max-w-xl text-lg text-muted-foreground">
             Watch a live demo of a real dental practice&apos;s follow-up
@@ -39,7 +55,7 @@ export function DemoPageClient() {
           <div className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-center">
             <Button
               size="lg"
-              onClick={() => setShowDashboard(true)}
+              onClick={() => setStep("signup")}
               className="gap-2"
             >
               Start interactive demo

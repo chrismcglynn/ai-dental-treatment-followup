@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {cn} from "@/lib/utils";
 import {usePracticeStore} from "@/stores/practice-store";
+import { exitSandboxAction } from "./actions";
 
 export function SandboxBanner() {
   const {
@@ -47,8 +48,12 @@ export function SandboxBanner() {
   const addToast = useUiStore((s) => s.addToast);
   const [resetting, setResetting] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
 
   const isOpen = usePracticeStore((s) => s.sidebarOpen);
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const activePractice = usePracticeStore((s) => s.activePractice);
+  const setActivePractice = usePracticeStore((s) => s.setActivePractice);
   // Mount the simulation engine so it runs while the banner is rendered
   useSimulationEngine();
 
@@ -68,9 +73,24 @@ export function SandboxBanner() {
     });
   }
 
-  function handleExitConfirm() {
-    setExitDialogOpen(false);
-    router.push("/settings/integrations");
+  async function handleExitConfirm() {
+    if (!activePracticeId || !activePractice) return;
+    setExiting(true);
+    const result = await exitSandboxAction(activePracticeId);
+    if (result.success) {
+      // Update client-side practice store so SandboxWrapper unmounts the provider
+      setActivePractice({ ...activePractice, sandbox_mode: false, sandbox_seeded_at: null });
+      queryClient.resetQueries();
+      setExitDialogOpen(false);
+      router.push("/settings/integrations");
+    } else {
+      setExiting(false);
+      addToast({
+        title: "Failed to exit sandbox",
+        description: result.error ?? "Please try again",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -187,9 +207,9 @@ export function SandboxBanner() {
             <Button variant="outline" onClick={() => setExitDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleExitConfirm} className="gap-2">
-              <Plug className="h-4 w-4" />
-              Connect my PMS
+            <Button onClick={handleExitConfirm} disabled={exiting} className="gap-2">
+              {exiting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plug className="h-4 w-4" />}
+              {exiting ? "Exiting sandbox…" : "Connect my PMS"}
             </Button>
           </DialogFooter>
         </DialogContent>

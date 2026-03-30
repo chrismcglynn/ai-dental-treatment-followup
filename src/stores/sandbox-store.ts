@@ -68,6 +68,32 @@ export interface SandboxActivity {
   timestamp: string;
 }
 
+export interface SandboxPortalToken {
+  rawToken: string;          // prefixed with 'sandbox-token-'
+  patientId: string;
+  treatmentId: string;       // references sandbox treatment ID
+  practiceId: string;
+  expiresAt: number;         // Date.now() + 72hr in ms
+  usedAt: number | null;
+}
+
+export type DentalRole = "dentist" | "hygienist" | "front_office" | "office_manager" | "dental_assistant";
+
+export interface DemoUser {
+  full_name: string;
+  email: string;
+  role: DentalRole;
+}
+
+export interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: DentalRole;
+  isAdmin: boolean;
+  created_at: string;
+}
+
 // ─── Store interface ─────────────────────────────────────────────────────────
 
 interface SandboxStoreState {
@@ -92,6 +118,13 @@ interface SandboxStoreState {
 
   // Simulation activity feed
   activityFeed: SandboxActivity[];
+
+  // Portal tokens
+  portalTokens: SandboxPortalToken[];
+
+  // Demo user (set from signup form)
+  demoUser: DemoUser | null;
+  teamMembers: TeamMember[];
 }
 
 interface SandboxStoreActions {
@@ -199,6 +232,18 @@ interface SandboxStoreActions {
   addActivityFeedItem: (item: SandboxActivity) => void;
   updateConversation: (conversationId: string, data: Partial<Conversation>) => void;
 
+  // ── Portal tokens ─────────────────────────────────────────────────────
+  addPortalToken: (token: SandboxPortalToken) => void;
+  getPortalToken: (rawToken: string) => SandboxPortalToken | null;
+  markPortalTokenUsed: (rawToken: string) => void;
+
+  // ── Demo user & team ──────────────────────────────────────────────────
+  setDemoUser: (user: DemoUser) => void;
+  getTeamMembers: () => TeamMember[];
+  addTeamMember: (member: Omit<TeamMember, "id" | "created_at">) => void;
+  updateTeamMember: (memberId: string, data: Partial<Pick<TeamMember, "role" | "isAdmin">>) => void;
+  removeTeamMember: (memberId: string) => void;
+
   // ── Reset ─────────────────────────────────────────────────────────────
   reset: () => void;
 }
@@ -225,6 +270,9 @@ function getInitialState(): SandboxStoreState {
     dailyRevenue: SANDBOX_DAILY_REVENUE,
     recentActivity: SANDBOX_RECENT_ACTIVITY,
     activityFeed: [],
+    portalTokens: [],
+    demoUser: null,
+    teamMembers: [],
   };
 }
 
@@ -706,6 +754,69 @@ export const useSandboxStore = create<SandboxStore>()(
               ? { ...c, ...data, updated_at: nowISO() }
               : c
           ),
+        }));
+      },
+
+      // ── Portal tokens ─────────────────────────────────────────────
+
+      addPortalToken: (token) => {
+        set((state) => ({
+          portalTokens: [...state.portalTokens, token],
+        }));
+      },
+
+      getPortalToken: (rawToken) => {
+        return get().portalTokens.find((t) => t.rawToken === rawToken) ?? null;
+      },
+
+      markPortalTokenUsed: (rawToken) => {
+        set((state) => ({
+          portalTokens: state.portalTokens.map((t) =>
+            t.rawToken === rawToken ? { ...t, usedAt: Date.now() } : t
+          ),
+        }));
+      },
+
+      // ── Demo user & team ─────────────────────────────────────────────
+
+      setDemoUser: (user) => {
+        set((state) => ({
+          demoUser: user,
+          teamMembers: state.teamMembers.length === 0
+            ? [{
+                id: nextId("member"),
+                full_name: user.full_name,
+                email: user.email,
+                role: user.role,
+                isAdmin: true,
+                created_at: nowISO(),
+              }]
+            : state.teamMembers,
+        }));
+      },
+
+      getTeamMembers: () => get().teamMembers,
+
+      addTeamMember: (member) => {
+        set((state) => ({
+          teamMembers: [
+            ...state.teamMembers,
+            { ...member, id: nextId("member"), created_at: nowISO() },
+          ],
+        }));
+      },
+
+      updateTeamMember: (memberId, data) => {
+        set((state) => ({
+          teamMembers: state.teamMembers.map((m) =>
+            m.id === memberId ? { ...m, ...data } : m
+          ),
+        }));
+      },
+
+      removeTeamMember: (memberId) => {
+        set((state) => ({
+          teamMembers: state.teamMembers.filter((m) => m.id !== memberId),
         }));
       },
 

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { MessageSquareText } from "lucide-react";
+import { MessageSquareText, ExternalLink, CalendarCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { MessageBubble } from "./MessageBubble";
 import { ReplyComposer } from "./ReplyComposer";
 import {
@@ -12,6 +13,9 @@ import {
   useMarkConversationRead,
   useSendReply,
 } from "@/hooks/useInbox";
+import { usePatientTreatments, useMarkAsBooked, usePatientEnrollments } from "@/hooks/usePatients";
+import { useSandbox } from "@/lib/sandbox";
+import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 import { type ConversationWithPatient } from "@/types/app.types";
 import { type Tables } from "@/types/database.types";
 
@@ -81,6 +85,14 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   );
   const markRead = useMarkConversationRead();
   const sendReply = useSendReply();
+  const { isSandbox, sandboxStore } = useSandbox();
+  const { data: treatments } = usePatientTreatments(conversation.patient_id);
+  const { data: enrollments } = usePatientEnrollments(conversation.patient_id);
+  const markAsBooked = useMarkAsBooked();
+
+  const hasPendingTreatment = treatments?.some((t) => t.status === "pending");
+  const hasActiveEnrollment = enrollments?.some((e) => e.status === "active");
+  const showMarkBooked = hasPendingTreatment || hasActiveEnrollment;
 
   // Mark as read when opened
   useEffect(() => {
@@ -108,7 +120,7 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Thread header — pinned top */}
-      <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-border bg-background">
+      <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <div>
           <h3 className="text-sm font-semibold">
             {patient.first_name} {patient.last_name}
@@ -116,6 +128,55 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
           {patient.phone && (
             <p className="text-xs text-muted-foreground">{patient.phone}</p>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          {showMarkBooked && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs border-green-500/50 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+              onClick={() =>
+                markAsBooked.mutate({ patientId: conversation.patient_id })
+              }
+              disabled={markAsBooked.isPending}
+            >
+              <CalendarCheck className="mr-1.5 h-3 w-3" />
+              {markAsBooked.isPending ? "Updating..." : "Mark as Booked"}
+            </Button>
+          )}
+        {isSandbox && treatments && treatments.length > 0 && (
+          <Button
+            size="sm"
+            className="h-7 px-3 text-xs"
+            onClick={() => {
+              const treatment = treatments.find((t) => t.status === "pending") ?? treatments[0];
+              const rawToken = `sandbox-token-${patient.id}-${Date.now()}`;
+              sandboxStore.addPortalToken({
+                rawToken,
+                patientId: patient.id,
+                treatmentId: treatment.id,
+                practiceId: "sandbox-practice-001",
+                expiresAt: Date.now() + 72 * 60 * 60 * 1000,
+                usedAt: null,
+              });
+              const params = new URLSearchParams({
+                patientFirstName: patient.first_name,
+                treatmentDescription: treatment.description,
+                treatmentId: treatment.id,
+                treatmentCode: treatment.code,
+                practiceName: "Riverside Family Dental",
+                practicePhone: "(555) 123-4567",
+                practiceEmail: "front-desk@riverside.demo",
+                treatmentAmount: String(treatment.amount),
+                practiceHours: JSON.stringify(DEFAULT_PRACTICE_HOURS),
+              });
+              window.open(`/portal/${rawToken}?${params.toString()}`, "_blank");
+            }}
+          >
+            <ExternalLink className="mr-1.5 h-3 w-3" />
+            Simulate patient booking view →
+          </Button>
+        )}
         </div>
       </div>
 

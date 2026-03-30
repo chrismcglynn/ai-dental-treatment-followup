@@ -186,6 +186,67 @@ export async function getPatientEnrollments(
   return (data as unknown as (Tables<"sequence_enrollments"> & { sequences: Tables<"sequences"> })[]) ?? [];
 }
 
+export async function getPendingTreatmentsWithPatients(
+  practiceId: string
+): Promise<(Tables<"treatments"> & { patients: Tables<"patients"> })[]> {
+  const supabase = createClient();
+
+  // Fetch pending treatments and active enrollments in parallel
+  const [treatmentsResult, enrollmentsResult] = await Promise.all([
+    supabase
+      .from("treatments")
+      .select("*, patients(*)")
+      .eq("practice_id", practiceId)
+      .eq("status", "pending")
+      .order("presented_at", { ascending: false }),
+    supabase
+      .from("sequence_enrollments")
+      .select("patient_id")
+      .eq("practice_id", practiceId)
+      .eq("status", "active"),
+  ]);
+
+  if (treatmentsResult.error) throw treatmentsResult.error;
+  if (enrollmentsResult.error) throw enrollmentsResult.error;
+
+  const enrolledPatientIds = new Set(
+    (enrollmentsResult.data ?? []).map((e) => e.patient_id)
+  );
+
+  const all = (treatmentsResult.data as unknown as (Tables<"treatments"> & { patients: Tables<"patients"> })[]) ?? [];
+  return all.filter((t) => !enrolledPatientIds.has(t.patient_id));
+}
+
+export async function markPatientBooked(
+  patientId: string,
+  practiceId: string
+): Promise<void> {
+  if (isSandboxId(patientId)) {
+    throw new Error("SANDBOX_MUTATION_BLOCKED: Cannot mutate sandbox data via real API");
+  }
+  const supabase = createClient();
+
+  // Update all pending treatments for this patient to "accepted"
+  const { error: treatmentError } = await supabase
+    .from("treatments")
+    .update({ status: "accepted" as const, decided_at: new Date().toISOString() })
+    .eq("patient_id", patientId)
+    .eq("practice_id", practiceId)
+    .eq("status", "pending");
+
+  if (treatmentError) throw treatmentError;
+
+  // Convert all active enrollments for this patient
+  const { error: enrollmentError } = await supabase
+    .from("sequence_enrollments")
+    .update({ status: "converted" as const, converted_at: new Date().toISOString() })
+    .eq("patient_id", patientId)
+    .eq("practice_id", practiceId)
+    .eq("status", "active");
+
+  if (enrollmentError) throw enrollmentError;
+}
+
 export async function createEnrollment(
   enrollment: InsertTables<"sequence_enrollments">
 ): Promise<Tables<"sequence_enrollments">> {

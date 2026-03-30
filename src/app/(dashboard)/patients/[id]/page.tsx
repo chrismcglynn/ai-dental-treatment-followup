@@ -11,6 +11,7 @@ import {
   Play,
   ShieldAlert,
   MessageSquare,
+  CalendarCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -37,6 +38,7 @@ import {
   usePatientEnrollments,
   useUpdatePatient,
   useCreateEnrollment,
+  useMarkAsBooked,
 } from "@/hooks/usePatients";
 import { useSequences } from "@/hooks/useSequences";
 import { cn } from "@/lib/utils";
@@ -105,6 +107,7 @@ export default function PatientDetailPage() {
   const { data: sequences, isLoading: sequencesLoading } = useSequences({ status: "active" });
   const updatePatient = useUpdatePatient();
   const createEnrollment = useCreateEnrollment();
+  const markAsBooked = useMarkAsBooked();
 
   const isDnc = patient?.status === "archived";
   const fullName = patient ? `${patient.first_name} ${patient.last_name}` : "";
@@ -164,6 +167,8 @@ export default function PatientDetailPage() {
   }
 
   const activeEnrollments = enrollments?.filter((e) => e.status === "active") ?? [];
+  const hasPendingTreatment = treatments?.some((t) => t.status === "pending");
+  const showMarkBooked = hasPendingTreatment || activeEnrollments.length > 0;
   const availableSequences = sequences?.filter(
     (seq) => !activeEnrollments.some((e) => e.sequence_id === seq.id)
   ) ?? [];
@@ -272,6 +277,20 @@ export default function PatientDetailPage() {
                 <Play className="mr-2 h-4 w-4" />
                 Start Manual Sequence
               </Button>
+
+              {/* Mark as Booked */}
+              {showMarkBooked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2 border-green-500/50 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                  onClick={() => markAsBooked.mutate({ patientId: patient.id })}
+                  disabled={markAsBooked.isPending}
+                >
+                  <CalendarCheck className="mr-2 h-4 w-4" />
+                  {markAsBooked.isPending ? "Updating..." : "Mark as Booked"}
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -318,6 +337,7 @@ export default function PatientDetailPage() {
               <TreatmentPlansList
                 treatments={treatments ?? []}
                 loading={treatmentsLoading}
+                patientFirstName={patient?.first_name}
               />
             </CardContent>
           </Card>

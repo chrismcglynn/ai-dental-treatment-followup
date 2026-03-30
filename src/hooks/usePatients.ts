@@ -9,6 +9,8 @@ import {
   getPatientMessages,
   getPatientEnrollments,
   createEnrollment,
+  getPendingTreatmentsWithPatients,
+  markPatientBooked,
 } from "@/lib/api/patients";
 import { type InsertTables, type UpdateTables, type Tables } from "@/types/database.types";
 import { type PatientFilters, type Patient, type Treatment, type Message, type EnrollmentWithSequence, type PaginatedResponse } from "@/types/app.types";
@@ -219,6 +221,60 @@ export function useUpdatePatient() {
   });
 }
 
+export interface PendingTreatmentRow {
+  treatment: Treatment;
+  patient: Patient;
+}
+
+export function usePendingTreatmentsWithPatients() {
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useQuery({
+    queryKey: [...patientKeys.all(activePracticeId!), "pending-treatments-with-patients"],
+    queryFn: async (): Promise<PendingTreatmentRow[]> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        const treatments = sandboxStore.treatments.filter(
+          (t) => t.status === "pending"
+        );
+        const patients = sandboxStore.patients;
+        // Exclude patients who already have an active enrollment
+        const enrolledPatientIds = new Set(
+          sandboxStore.enrollments
+            .filter((e) => e.status === "active")
+            .map((e) => e.patient_id)
+        );
+        return treatments
+          .filter((t) => !enrolledPatientIds.has(t.patient_id))
+          .map((t) => ({
+            treatment: t,
+            patient: patients.find((p) => p.id === t.patient_id)!,
+          }))
+          .filter((row) => row.patient);
+      }
+      const data = await getPendingTreatmentsWithPatients(activePracticeId!);
+      return data.map((row) => ({
+        treatment: {
+          id: row.id,
+          practice_id: row.practice_id,
+          patient_id: row.patient_id,
+          code: row.code,
+          description: row.description,
+          amount: row.amount,
+          status: row.status,
+          presented_at: row.presented_at,
+          decided_at: row.decided_at,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        } as Treatment,
+        patient: row.patients,
+      }));
+    },
+    enabled: !!activePracticeId,
+  });
+}
+
 export function useCreateEnrollment() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
@@ -267,6 +323,125 @@ export function useCreateEnrollment() {
     },
     onError: () => {
       addToast({ title: "Failed to enroll patient", variant: "destructive" });
+    },
+  });
+}
+
+export function useBulkEnroll() {
+  const queryClient = useQueryClient();
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useMutation({
+    mutationFn: async ({
+      sequenceId,
+      patientIds,
+    }: {
+      sequenceId: string;
+      patientIds: string[];
+    }) => {
+      const results = [];
+      for (const patientId of patientIds) {
+        const enrollment: InsertTables<"sequence_enrollments"> = {
+          sequence_id: sequenceId,
+          patient_id: patientId,
+          practice_id: activePracticeId!,
+          status: "active",
+          current_touchpoint: 0,
+        };
+
+        if (isSandbox) {
+          await simulateDelay(200);
+          const now = new Date().toISOString();
+          const sandboxEnrollment: Tables<"sequence_enrollments"> = {
+            id: crypto.randomUUID(),
+            ...enrollment,
+            enrolled_at: now,
+            completed_at: null,
+            converted_at: null,
+          };
+          sandboxStore.addEnrollment(sandboxEnrollment);
+          results.push(sandboxEnrollment);
+        } else {
+          results.push(await createEnrollment(enrollment));
+        }
+      }
+      return results;
+    },
+    onSuccess: (_, { patientIds }) => {
+      const count = patientIds.length;
+      addToast({
+        title: `${count} patient${count !== 1 ? "s" : ""} enrolled in sequence`,
+        variant: "success",
+      });
+      queryClient.invalidateQueries({
+        queryKey: patientKeys.all(activePracticeId!),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["analytics", activePracticeId!],
+      });
+    },
+    onError: () => {
+      addToast({ title: "Failed to enroll patients", variant: "destructive" });
+    },
+  });
+}
+
+export function useMarkAsBooked() {
+  const queryClient = useQueryClient();
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useMutation({
+    mutationFn: async ({ patientId }: { patientId: string }) => {
+      if (isSandbox) {
+        await simulateDelay(400);
+        const now = new Date().toISOString();
+
+        // Mark all pending treatments as accepted
+        sandboxStore.treatments
+          .filter((t) => t.patient_id === patientId && t.status === "pending")
+          .forEach((t) => {
+            sandboxStore.updateTreatment(t.id, {
+              status: "accepted",
+              decided_at: now,
+            });
+          });
+
+        // Convert all active enrollments
+        sandboxStore.enrollments
+          .filter((e) => e.patient_id === patientId && e.status === "active")
+          .forEach((e) => {
+            sandboxStore.updateEnrollment(e.id, {
+              status: "converted",
+              converted_at: now,
+            });
+          });
+
+        return;
+      }
+      return markPatientBooked(patientId, activePracticeId!);
+    },
+    onSuccess: () => {
+      addToast({
+        title: "Patient marked as booked",
+        description: "Treatment accepted and sequences stopped.",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({
+        queryKey: patientKeys.all(activePracticeId!),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["analytics", activePracticeId!],
+      });
+    },
+    onError: () => {
+      addToast({
+        title: "Failed to mark as booked",
+        variant: "destructive",
+      });
     },
   });
 }
