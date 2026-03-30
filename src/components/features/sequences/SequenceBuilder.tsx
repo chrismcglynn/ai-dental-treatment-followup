@@ -173,7 +173,6 @@ export function SequenceBuilder({
         onOpenChange={(open) => !open && setPreviewStep(null)}
         step={previewStep}
         practiceId={practiceId ?? ""}
-        procedureDescription={procedures.join(", ") || "dental treatment"}
         onUseTemplate={(stepId, message) => {
           updateStep(stepId, { templateOverride: message });
         }}

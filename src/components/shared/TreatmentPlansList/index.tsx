@@ -102,9 +102,8 @@ export function TreatmentPlansList({ treatments, loading, patientFirstName }: Tr
             </div>
             {isSandbox && (
               <Button
-                variant="ghost"
                 size="sm"
-                className="mt-2 h-7 px-2 text-xs text-muted-foreground"
+                className="mt-2 h-7 px-3 text-xs"
                 onClick={() => {
                   const rawToken = generateSandboxPortalToken(
                     treatment.patient_id,
@@ -142,7 +141,7 @@ export function TreatmentPlansList({ treatments, loading, patientFirstName }: Tr
                 }}
               >
                 <ExternalLink className="mr-1 h-3 w-3" />
-                Simulate patient view →
+                Simulate patient booking view →
               </Button>
             )}
           </CardContent>

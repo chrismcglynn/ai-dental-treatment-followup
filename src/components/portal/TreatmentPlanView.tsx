@@ -92,8 +92,8 @@ export function TreatmentPlanView({
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 p-6">
-      <div className="mx-auto max-w-[420px] space-y-6">
+    <div className="min-h-screen bg-stone-50 p-6 flex items-center justify-center" style={{ colorScheme: "light" }}>
+      <div className="w-full max-w-[420px] space-y-6">
         {/* Practice header */}
         <div className="text-center pt-4">
           <h1 className="text-lg font-semibold text-stone-900">
@@ -103,7 +103,7 @@ export function TreatmentPlanView({
         </div>
 
         {/* Greeting + procedure + CTAs */}
-        <Card className="border-stone-200 shadow-sm">
+        <Card className="border-stone-200 shadow-sm bg-white text-stone-900">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl font-normal text-stone-900">
               Hi {patient.first_name}, your treatment plan is ready to schedule
@@ -138,7 +138,7 @@ export function TreatmentPlanView({
             {/* Secondary CTA */}
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full bg-white text-stone-900 border-stone-300 hover:bg-stone-100"
               size="lg"
               asChild
             >

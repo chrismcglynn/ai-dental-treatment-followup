@@ -19,7 +19,6 @@ interface MessagePreviewModalProps {
   onOpenChange: (open: boolean) => void;
   step: StepData | null;
   practiceId: string;
-  procedureDescription: string;
   onUseTemplate: (stepId: string, message: string) => void;
 }
 
@@ -138,7 +137,6 @@ export function MessagePreviewModal({
   onOpenChange,
   step,
   practiceId,
-  procedureDescription,
   onUseTemplate,
 }: MessagePreviewModalProps) {
   const [message, setMessage] = useState("");
@@ -157,7 +155,6 @@ export function MessagePreviewModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           practiceId,
-          procedureDescription,
           channel: step.channel,
           tone: step.tone,
           stepNumber: step.position + 1,

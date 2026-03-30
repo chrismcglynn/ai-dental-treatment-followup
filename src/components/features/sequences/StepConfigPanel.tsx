@@ -142,7 +142,9 @@ export function StepConfigPanel({
             rows={4}
           />
           <p className="text-xs text-muted-foreground">
-            If blank, AI will generate the message based on channel and tone
+            If blank, AI will generate the message based on channel and tone.
+            Use {"{{first_name}}"} and {"{{portal_link}}"} placeholders.
+            Do not include treatment or procedure details (HIPAA).
           </p>
         </div>
 
