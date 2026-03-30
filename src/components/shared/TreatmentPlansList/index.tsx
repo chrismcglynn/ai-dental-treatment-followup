@@ -106,8 +106,7 @@ export function TreatmentPlansList({ treatments, loading, patientFirstName }: Tr
                 className="mt-2 h-7 px-3 text-xs"
                 onClick={() => {
                   const rawToken = generateSandboxPortalToken(
-                    treatment.patient_id,
-                    treatment.id
+                    treatment.patient_id
                   );
                   sandboxStore.addPortalToken({
                     rawToken,

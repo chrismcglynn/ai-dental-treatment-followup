@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (!apiKey) {
       // Fallback: generate a placeholder message if no API key
-      const fallback = generateFallbackMessage(channel, tone, dayOffset);
+      const fallback = generateFallbackMessage(channel, tone);
       return NextResponse.json({ message: fallback });
     }
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       const errorData = await response.json().catch(() => ({}));
       console.error("Anthropic API error:", errorData);
       // Fall back to generated message
-      const fallback = generateFallbackMessage(channel, tone, dayOffset);
+      const fallback = generateFallbackMessage(channel, tone);
       return NextResponse.json({ message: fallback });
     }
 
