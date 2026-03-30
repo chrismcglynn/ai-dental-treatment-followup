@@ -68,6 +68,15 @@ export interface SandboxActivity {
   timestamp: string;
 }
 
+export interface SandboxPortalToken {
+  rawToken: string;          // prefixed with 'sandbox-token-'
+  patientId: string;
+  treatmentId: string;       // references sandbox treatment ID
+  practiceId: string;
+  expiresAt: number;         // Date.now() + 72hr in ms
+  usedAt: number | null;
+}
+
 // ─── Store interface ─────────────────────────────────────────────────────────
 
 interface SandboxStoreState {
@@ -92,6 +101,9 @@ interface SandboxStoreState {
 
   // Simulation activity feed
   activityFeed: SandboxActivity[];
+
+  // Portal tokens
+  portalTokens: SandboxPortalToken[];
 }
 
 interface SandboxStoreActions {
@@ -199,6 +211,11 @@ interface SandboxStoreActions {
   addActivityFeedItem: (item: SandboxActivity) => void;
   updateConversation: (conversationId: string, data: Partial<Conversation>) => void;
 
+  // ── Portal tokens ─────────────────────────────────────────────────────
+  addPortalToken: (token: SandboxPortalToken) => void;
+  getPortalToken: (rawToken: string) => SandboxPortalToken | null;
+  markPortalTokenUsed: (rawToken: string) => void;
+
   // ── Reset ─────────────────────────────────────────────────────────────
   reset: () => void;
 }
@@ -225,6 +242,7 @@ function getInitialState(): SandboxStoreState {
     dailyRevenue: SANDBOX_DAILY_REVENUE,
     recentActivity: SANDBOX_RECENT_ACTIVITY,
     activityFeed: [],
+    portalTokens: [],
   };
 }
 
@@ -705,6 +723,26 @@ export const useSandboxStore = create<SandboxStore>()(
             c.id === conversationId
               ? { ...c, ...data, updated_at: nowISO() }
               : c
+          ),
+        }));
+      },
+
+      // ── Portal tokens ─────────────────────────────────────────────
+
+      addPortalToken: (token) => {
+        set((state) => ({
+          portalTokens: [...state.portalTokens, token],
+        }));
+      },
+
+      getPortalToken: (rawToken) => {
+        return get().portalTokens.find((t) => t.rawToken === rawToken) ?? null;
+      },
+
+      markPortalTokenUsed: (rawToken) => {
+        set((state) => ({
+          portalTokens: state.portalTokens.map((t) =>
+            t.rawToken === rawToken ? { ...t, usedAt: Date.now() } : t
           ),
         }));
       },
