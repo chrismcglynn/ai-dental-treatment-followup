@@ -321,9 +321,9 @@ function PendingPlansAlert({ count }: { count: number }) {
             variant="outline"
             size="sm"
             className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 shrink-0"
-            onClick={() => router.push("/sequences/new")}
+            onClick={() => router.push("/treatments/pending")}
           >
-            Start sequences
+            Review &amp; enroll
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </CardContent>

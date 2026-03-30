@@ -2,13 +2,11 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { usePracticeStore } from "@/stores/practice-store";
-import { useInboxStore } from "@/stores/inbox-store";
 import { inboxKeys } from "@/hooks/useInbox";
 
 export function useInboxRealtime() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
-  const setUnreadCount = useInboxStore((s) => s.setUnreadCount);
 
   useEffect(() => {
     if (!activePracticeId) return;
@@ -29,7 +27,6 @@ export function useInboxRealtime() {
           queryClient.invalidateQueries({
             queryKey: inboxKeys.all(activePracticeId),
           });
-          setUnreadCount((prev) => prev + 1);
         }
       )
       .on(
@@ -51,5 +48,5 @@ export function useInboxRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activePracticeId, queryClient, setUnreadCount]);
+  }, [activePracticeId, queryClient]);
 }

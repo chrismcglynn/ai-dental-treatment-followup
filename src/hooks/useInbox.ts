@@ -39,6 +39,25 @@ export function useConversations() {
   });
 }
 
+export function useUnreadCount(): number {
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  const { data: conversations } = useQuery({
+    queryKey: inboxKeys.conversations(activePracticeId!, "all"),
+    queryFn: async (): Promise<ConversationWithPatient[]> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getConversations("all") as ConversationWithPatient[];
+      }
+      return getConversations(activePracticeId!, "all");
+    },
+    enabled: !!activePracticeId,
+  });
+
+  return conversations?.filter((c) => c.unread_count > 0).length ?? 0;
+}
+
 export function useConversationMessages(
   conversationId: string | null,
   patientId: string | null

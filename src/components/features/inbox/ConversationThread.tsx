@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { MessageSquareText, ExternalLink } from "lucide-react";
+import { MessageSquareText, ExternalLink, CalendarCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   useMarkConversationRead,
   useSendReply,
 } from "@/hooks/useInbox";
-import { usePatientTreatments } from "@/hooks/usePatients";
+import { usePatientTreatments, useMarkAsBooked, usePatientEnrollments } from "@/hooks/usePatients";
 import { useSandbox } from "@/lib/sandbox";
 import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 import { type ConversationWithPatient } from "@/types/app.types";
@@ -87,6 +87,12 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   const sendReply = useSendReply();
   const { isSandbox, sandboxStore } = useSandbox();
   const { data: treatments } = usePatientTreatments(conversation.patient_id);
+  const { data: enrollments } = usePatientEnrollments(conversation.patient_id);
+  const markAsBooked = useMarkAsBooked();
+
+  const hasPendingTreatment = treatments?.some((t) => t.status === "pending");
+  const hasActiveEnrollment = enrollments?.some((e) => e.status === "active");
+  const showMarkBooked = hasPendingTreatment || hasActiveEnrollment;
 
   // Mark as read when opened
   useEffect(() => {
@@ -123,6 +129,21 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
             <p className="text-xs text-muted-foreground">{patient.phone}</p>
           )}
         </div>
+        <div className="flex items-center gap-2">
+          {showMarkBooked && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs border-green-500/50 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+              onClick={() =>
+                markAsBooked.mutate({ patientId: conversation.patient_id })
+              }
+              disabled={markAsBooked.isPending}
+            >
+              <CalendarCheck className="mr-1.5 h-3 w-3" />
+              {markAsBooked.isPending ? "Updating..." : "Mark as Booked"}
+            </Button>
+          )}
         {isSandbox && treatments && treatments.length > 0 && (
           <Button
             size="sm"
@@ -156,6 +177,7 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
             Simulate patient booking view →
           </Button>
         )}
+        </div>
       </div>
 
       {/* Messages — scrollable middle */}

@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { Bell, Menu, Moon, Search, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePracticeStore } from "@/stores/practice-store";
+import { SidebarUserMenu } from "@/components/shared/Sidebar/user-menu";
 
 export function TopNav() {
-  const { theme, setTheme } = useTheme();
   const toggleMobile = usePracticeStore((s) => s.toggleMobileNav);
 
   useEffect(() => {
@@ -49,19 +48,7 @@ export function TopNav() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          aria-label="Toggle theme"
-        >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        </Button>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-        </Button>
+        <SidebarUserMenu />
       </div>
     </header>
   );

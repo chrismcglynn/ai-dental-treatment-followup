@@ -3,18 +3,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BarChart3,
+  Building2,
   Inbox,
-  Users,
+  Monitor,
   Zap,
   Play,
   X,
   ChevronRight,
   CheckCircle2,
+  BarChart3,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSandbox } from "@/lib/sandbox";
+import { useSandboxStore } from "@/stores/sandbox-store";
 import { cn } from "@/lib/utils";
 
 // ─── Tour steps ──────────────────────────────────────────────────────────────
@@ -31,36 +34,44 @@ interface TourStep {
 
 const TOUR_STEPS: TourStep[] = [
   {
-    id: "dashboard",
-    label: "Check the Dashboard",
-    description: "See $28,450 in recovered revenue this quarter",
-    href: "/dashboard",
-    icon: BarChart3,
-    matchPath: "/dashboard",
+    id: "practice",
+    label: "Set up your practice",
+    description: "Add phone number, timezone, and logo",
+    href: "/settings",
+    icon: Building2,
+    matchPath: "/settings",
   },
   {
-    id: "inbox",
-    label: "Open the Inbox",
-    description: "Reply to Maria Castellano's message",
-    href: "/inbox",
-    icon: Inbox,
-    matchPath: "/inbox",
+    id: "pms",
+    label: "Connect your PMS",
+    description: "Sync patient and treatment data automatically",
+    href: "/settings/integrations",
+    icon: Monitor,
+    matchPath: "/settings/integrations",
   },
   {
-    id: "patients",
-    label: "View Patients",
-    description: "Find a pending plan and start a sequence",
-    href: "/patients",
+    id: "team",
+    label: "Set up your team",
+    description: "Add dentists, hygienists, and staff members",
+    href: "/settings?tab=team",
     icon: Users,
-    matchPath: "/patients",
+    matchPath: "__team__",
   },
   {
-    id: "sequences",
-    label: "Open Sequences",
-    description: "Preview an AI-generated follow-up message",
+    id: "sequence",
+    label: "Create your first sequence",
+    description: "Set up automated follow-ups for patients",
     href: "/sequences",
     icon: Zap,
     matchPath: "/sequences",
+  },
+  {
+    id: "inbox",
+    label: "Check the Inbox",
+    description: "See and reply to patient messages",
+    href: "/inbox",
+    icon: Inbox,
+    matchPath: "/inbox",
   },
   {
     id: "simulation",
@@ -96,6 +107,7 @@ function saveCompleted(completed: Set<string>) {
 
 export function SandboxTour() {
   const { isSandbox, simulationActive } = useSandbox();
+  const teamMemberCount = useSandboxStore((s) => s.teamMembers.length);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -141,6 +153,18 @@ export function SandboxTour() {
     }
   }, [simulationActive, isSandbox, dismissed, completed]);
 
+  // Auto-complete team step when team has more than 1 member
+  useEffect(() => {
+    if (!isSandbox || dismissed) return;
+
+    if (teamMemberCount > 1 && !completed.has("team")) {
+      const next = new Set(completed);
+      next.add("team");
+      setCompleted(next);
+      saveCompleted(next);
+    }
+  }, [teamMemberCount, isSandbox, dismissed, completed]);
+
   const handleStepClick = useCallback(
     (step: TourStep) => {
       if (step.id === "simulation") {
@@ -178,7 +202,7 @@ export function SandboxTour() {
           className="flex flex-1 items-center gap-2 text-left"
         >
           <span className="text-sm font-semibold text-foreground">
-            {allDone ? "Tour complete!" : "Explore the sandbox"}
+            {allDone ? "Setup complete!" : "Get started"}
           </span>
           <span className="text-xs text-muted-foreground">
             {completedCount}/{TOUR_STEPS.length}
@@ -211,8 +235,8 @@ export function SandboxTour() {
       {!isCollapsed && (
         <div className="px-4 py-3 space-y-1">
           <p className="text-xs text-muted-foreground mb-3">
-            Welcome to Riverside Family Dental&apos;s sandbox! Here&apos;s what
-            to explore:
+            Complete these steps to set up your practice and start recovering
+            revenue:
           </p>
 
           {TOUR_STEPS.map((step, i) => {
@@ -264,7 +288,7 @@ export function SandboxTour() {
                 className="w-full text-xs"
                 onClick={handleDismiss}
               >
-                Got it, close the tour
+                Got it, close
               </Button>
             </div>
           )}
