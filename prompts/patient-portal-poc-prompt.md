@@ -1,11 +1,11 @@
 # Claude Code Prompt — Patient Portal POC + Sandbox Integration
-## Followdent | Treatment Plan Follow-Up AI
+## FollowDent | Treatment Plan Follow-Up AI
 
 ---
 
 ## CONTEXT & ROLE
 
-You are acting as **Senior Full-Stack Engineer** on the Followdent codebase. Read the reference document `hipaa-patient-portal-reference.md` in full before writing any code.
+You are acting as **Senior Full-Stack Engineer** on the FollowDent codebase. Read the reference document `hipaa-patient-portal-reference.md` in full before writing any code.
 
 The goal of this session is to:
 1. Build a **proof-of-concepts (POC) patient portal** — the secure page a patient lands on after clicking a treatment plan follow-up link
@@ -191,7 +191,7 @@ Create `src/components/portal/TreatmentPlanView.tsx`.
 
 **Design requirements:**
 - Mobile-first, max-width 420px, centered
-- No Followdent branding visible to the patient — only the practice name
+- No FollowDent branding visible to the patient — only the practice name
 - Light mode only (patients may be on any device — don't force dark mode)
 - Typography: use `Lora` (serif) for the procedure description block — this is patient-facing copy
 - Color: use the amber accent only for the primary CTA button
@@ -227,7 +227,7 @@ Create `src/app/portal/expired/page.tsx`:
 - Centered card, no practice branding
 - Message: "This link has expired"
 - Subtext: "Treatment plan links are valid for 72 hours. Text us at [number] to request a new link, or call the office directly."
-- No Followdent logo or product mention
+- No FollowDent logo or product mention
 
 Create `src/app/portal/already-used/page.tsx`:
 - Message: "You've already viewed this treatment plan"
@@ -309,7 +309,7 @@ Before considering this complete, verify:
 - [ ] Clicking the button opens a new tab with the portal pre-populated with correct patient data
 - [ ] Tapping "Yes, I'd like to schedule this" → updates sandbox store (treatment accepted, revenue updated) → `addActivityFeedItem()` with type `"booked"` → `addToast()` fires green success toast
 - [ ] Portal page is mobile-responsive at 390px width
-- [ ] No Followdent product branding visible on the portal page (practice-branded only)
+- [ ] No FollowDent product branding visible on the portal page (practice-branded only)
 - [ ] `estimated_value` is NOT shown on the portal (price creates patient anxiety)
 - [ ] Production token path (real Supabase) compiles and type-checks even if not yet functional
 - [ ] TypeScript compiles with zero errors (`tsc --noEmit`)

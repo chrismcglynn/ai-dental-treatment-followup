@@ -1,5 +1,5 @@
 # HIPAA-Compliant Patient Portal — Reference Document
-## Followdent | Treatment Plan Follow-Up AI
+## FollowDent | Treatment Plan Follow-Up AI
 
 ---
 

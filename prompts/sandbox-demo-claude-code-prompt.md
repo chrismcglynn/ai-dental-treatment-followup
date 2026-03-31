@@ -1,5 +1,5 @@
 # Claude Code Prompt — Sandbox / Demo Environment
-## Treatment Plan Follow-Up AI (Followdent / working name)
+## Treatment Plan Follow-Up AI (FollowDent / working name)
 
 ---
 
@@ -341,7 +341,7 @@ A public-facing page that lets anyone start a sandbox demo without creating an a
 **Layout:**
 
 Top section (above the fold):
-- Headline: **"See exactly how Followdent recovers unscheduled treatment revenue"**
+- Headline: **"See exactly how FollowDent recovers unscheduled treatment revenue"**
 - Subhead: "Watch a live demo of a real dental practice's follow-up sequences — no signup required"
 - Two buttons: **"Start interactive demo →"** (primary) and **"Watch 2-min video"** (secondary, opens a modal — placeholder for now)
 
@@ -373,10 +373,10 @@ export default function DemoPage() {
 Add metadata to `/demo`:
 ```ts
 export const metadata = {
-  title: 'Live Demo — Followdent | AI Treatment Plan Follow-Up',
-  description: 'See how Followdent automatically follows up with patients who have unscheduled treatment plans. Interactive demo — no signup required.',
+  title: 'Live Demo — FollowDent | AI Treatment Plan Follow-Up',
+  description: 'See how FollowDent automatically follows up with patients who have unscheduled treatment plans. Interactive demo — no signup required.',
   openGraph: {
-    title: 'See Followdent in action',
+    title: 'See FollowDent in action',
     description: 'Watch AI-powered treatment plan follow-up recover revenue for a real dental practice.',
     // Use a screenshot of the dashboard as the OG image
   },

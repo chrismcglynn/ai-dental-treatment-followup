@@ -45,7 +45,7 @@ export function DemoPageClient() {
       <div className="flex flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
         <div className="mx-auto max-w-3xl space-y-6">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Followdent recovers unscheduled treatment revenue
+            FollowDent recovers unscheduled treatment revenue
           </h1>
           <p className="mx-auto max-w-xl text-lg text-muted-foreground">
             Watch a live demo of a real dental practice&apos;s follow-up
