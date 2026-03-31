@@ -70,13 +70,6 @@ export function MarketingFooter() {
             >
               Request a Demo
             </Link>
-            <Link
-              href="/demo"
-              className="mt-3 block text-sm text-[var(--m-teal-mid)] hover:text-[var(--m-teal)] transition-colors"
-              style={{ fontFamily: "var(--font-dm-sans)" }}
-            >
-              Try the Interactive Demo &rarr;
-            </Link>
           </div>
         </div>
       </div>

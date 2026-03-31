@@ -14,8 +14,7 @@ export function FinalCtaSection() {
           className="text-base text-[var(--m-slate-light)] mb-8"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
-          Join the waitlist. Get early access. Or try the interactive demo right
-          now.
+          Join the waitlist. Get early access.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
@@ -25,13 +24,6 @@ export function FinalCtaSection() {
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
             Request a Demo &rarr;
-          </Link>
-          <Link
-            href="/demo"
-            className="inline-flex items-center justify-center rounded-lg border-2 border-[var(--m-teal)] px-8 py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal)]/10 hover:scale-[1.02] transition-all duration-150"
-            style={{ fontFamily: "var(--font-dm-sans)" }}
-          >
-            Try the Interactive Demo
           </Link>
         </div>
 

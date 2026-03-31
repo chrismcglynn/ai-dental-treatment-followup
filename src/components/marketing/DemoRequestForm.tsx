@@ -131,13 +131,6 @@ export function DemoRequestForm() {
           In the meantime, explore our interactive sandbox demo — no signup
           required:
         </p>
-        <Link
-          href="/demo"
-          className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--m-teal-mid)] transition-colors"
-          style={{ fontFamily: "var(--font-dm-sans)" }}
-        >
-          Try the Interactive Demo &rarr;
-        </Link>
       </div>
     );
   }
