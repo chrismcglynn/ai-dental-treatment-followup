@@ -234,8 +234,8 @@ function AvailabilityPicker({
               }
               className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
                 preferences.months.includes(month.value)
-                  ? "bg-amber-500 text-white border-amber-500"
-                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+                  ? "bg-teal-600 text-white border-teal-600"
+                  : "border-stone-200 text-stone-700 hover:border-teal-300 hover:bg-teal-50"
               }`}
             >
               {month.label}
@@ -266,8 +266,8 @@ function AvailabilityPicker({
               }
               className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
                 preferences.daysOfWeek.includes(day.value)
-                  ? "bg-amber-500 text-white border-amber-500"
-                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+                  ? "bg-teal-600 text-white border-teal-600"
+                  : "border-stone-200 text-stone-700 hover:border-teal-300 hover:bg-teal-50"
               }`}
             >
               {day.label}
@@ -298,15 +298,15 @@ function AvailabilityPicker({
               }
               className={`rounded-lg border px-3 py-2.5 text-left transition-all ${
                 preferences.timesOfDay.includes(time.value)
-                  ? "bg-amber-500 text-white border-amber-500"
-                  : "border-stone-200 text-stone-700 hover:border-amber-300 hover:bg-amber-50"
+                  ? "bg-teal-600 text-white border-teal-600"
+                  : "border-stone-200 text-stone-700 hover:border-teal-300 hover:bg-teal-50"
               }`}
             >
               <span className="text-sm font-medium block">{time.label}</span>
               <span
                 className={`text-[11px] ${
                   preferences.timesOfDay.includes(time.value)
-                    ? "text-amber-100"
+                    ? "text-teal-100"
                     : "text-stone-400"
                 }`}
               >
@@ -509,7 +509,7 @@ export function TreatmentPlanView({
               />
 
               <Button
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white"
                 size="lg"
                 onClick={handleSubmit}
                 disabled={!canSubmit || loading}
@@ -568,7 +568,7 @@ export function TreatmentPlanView({
             </div>
 
             <Button
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
               size="lg"
               onClick={() => setStep("schedule")}
             >
