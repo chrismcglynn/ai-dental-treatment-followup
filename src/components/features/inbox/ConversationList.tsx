@@ -51,9 +51,9 @@ function ConversationItem({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-start gap-3 p-3 text-left transition-colors hover:bg-accent/50 border-b border-border",
-        isSelected && "bg-accent",
-        isUnread && !isSelected && "bg-accent/20"
+        "w-full flex items-start gap-3 p-3 text-left transition-colors hover:bg-primary/10 border-b border-border",
+        isSelected && "bg-primary/15",
+        isUnread && !isSelected && "bg-primary/5"
       )}
     >
       <div className="relative shrink-0">
@@ -63,7 +63,7 @@ function ConversationItem({
           </AvatarFallback>
         </Avatar>
         {isUnread && (
-          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-amber-500" />
+          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary" />
         )}
       </div>
 
@@ -89,7 +89,7 @@ function ConversationItem({
             SMS
           </Badge>
           {isUrgent && (
-            <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
+            <AlertTriangle className="h-3 w-3 text-accent shrink-0" />
           )}
         </div>
 
