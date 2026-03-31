@@ -91,7 +91,7 @@ export function GeneralTab() {
   return (
     <div className="space-y-6">
       {!isAdmin && (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground dark:border-primary/30 dark:bg-primary/10 dark:text-foreground">
           <Lock className="h-4 w-4 shrink-0" />
           <span>Only admins can edit practice settings. Contact your admin for changes.</span>
         </div>

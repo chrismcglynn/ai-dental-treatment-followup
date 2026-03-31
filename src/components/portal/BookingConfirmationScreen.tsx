@@ -78,7 +78,7 @@ export function BookingConfirmationScreen({
         {/* Summary card */}
         <div className="w-full rounded-lg bg-white border border-stone-200 p-4 text-left">
           <div className="flex items-center gap-2 mb-3">
-            <ListChecks className="h-4 w-4 text-amber-600" />
+            <ListChecks className="h-4 w-4 text-teal-600" />
             <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
               Your availability
             </span>

@@ -290,7 +290,7 @@ export function TeamTab() {
                         {member.isAdmin && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge variant="default" className="gap-1 bg-amber-600 hover:bg-amber-700">
+                              <Badge variant="default" className="gap-1 bg-primary hover:bg-primary/90">
                                 <Shield className="h-3 w-3" />
                                 Admin
                               </Badge>
