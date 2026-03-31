@@ -11,7 +11,7 @@ export function MarketingFooter() {
               className="text-xl font-bold"
               style={{ fontFamily: "var(--font-playfair)" }}
             >
-              FollowDent
+              Retaine
             </span>
             <p
               className="mt-3 text-sm text-[var(--m-slate-light)] leading-relaxed"
@@ -65,7 +65,7 @@ export function MarketingFooter() {
             </h4>
             <Link
               href="/request-demo"
-              className="inline-flex items-center justify-center rounded-lg border-2 border-[var(--m-teal)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--m-teal)] transition-colors"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-[var(--m-teal-mid)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--m-teal-mid)] transition-colors"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
               Request a Demo
@@ -80,7 +80,7 @@ export function MarketingFooter() {
           className="mx-auto max-w-[1200px] px-6 py-4 text-center text-xs text-[var(--m-slate-light)]"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
-          &copy; 2026 FollowDent · All rights reserved · Denver, CO
+          &copy; 2026 Retaine · All rights reserved · Denver, CO
         </div>
       </div>
     </footer>

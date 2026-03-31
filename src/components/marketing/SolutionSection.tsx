@@ -4,7 +4,7 @@ const steps = [
   {
     icon: ClipboardCheck,
     title: "Treatment plan detected",
-    body: "FollowDent syncs with your PMS and instantly identifies every accepted treatment plan that hasn't been scheduled yet.",
+    body: "Retaine syncs with your PMS and instantly identifies every accepted treatment plan that hasn't been scheduled yet.",
   },
   {
     icon: MessageSquare,
@@ -27,7 +27,7 @@ export function SolutionSection() {
             className="inline-block text-xs font-semibold uppercase tracking-widest text-[var(--m-teal)] mb-3"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
-            How FollowDent Works
+            How Retaine Works
           </span>
           <h2
             className="text-3xl md:text-4xl font-bold text-[var(--m-navy)]"

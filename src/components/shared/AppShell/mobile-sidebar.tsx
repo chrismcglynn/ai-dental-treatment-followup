@@ -12,6 +12,7 @@ import {
   Building2,
   ChevronsUpDown,
   Check,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Sheet,
@@ -30,11 +31,13 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUnreadCount } from "@/hooks/useInbox";
+import { usePendingTreatments } from "@/hooks/useAnalytics";
 import { type NavItem } from "@/types/navigation";
 
 
 const mainNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Treatments", href: "/treatments/pending", icon: ClipboardCheck },
   { title: "Patients", href: "/patients", icon: Users },
   { title: "Sequences", href: "/sequences", icon: Zap },
   { title: "Inbox", href: "/inbox", icon: Inbox },
@@ -57,6 +60,7 @@ export function MobileSidebar() {
 
   const activePractice = practices[0];
   const inboxUnread = useUnreadCount();
+  const { data: pendingCount } = usePendingTreatments();
 
   return (
     <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
@@ -117,7 +121,12 @@ export function MobileSidebar() {
                 pathname === item.href ||
                 pathname.startsWith(item.href + "/");
               const isInbox = item.title === "Inbox";
-              const badgeValue = isInbox ? inboxUnread : item.badge;
+              const isTreatments = item.title === "Treatments";
+              const badgeValue = isInbox
+                ? inboxUnread
+                : isTreatments
+                ? pendingCount ?? 0
+                : item.badge;
               const hasBadge = badgeValue && Number(badgeValue) > 0;
               return (
                 <Link

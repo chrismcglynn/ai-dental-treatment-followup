@@ -1,5 +1,12 @@
 import localFont from "next/font/local";
-import { Lora, Playfair_Display, DM_Sans, DM_Mono } from "next/font/google";
+import { DM_Serif_Display, Lora, Playfair_Display, DM_Sans, DM_Mono } from "next/font/google";
+
+export const dmSerif = DM_Serif_Display({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-dm-serif',
+})
 
 export const geistSans = localFont({
   src: "../app/fonts/GeistVF.woff",

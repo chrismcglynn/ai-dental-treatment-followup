@@ -11,10 +11,12 @@ import {
   Settings,
   ChevronLeft,
   Building2,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUnreadCount } from "@/hooks/useInbox";
+import { usePendingTreatments } from "@/hooks/useAnalytics";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,6 +24,7 @@ import { type NavItem } from "@/types/navigation";
 
 const mainNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Treatments", href: "/treatments/pending", icon: ClipboardCheck },
   { title: "Patients", href: "/patients", icon: Users },
   { title: "Sequences", href: "/sequences", icon: Zap },
   { title: "Inbox", href: "/inbox", icon: Inbox },
@@ -120,9 +123,17 @@ function NavLink({
   const isActive =
     pathname === item.href || pathname.startsWith(item.href + "/");
   const isInbox = item.title === "Inbox";
+  const isTreatments = item.title === "Treatments";
   const inboxUnread = useUnreadCount();
-  const badgeValue = isInbox ? inboxUnread : item.badge;
+  const { data: pendingCount } = usePendingTreatments();
+
+  const badgeValue = isInbox
+    ? inboxUnread
+    : isTreatments
+    ? pendingCount ?? 0
+    : item.badge;
   const hasBadge = badgeValue && Number(badgeValue) > 0;
+  const isPulsing = isInbox || isTreatments;
 
   return (
     <Link
@@ -142,7 +153,7 @@ function NavLink({
             <span
               className={cn(
                 "ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
-                isInbox
+                isPulsing
                   ? "bg-primary text-primary-foreground animate-pulse"
                   : "bg-primary/20 text-[hsl(var(--sidebar-active))]"
               )}
@@ -152,7 +163,7 @@ function NavLink({
           )}
         </>
       )}
-      {!isOpen && hasBadge && isInbox && (
+      {!isOpen && hasBadge && isPulsing && (
         <span className="absolute right-2 h-2 w-2 rounded-full bg-primary animate-pulse" />
       )}
     </Link>

@@ -26,8 +26,8 @@ export function DemoSessionProvider({ children, signupData }: DemoSessionProvide
   // doesn't read stale "dismissed" from a previous session.
   const tourReset = useRef(false);
   if (!tourReset.current && typeof window !== "undefined") {
-    sessionStorage.removeItem("followdent-sandbox-tour");
-    sessionStorage.removeItem("followdent-sandbox-tour-dismissed");
+    sessionStorage.removeItem("Retaine-sandbox-tour");
+    sessionStorage.removeItem("Retaine-sandbox-tour-dismissed");
     tourReset.current = true;
   }
 

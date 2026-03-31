@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "FollowDent privacy policy — how we collect, use, and protect your data.",
+  description: "Retaine privacy policy — how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPage() {
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       >
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>1. Data We Collect</h2>
         <p>
-          FollowDent collects information you provide directly, including your name, email address, practice name, role, phone number, and information about your practice management software. When you use our platform, we also collect treatment plan data synced from your PMS, patient contact information, message delivery and engagement data, and usage analytics.
+          Retaine collects information you provide directly, including your name, email address, practice name, role, phone number, and information about your practice management software. When you use our platform, we also collect treatment plan data synced from your PMS, patient contact information, message delivery and engagement data, and usage analytics.
         </p>
 
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>2. How We Use Your Data</h2>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>3. HIPAA Compliance</h2>
         <p>
-          FollowDent is designed to comply with the Health Insurance Portability and Accountability Act (HIPAA). We sign a Business Associate Agreement (BAA) with every customer practice. Protected Health Information (PHI) is encrypted at rest using AES-256 and in transit using TLS 1.2+. PHI is never included in outbound SMS or email messages — patients access treatment details only through secure, token-based portal links.
+          Retaine is designed to comply with the Health Insurance Portability and Accountability Act (HIPAA). We sign a Business Associate Agreement (BAA) with every customer practice. Protected Health Information (PHI) is encrypted at rest using AES-256 and in transit using TLS 1.2+. PHI is never included in outbound SMS or email messages — patients access treatment details only through secure, token-based portal links.
         </p>
 
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>4. Third-Party Services</h2>
@@ -61,8 +61,8 @@ export default function PrivacyPage() {
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>6. Contact</h2>
         <p>
           For privacy-related inquiries, please contact us at{" "}
-          <a href="mailto:privacy@followdent.com" className="text-[var(--m-teal)] hover:underline">
-            privacy@followdent.com
+          <a href="mailto:privacy@retaine.com" className="text-[var(--m-teal)] hover:underline">
+            privacy@retaine.com
           </a>.
         </p>
       </div>

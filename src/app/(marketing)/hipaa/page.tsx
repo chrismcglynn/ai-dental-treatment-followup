@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "HIPAA Compliance Statement",
-  description: "FollowDent HIPAA compliance statement — how we protect patient data and ensure regulatory compliance.",
+  description: "Retaine HIPAA compliance statement — how we protect patient data and ensure regulatory compliance.",
 };
 
 export default function HipaaPage() {
@@ -27,12 +27,12 @@ export default function HipaaPage() {
         style={{ fontFamily: "var(--font-dm-sans)" }}
       >
         <p>
-          FollowDent is committed to protecting the privacy and security of Protected Health Information (PHI) in compliance with the Health Insurance Portability and Accountability Act of 1996 (HIPAA) and its implementing regulations.
+          Retaine is committed to protecting the privacy and security of Protected Health Information (PHI) in compliance with the Health Insurance Portability and Accountability Act of 1996 (HIPAA) and its implementing regulations.
         </p>
 
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>Business Associate Agreements</h2>
         <p>
-          FollowDent acts as a Business Associate under HIPAA. We execute a Business Associate Agreement (BAA) with every customer practice before any PHI is processed. Our BAA outlines our obligations regarding PHI use, disclosure, and protection.
+          Retaine acts as a Business Associate under HIPAA. We execute a Business Associate Agreement (BAA) with every customer practice before any PHI is processed. Our BAA outlines our obligations regarding PHI use, disclosure, and protection.
         </p>
 
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>PHI Handling Practices</h2>
@@ -63,8 +63,8 @@ export default function HipaaPage() {
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>Requesting a BAA</h2>
         <p>
           To request a Business Associate Agreement or for any HIPAA-related inquiries, please contact our privacy team at{" "}
-          <a href="mailto:privacy@followdent.com" className="text-[var(--m-teal)] hover:underline">
-            privacy@followdent.com
+          <a href="mailto:privacy@retaine.com" className="text-[var(--m-teal)] hover:underline">
+            privacy@retaine.com
           </a>.
         </p>
 
@@ -74,7 +74,7 @@ export default function HipaaPage() {
           </p>
           <Link
             href="/request-demo"
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[var(--m-teal-mid)] transition-colors"
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[var(--m-teal)] transition-colors"
           >
             Request a Demo &rarr;
           </Link>

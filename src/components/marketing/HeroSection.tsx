@@ -174,7 +174,7 @@ export function HeroSection() {
                 Then life got in the way.
               </span>
               <span
-                className={`block transition-all duration-500 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                className={`block transition-all duration-500 text-[--m-teal-mid] mt-2 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
               >
                 We bring them back.
               </span>
@@ -184,7 +184,7 @@ export function HeroSection() {
               className="text-lg text-[var(--m-slate)] leading-relaxed mb-8 max-w-lg"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
-              FollowDent automatically follows up with patients who have
+              Retaine automatically follows up with patients who have
               unscheduled treatment plans — via SMS, email, and voicemail — and
               turns accepted plans into booked appointments. Average practices
               recover $150,000+ in unscheduled revenue per year.
@@ -193,7 +193,7 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Link
                 href="/request-demo"
-                className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150"
+                className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
                 Request a Demo &rarr;

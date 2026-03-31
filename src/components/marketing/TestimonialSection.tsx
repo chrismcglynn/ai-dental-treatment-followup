@@ -37,7 +37,7 @@ export function TestimonialSection() {
 
         <Link
           href="/request-demo"
-          className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150"
+          className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
           Join them on the waitlist &rarr;

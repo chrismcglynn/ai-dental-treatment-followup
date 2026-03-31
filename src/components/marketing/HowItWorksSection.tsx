@@ -363,7 +363,7 @@ const rows = [
   },
   {
     title: "Never miss a patient reply again.",
-    body: "When patients respond via SMS, your team sees every conversation in a unified inbox with real-time updates. Reply directly from FollowDent. See delivery status for every message. No more digging through texting apps or shared phones.",
+    body: "When patients respond via SMS, your team sees every conversation in a unified inbox with real-time updates. Reply directly from Retaine. See delivery status for every message. No more digging through texting apps or shared phones.",
     visual: <InboxMockup />,
   },
   {
