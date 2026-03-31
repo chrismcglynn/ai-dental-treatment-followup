@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import Link from "next/link";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
