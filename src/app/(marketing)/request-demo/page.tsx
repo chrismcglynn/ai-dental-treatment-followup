@@ -3,9 +3,9 @@ import { ShieldCheck } from "lucide-react";
 import { DemoRequestForm } from "@/components/marketing/DemoRequestForm";
 
 export const metadata: Metadata = {
-  title: "Request a Demo — See FollowDent in Action",
+  title: "Request a Demo — See Retaine in Action",
   description:
-    "Join the FollowDent waitlist and get a personalized demo. See how AI-powered treatment plan follow-up recovers unscheduled revenue for dental practices.",
+    "Join the Retaine waitlist and get a personalized demo. See how AI-powered treatment plan follow-up recovers unscheduled revenue for dental practices.",
 };
 
 export default function RequestDemoPage() {
@@ -13,12 +13,12 @@ export default function RequestDemoPage() {
     <section className="min-h-[calc(100vh-80px)]">
       <div className="grid grid-cols-1 lg:grid-cols-5">
         {/* Left column — value reinforcement */}
-        <div className="lg:col-span-2 bg-[var(--m-teal)] text-white px-8 py-12 lg:py-20 lg:px-12">
+        <div className="lg:col-span-2 bg-[var(--m-teal-mid)] text-white px-8 py-12 lg:py-20 lg:px-12">
           <h2
             className="text-2xl font-bold mb-6"
             style={{ fontFamily: "var(--font-playfair)" }}
           >
-            FollowDent is launching soon.
+            Retaine is launching soon.
           </h2>
 
           <div className="mb-8" style={{ fontFamily: "var(--font-dm-sans)" }}>
@@ -96,7 +96,7 @@ export default function RequestDemoPage() {
               className="text-2xl md:text-3xl font-bold text-[var(--m-navy)] mb-2"
               style={{ fontFamily: "var(--font-playfair)" }}
             >
-              See FollowDent in action
+              See Retaine in action
             </h1>
             <p
               className="text-sm text-[var(--m-slate)] mb-8"

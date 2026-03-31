@@ -535,8 +535,16 @@ export const useSandboxStore = create<SandboxStore>()(
           }));
       },
 
-      getPendingTreatmentsCount: () =>
-        get().treatments.filter((t) => t.status === "pending").length,
+      getPendingTreatmentsCount: () => {
+        const enrolledPatientIds = new Set(
+          get().enrollments
+            .filter((e) => e.status === "active")
+            .map((e) => e.patient_id)
+        );
+        return get().treatments.filter(
+          (t) => t.status === "pending" && !enrolledPatientIds.has(t.patient_id)
+        ).length;
+      },
 
       getAnalyticsStats: () => get().analyticsStats,
 

@@ -140,7 +140,7 @@ export function RevenueCalculator() {
                 className="text-sm text-[var(--m-slate-light)] mb-1"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
-                Without FollowDent
+                Without Retaine
               </div>
               <div
                 className="text-3xl font-bold text-[var(--m-red-soft)]"
@@ -160,7 +160,7 @@ export function RevenueCalculator() {
                 className="text-sm text-[var(--m-slate-light)] mb-1"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
-                With FollowDent
+                With Retaine
               </div>
               <div
                 className="text-3xl font-bold text-[var(--m-teal-mid)]"
@@ -182,7 +182,7 @@ export function RevenueCalculator() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             <div>
               <div
-                className="text-xs text-[var(--m-slate-light)] mb-1"
+                className="text-xs text-[var(--m-slate-light)] mb-3"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
                 Annual recovery
@@ -196,10 +196,10 @@ export function RevenueCalculator() {
             </div>
             <div>
               <div
-                className="text-xs text-[var(--m-slate-light)] mb-1"
+                className="text-xs text-[var(--m-slate-light)] mb-3"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
-                FollowDent cost per year
+                Retaine (annually)
               </div>
               <div
                 className="text-2xl md:text-[40px] font-bold text-white/60"
@@ -210,7 +210,7 @@ export function RevenueCalculator() {
             </div>
             <div>
               <div
-                className="text-xs text-[var(--m-slate-light)] mb-1"
+                className="text-xs text-[var(--m-slate-light)] mb-3"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
                 Net gain
@@ -224,7 +224,7 @@ export function RevenueCalculator() {
             </div>
             <div>
               <div
-                className="text-xs text-[var(--m-slate-light)] mb-1"
+                className="text-xs text-[var(--m-slate-light)] mb-3"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
                 ROI
@@ -243,10 +243,10 @@ export function RevenueCalculator() {
         <div className="mt-10 text-center">
           <Link
             href="/request-demo"
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-8 py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150"
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-8 py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
-            Request a Demo to see FollowDent working on your actual treatment
+            Request a Demo to see Retaine working on your actual treatment
             plan data &rarr;
           </Link>
         </div>

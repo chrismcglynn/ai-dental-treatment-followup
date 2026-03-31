@@ -28,7 +28,7 @@
     --card-foreground: 216 47% 20%;
     --popover: 0 0% 100%;
     --popover-foreground: 216 47% 20%;
-    --primary: 171 49% 32%;
+    --primary: 171 46% 42%;
     --primary-foreground: 0 0% 100%;
     --secondary: 168 33% 94%;
     --secondary-foreground: 216 47% 20%;
@@ -40,13 +40,13 @@
     --destructive-foreground: 0 0% 100%;
     --border: 210 30% 89%;
     --input: 210 30% 89%;
-    --ring: 171 49% 32%;
+    --ring: 171 46% 42%;
     --radius: 0.625rem;
 
     /* Sidebar - always dark navy */
     --sidebar-bg: 215 55% 13%;
     --sidebar-fg: 210 30% 89%;
-    --sidebar-active: 171 49% 32%;
+    --sidebar-active: 171 46% 42%;
     --sidebar-active-fg: 0 0% 100%;
   }
 

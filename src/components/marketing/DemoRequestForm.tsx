@@ -279,7 +279,7 @@ export function DemoRequestForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-lg bg-[var(--m-teal)] py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full rounded-lg bg-[var(--m-teal-mid)] py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {submitting ? "Submitting..." : "Join the Waitlist & Request Demo \u2192"}
       </button>

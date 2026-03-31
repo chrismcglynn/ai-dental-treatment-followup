@@ -10,7 +10,6 @@ import {
   Mail,
   Phone,
   MessageCircle,
-  AlertTriangle,
   ArrowRight,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -90,8 +89,8 @@ import {
   useDashboardStats,
   useRecentActivity,
   useSequencePerformance,
-  usePendingTreatments,
 } from "@/hooks/useAnalytics";
+import { usePendingTreatmentsWithPatients } from "@/hooks/usePatients";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -100,7 +99,12 @@ export default function DashboardPage() {
     useRecentActivity();
   const { data: sequencePerf, isLoading: perfLoading } =
     useSequencePerformance();
-  const { data: pendingCount } = usePendingTreatments();
+  const { data: pendingRows } = usePendingTreatmentsWithPatients();
+  const pendingCount = pendingRows?.length ?? 0;
+  const pendingRevenue = pendingRows?.reduce(
+    (sum, r) => sum + (r.treatment.amount ?? 0),
+    0
+  ) ?? 0;
 
   const conversionRate = stats?.conversion_rate ?? 0;
 
@@ -116,6 +120,14 @@ export default function DashboardPage() {
           </Button>
         }
       />
+
+      {/* Pending Treatments — revenue opportunity */}
+      {pendingCount > 0 && (
+        <PendingRevenueCard
+          count={pendingCount}
+          revenue={pendingRevenue}
+        />
+      )}
 
       {/* Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -236,10 +248,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Pending Plans Alert */}
-      {pendingCount != null && pendingCount > 0 && (
-        <PendingPlansAlert count={pendingCount} />
-      )}
     </div>
   );
 }
@@ -294,33 +302,32 @@ function RecentActivityRow({
   );
 }
 
-function PendingPlansAlert({ count }: { count: number }) {
+function PendingRevenueCard({ count, revenue }: { count: number; revenue: number }) {
   const router = useRouter();
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.4 }}
+      transition={{ duration: 0.3 }}
     >
-      <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
-        <CardContent className="flex items-center gap-4 py-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10">
+        <CardContent className="flex items-center gap-5 py-5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20">
+            <DollarSign className="h-6 w-6 text-primary" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-              {count} pending treatment plan{count !== 1 ? "s" : ""} detected
+          <div className="flex-1 min-w-0">
+            <p className="text-lg font-bold text-foreground">
+              ${revenue.toLocaleString()} waiting to be recovered
             </p>
-            <p className="text-xs text-amber-700 dark:text-amber-300/80">
-              These plans have been identified but haven&apos;t been added to a
-              follow-up sequence yet.
+            <p className="text-sm text-muted-foreground">
+              {count} accepted treatment plan{count !== 1 ? "s" : ""} not yet in
+              a follow-up sequence
             </p>
           </div>
           <Button
-            variant="outline"
             size="sm"
-            className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 shrink-0"
+            className="shrink-0"
             onClick={() => router.push("/treatments/pending")}
           >
             Review &amp; enroll

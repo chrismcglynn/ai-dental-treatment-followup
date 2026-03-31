@@ -69,7 +69,7 @@ export function PricingSection() {
 
           <Link
             href="/request-demo"
-            className="block w-full rounded-lg bg-[var(--m-teal)] py-3 text-center text-base font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150"
+            className="block w-full rounded-lg bg-[var(--m-teal-mid)] py-3 text-center text-base font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
             Request a Demo — Launching Soon
@@ -82,10 +82,10 @@ export function PricingSection() {
         >
           Questions about pricing? Email us at{" "}
           <a
-            href="mailto:hello@followdent.com"
+            href="mailto:hello@retaine.com"
             className="text-[var(--m-teal)] font-semibold hover:underline"
           >
-            hello@followdent.com
+            hello@retaine.com
           </a>
         </p>
       </div>

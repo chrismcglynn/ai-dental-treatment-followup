@@ -82,7 +82,7 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-const STORAGE_KEY = "followdent-sandbox-tour";
+const STORAGE_KEY = "Retaine-sandbox-tour";
 
 // ─── Persistence helpers ─────────────────────────────────────────────────────
 

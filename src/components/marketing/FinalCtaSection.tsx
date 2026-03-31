@@ -20,7 +20,7 @@ export function FinalCtaSection() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
           <Link
             href="/request-demo"
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal)] px-8 py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal-mid)] hover:scale-[1.02] transition-all duration-150"
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-8 py-3.5 text-base font-semibold text-white hover:bg-[var(--m-teal)] hover:scale-[1.02] transition-all duration-150"
             style={{ fontFamily: "var(--font-dm-sans)" }}
           >
             Request a Demo &rarr;

@@ -383,12 +383,27 @@ export async function getPendingTreatmentsCount(
   practiceId: string
 ): Promise<number> {
   const supabase = createClient();
-  const { count, error } = await supabase
+
+  // Get patients already in active sequences
+  const { data: enrolled } = await supabase
+    .from("sequence_enrollments")
+    .select("patient_id")
+    .eq("practice_id", practiceId)
+    .eq("status", "active");
+
+  const enrolledIds = (enrolled ?? []).map((e) => e.patient_id);
+
+  let query = supabase
     .from("treatments")
     .select("id", { count: "exact", head: true })
     .eq("practice_id", practiceId)
     .eq("status", "pending");
 
+  if (enrolledIds.length > 0) {
+    query = query.not("patient_id", "in", `(${enrolledIds.join(",")})`);
+  }
+
+  const { count, error } = await query;
   if (error) throw error;
   return count ?? 0;
 }
