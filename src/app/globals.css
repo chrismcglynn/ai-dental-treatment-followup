@@ -3,6 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  /* Marketing color tokens */
+  :root {
+    --m-navy: #1B2E4B;
+    --m-navy-deep: #0F1E33;
+    --m-teal: #2A7B6F;
+    --m-teal-light: #EAF4F2;
+    --m-teal-mid: #3A9E8F;
+    --m-slate: #4A5C6E;
+    --m-slate-light: #7A8FA3;
+    --m-border: #D8E2EC;
+    --m-off-white: #F7F9FB;
+    --m-white: #FFFFFF;
+    --m-amber: #D4860A;
+    --m-amber-light: #FEF5E4;
+    --m-red-soft: #C0392B;
+  }
+
   /* Light mode */
   :root {
     --background: 0 0% 98%;
@@ -66,6 +83,10 @@
 @layer base {
   * {
     @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
