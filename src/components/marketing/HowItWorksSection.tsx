@@ -95,7 +95,7 @@ function SequenceBuilderMockup() {
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
           &quot;Hi Maria, this is a reminder from Dr. Smith&apos;s office about
-          your crown on tooth #14. We&apos;d love to get that scheduled for
+          your treatment plan. We&apos;d love to get that scheduled for
           you...&quot;
         </p>
       </div>
@@ -144,7 +144,7 @@ function InboxMockup() {
                 className="text-[11px] text-[var(--m-slate)]"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
-                Hi Maria, just a reminder about your crown...
+                Hi Maria, just a reminder about your treat...
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-[9px] text-[var(--m-teal)]">
@@ -358,7 +358,7 @@ function PatientPortalMockup() {
 const rows = [
   {
     title: "Build your follow-up sequences once. Run them forever.",
-    body: "Configure exactly how you want to reach each type of patient. Crown follow-ups, implant consults, and SRP reminders can all have their own cadence, tone, and timing. AI writes the messages using Claude — you review, tweak the tone, and approve. Drag steps to reorder. Set delays in days or hours.",
+    body: "Configure exactly how you want to reach each type of patient. Crown follow-ups, implant consults, and SRP reminders can all have their own cadence, tone, and timing. AI writes the messages — you review, tweak the tone, and approve. Drag steps to reorder. Set delays in days or hours.",
     visual: <SequenceBuilderMockup />,
   },
   {
