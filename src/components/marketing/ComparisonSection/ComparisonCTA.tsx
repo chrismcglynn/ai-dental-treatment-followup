@@ -20,7 +20,7 @@ export function ComparisonCTA() {
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
-          href="/demo"
+          href="/request-demo"
           className="inline-flex items-center justify-center rounded-lg bg-[var(--m-teal-mid)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--m-teal)] transition-colors shadow-sm"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
