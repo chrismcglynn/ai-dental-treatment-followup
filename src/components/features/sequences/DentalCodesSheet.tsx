@@ -18,14 +18,17 @@ interface DentalCodesSheetProps {
 export function DentalCodesSheet({ open, onOpenChange }: DentalCodesSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-lg">
+      <SheetContent
+        side="right"
+        className="inset-y-2 right-2 h-auto w-[calc(100%-1rem)] rounded-2xl border border-border/60 shadow-xl sm:max-w-lg"
+      >
         <SheetHeader>
           <SheetTitle>ADA CDT Dental Codes</SheetTitle>
           <SheetDescription>
             Current Dental Terminology (CDT-2024/CDT-2025)
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] mt-4 pr-4">
+        <ScrollArea className="h-[calc(100%-5rem)] mt-4 pr-4">
           <div className="space-y-6">
             {DENTAL_CODE_CATEGORIES.map((category) => (
               <div key={category.range}>

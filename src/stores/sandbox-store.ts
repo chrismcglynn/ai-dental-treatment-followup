@@ -64,6 +64,7 @@ export interface SandboxActivity {
   type: "sms_sent" | "email_sent" | "voicemail_sent" | "delivered" | "replied" | "booked" | "plan_detected";
   description: string;
   patientName: string;
+  patientId?: string;
   amount?: number;
   timestamp: string;
 }
@@ -679,6 +680,8 @@ export const useSandboxStore = create<SandboxStore>()(
           sent_at: nowISO(),
           delivered_at: nowISO(),
           read_at: null,
+          intent: null,
+          intent_confidence: null,
           created_at: nowISO(),
         };
 

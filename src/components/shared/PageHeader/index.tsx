@@ -1,57 +1,36 @@
 "use client";
 
-import { type ReactNode } from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { useCallback } from "react";
+import { useUiStore } from "@/stores/ui-store";
 
-interface PageHeaderProps {
-  title: string;
-  description?: string;
-  actions?: ReactNode;
-  breadcrumbs?: { label: string; href?: string }[];
-  children?: ReactNode;
-}
+export function PageHeader() {
+  const header = useUiStore((s) => s.pageHeader);
+  const setPortalSearchEl = useUiStore((s) => s.setPortalSearchEl);
+  const setPortalActionsEl = useUiStore((s) => s.setPortalActionsEl);
 
-export function PageHeader({
-  title,
-  description,
-  actions,
-  breadcrumbs,
-  children,
-}: PageHeaderProps) {
+  const searchRef = useCallback(
+    (node: HTMLDivElement | null) => setPortalSearchEl(node),
+    [setPortalSearchEl]
+  );
+  const actionsRef = useCallback(
+    (node: HTMLDivElement | null) => setPortalActionsEl(node),
+    [setPortalActionsEl]
+  );
+
+  if (!header) return null;
+
+  const { search, actions, portalToolbar } = header;
+  if (!search && !actions && !portalToolbar) return null;
+
   return (
-    <div className="space-y-2">
-      {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-          {breadcrumbs.map((crumb, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <ChevronRight className="h-3.5 w-3.5" />}
-              {crumb.href ? (
-                <Link
-                  href={crumb.href}
-                  className="hover:text-foreground transition-colors"
-                >
-                  {crumb.label}
-                </Link>
-              ) : (
-                <span className="text-foreground font-medium">
-                  {crumb.label}
-                </span>
-              )}
-            </span>
-          ))}
-        </nav>
-      )}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          )}
-        </div>
-        {(actions || children) && (
-          <div className="flex items-center gap-3">{actions ?? children}</div>
-        )}
+    <div className="flex items-center gap-4 px-4 lg:px-6 pb-2 pt-6 bg-background lg:bg-transparent border-b lg:border-0 border-border">
+      <div className="flex-1 flex items-center gap-3">
+        {portalToolbar && <div ref={searchRef} className="flex-1 flex items-center" />}
+        {search}
+      </div>
+      <div className="flex items-center gap-2">
+        {portalToolbar && <div ref={actionsRef} className="flex items-center gap-2" />}
+        {actions}
       </div>
     </div>
   );

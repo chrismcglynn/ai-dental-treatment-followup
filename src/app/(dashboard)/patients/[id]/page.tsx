@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  ArrowLeft,
+
   Mail,
   Phone,
   Copy,
@@ -13,8 +13,8 @@ import {
   MessageSquare,
   CalendarCheck,
 } from "lucide-react";
-import Link from "next/link";
-import { PageHeader } from "@/components/shared/PageHeader";
+
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -112,6 +112,10 @@ export default function PatientDetailPage() {
   const isDnc = patient?.status === "archived";
   const fullName = patient ? `${patient.first_name} ${patient.last_name}` : "";
 
+  usePageHeader({
+    title: patient ? fullName : "Patient not found",
+  });
+
   const handleStartSequence = () => {
     if (!patient || !selectedSequenceId) return;
     createEnrollment.mutate(
@@ -154,14 +158,7 @@ export default function PatientDetailPage() {
   if (!patient) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link href="/patients">
-            <Button variant="ghost" size="icon" aria-label="Back to patients">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <PageHeader title="Patient not found" />
-        </div>
+        <p className="text-muted-foreground">This patient could not be found.</p>
       </div>
     );
   }
@@ -175,23 +172,6 @@ export default function PatientDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/patients">
-          <Button variant="ghost" size="icon" aria-label="Back to patients">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <PageHeader
-          title={fullName}
-          description={`Patient ID: ${patient.id.slice(0, 8)}...`}
-          breadcrumbs={[
-            { label: "Patients", href: "/patients" },
-            { label: fullName },
-          ]}
-        />
-      </div>
-
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* Left Panel (sticky) */}

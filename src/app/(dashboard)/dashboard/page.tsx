@@ -1,12 +1,12 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   DollarSign,
   ListChecks,
   MessageSquare,
   TrendingUp,
-  Plus,
   Mail,
   Phone,
   MessageCircle,
@@ -78,10 +78,17 @@ const RechartsBarChart = dynamic(
   { ssr: false, loading: () => <div className="h-[280px] animate-pulse rounded bg-muted" /> }
 );
 import { motion } from "framer-motion";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -91,9 +98,11 @@ import {
   useSequencePerformance,
 } from "@/hooks/useAnalytics";
 import { usePendingTreatmentsWithPatients } from "@/hooks/usePatients";
+import { useSandbox } from "@/lib/sandbox";
+import { cn } from "@/lib/utils";
+import type { SandboxActivity } from "@/stores/sandbox-store";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentActivity, isLoading: activityLoading } =
     useRecentActivity();
@@ -108,18 +117,10 @@ export default function DashboardPage() {
 
   const conversionRate = stats?.conversion_rate ?? 0;
 
+  usePageHeader({ title: "Dashboard" });
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of your practice's follow-up performance"
-        actions={
-          <Button onClick={() => router.push("/sequences/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Sequence
-          </Button>
-        }
-      />
+    <div className="flex flex-col gap-6 h-full">
 
       {/* Pending Treatments — revenue opportunity */}
       {pendingCount > 0 && (
@@ -190,47 +191,19 @@ export default function DashboardPage() {
       </div>
 
       {/* Activity + Performance */}
-      <div className="grid gap-6 lg:grid-cols-5">
+      <div className="grid gap-6 lg:grid-cols-5 flex-1 min-h-0">
         {/* Recent Activity — 60% */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {activityLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <div className="flex-1 space-y-1.5">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                ))}
-              </div>
-            ) : recentActivity && recentActivity.length > 0 ? (
-              <div className="space-y-1">
-                {recentActivity.map((item) => (
-                  <RecentActivityRow key={item.id} item={item} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                No recent activity yet. Start a sequence to see messages here.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <RecentActivityCard
+          recentActivity={recentActivity}
+          activityLoading={activityLoading}
+        />
 
         {/* Sequence Performance — 40% */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
+        <Card className="lg:col-span-2 flex flex-col min-h-0">
+          <CardHeader className="shrink-0">
             <CardTitle className="text-base">Sequence Performance</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
             {perfLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -253,6 +226,151 @@ export default function DashboardPage() {
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
+
+type ActivityFilter = "all" | "messages" | "delivered" | "replied" | "booked";
+
+const SANDBOX_TYPE_CONFIG: Record<
+  SandboxActivity["type"],
+  { icon: string; borderColor: string }
+> = {
+  sms_sent: { icon: "\u{1F4E9}", borderColor: "border-l-blue-500" },
+  email_sent: { icon: "\u{1F4E7}", borderColor: "border-l-purple-500" },
+  voicemail_sent: { icon: "\u{1F4DE}", borderColor: "border-l-amber-500" },
+  delivered: { icon: "\u{2705}", borderColor: "border-l-emerald-500" },
+  replied: { icon: "\u{1F4AC}", borderColor: "border-l-rose-400" },
+  booked: { icon: "\u{1F389}", borderColor: "border-l-green-500" },
+  plan_detected: { icon: "\u{1F4CB}", borderColor: "border-l-sky-500" },
+};
+
+const FILTER_MAP: Record<ActivityFilter, SandboxActivity["type"][]> = {
+  all: [],
+  messages: ["sms_sent", "email_sent", "voicemail_sent"],
+  delivered: ["delivered"],
+  replied: ["replied"],
+  booked: ["booked"],
+};
+
+const STATUS_FILTER_MAP: Record<ActivityFilter, string[]> = {
+  all: [],
+  messages: ["sent"],
+  delivered: ["delivered"],
+  replied: ["replied"],
+  booked: ["booked"],
+};
+
+function RecentActivityCard({
+  recentActivity,
+  activityLoading,
+}: {
+  recentActivity: { id: string; patient_name: string; channel: "sms" | "email" | "voicemail"; status: string; created_at: string }[] | undefined;
+  activityLoading: boolean;
+}) {
+  const [filter, setFilter] = useState<ActivityFilter>("all");
+  const { isSandbox, activityFeed } = useSandbox();
+
+  const filteredSandboxFeed = useMemo(() => {
+    if (!isSandbox) return [];
+    if (filter === "all") return activityFeed;
+    const allowedTypes = FILTER_MAP[filter];
+    return activityFeed.filter((item) => allowedTypes.includes(item.type));
+  }, [isSandbox, activityFeed, filter]);
+
+  const filteredProdActivity = useMemo(() => {
+    if (isSandbox || !recentActivity) return [];
+    if (filter === "all") return recentActivity;
+    const allowedStatuses = STATUS_FILTER_MAP[filter];
+    return recentActivity.filter((item) => allowedStatuses.includes(item.status));
+  }, [isSandbox, recentActivity, filter]);
+
+  return (
+    <Card className="lg:col-span-3 flex flex-col min-h-0">
+      <CardHeader className="shrink-0">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <Select value={filter} onValueChange={(v) => setFilter(v as ActivityFilter)}>
+            <SelectTrigger className="h-7 w-[130px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Activity</SelectItem>
+              <SelectItem value="messages">Messages</SelectItem>
+              <SelectItem value="delivered">Delivered</SelectItem>
+              <SelectItem value="replied">Replies</SelectItem>
+              <SelectItem value="booked">Booked</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
+        {activityLoading && !isSandbox ? (
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+        ) : isSandbox ? (
+          filteredSandboxFeed.length > 0 ? (
+            <div className="space-y-0.5">
+              {filteredSandboxFeed.map((item) => {
+                const config = SANDBOX_TYPE_CONFIG[item.type];
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      "border-b border-border/50 border-l-2 px-3 py-2.5 last:border-b-0 rounded-r-md",
+                      config.borderColor
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          <span className="mr-1.5">{config.icon}</span>
+                          {item.description}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {item.patientName}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {formatTimeAgo(item.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              {filter === "all"
+                ? "Start the simulation to see activity here."
+                : "No matching activity."}
+            </p>
+          )
+        ) : filteredProdActivity.length > 0 ? (
+          <div className="space-y-1">
+            {filteredProdActivity.map((item) => (
+              <RecentActivityRow key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground py-8 text-center">
+            {filter === "all"
+              ? "No recent activity yet. Start a sequence to see messages here."
+              : "No matching activity."}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function RecentActivityRow({
   item,

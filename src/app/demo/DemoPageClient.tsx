@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/shared/AppShell";
-import { SandboxActivityFeed } from "@/components/shared/SandboxActivityFeed";
+
 import { DemoSessionProvider } from "./DemoSessionProvider";
 import { DemoSignupForm, type DemoSignupData } from "./DemoSignupForm";
 import DashboardPage from "@/app/(dashboard)/dashboard/page";
@@ -22,7 +22,7 @@ export function DemoPageClient() {
         <AppShell>
           <DashboardPage />
         </AppShell>
-        <SandboxActivityFeed defaultOpen />
+
       </DemoSessionProvider>
     );
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { callClaude } from "@/lib/ai/claude";
 
 const systemPrompt = `You are a dental practice communication specialist.
 Generate a single follow-up message for a patient who has an unscheduled treatment plan.
@@ -59,50 +60,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
-      // Fallback: generate a placeholder message if no API key
-      const fallback = generateFallbackMessage(channel, tone);
-      return NextResponse.json({ message: fallback });
-    }
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 500,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: buildUserPrompt({
-              channel,
-              tone,
-              stepNumber,
-              dayOffset,
-            }),
-          },
-        ],
-      }),
+    const message = await callClaude({
+      system: systemPrompt,
+      userMessage: buildUserPrompt({ channel, tone, stepNumber, dayOffset }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Anthropic API error:", errorData);
-      // Fall back to generated message
+    if (!message) {
       const fallback = generateFallbackMessage(channel, tone);
       return NextResponse.json({ message: fallback });
     }
-
-    const data = await response.json();
-    const message =
-      data.content?.[0]?.type === "text" ? data.content[0].text : "";
 
     return NextResponse.json({ message });
   } catch (error) {

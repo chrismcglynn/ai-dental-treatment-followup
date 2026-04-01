@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/ui-store";
 
 interface FilterConfig {
   key: string;
@@ -49,6 +51,8 @@ interface DataTableProps<T> {
   searchPlaceholder?: string;
   filters?: FilterConfig[];
   pagination?: boolean;
+  /** When true, toolbar is portaled into the sticky PageHeader instead of inline */
+  stickyToolbar?: boolean;
 }
 
 export function DataTable<T>({
@@ -60,6 +64,7 @@ export function DataTable<T>({
   onRowHover,
   searchPlaceholder = "Search...",
   pagination = true,
+  stickyToolbar = false,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -126,49 +131,70 @@ export function DataTable<T>({
     URL.revokeObjectURL(url);
   }, [table]);
 
+  const searchElement = (
+    <div className="relative max-w-sm flex-1">
+      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder={searchPlaceholder}
+        value={globalFilter}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        className="pl-9 h-9"
+      />
+    </div>
+  );
+
+  const actionsElement = (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Columns3 className="mr-2 h-4 w-4" />
+            Columns
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {table
+            .getAllColumns()
+            .filter((col) => col.getCanHide())
+            .map((col) => (
+              <DropdownMenuCheckboxItem
+                key={col.id}
+                checked={col.getIsVisible()}
+                onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                className="capitalize"
+              >
+                {col.id}
+              </DropdownMenuCheckboxItem>
+            ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button variant="outline" size="sm" onClick={exportToCsv}>
+        <Download className="mr-2 h-4 w-4" />
+        Export
+      </Button>
+    </>
+  );
+
+  const portalSearchEl = useUiStore((s) => s.portalSearchEl);
+  const portalActionsEl = useUiStore((s) => s.portalActionsEl);
+  const portalSearch = stickyToolbar && portalSearchEl;
+  const portalActions = stickyToolbar && portalActionsEl;
+
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9 h-9"
-          />
+      {/* Portal toolbar into sticky PageHeader */}
+      {portalSearch && createPortal(searchElement, portalSearch)}
+      {portalActions && createPortal(actionsElement, portalActions)}
+
+      {/* Inline toolbar when not portaled */}
+      {!stickyToolbar && (
+        <div className="flex items-center justify-between gap-4">
+          {searchElement}
+          <div className="flex items-center gap-2">
+            {actionsElement}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Columns3 className="mr-2 h-4 w-4" />
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((col) => col.getCanHide())
-                .map((col) => (
-                  <DropdownMenuCheckboxItem
-                    key={col.id}
-                    checked={col.getIsVisible()}
-                    onCheckedChange={(value) => col.toggleVisibility(!!value)}
-                    className="capitalize"
-                  >
-                    {col.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={exportToCsv}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-        </div>
-      </div>
+      )}
 
       {/* Table */}
       <div className="rounded-lg border bg-card overflow-auto" role="region" aria-label="Data table">

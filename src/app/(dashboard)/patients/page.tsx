@@ -12,8 +12,9 @@ import {
   Eye,
   Play,
   Ban,
+  ArrowUpDown,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { DataTable } from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -109,8 +110,16 @@ function formatRelativeTime(dateStr: string | null): string {
 const columns: ColumnDef<PatientRow, unknown>[] = [
   {
     id: "name",
-    header: "Patient",
     accessorFn: (row) => `${row.first_name} ${row.last_name}`,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Patient
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
     cell: ({ row }) => {
       const patient = row.original;
       const fullName = `${patient.first_name} ${patient.last_name}`;
@@ -138,7 +147,16 @@ const columns: ColumnDef<PatientRow, unknown>[] = [
   },
   {
     id: "contact",
-    header: "Contact",
+    accessorFn: (row) => row.phone || row.email || "",
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Contact
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
     cell: ({ row }) => {
       const patient = row.original;
       return (
@@ -164,7 +182,16 @@ const columns: ColumnDef<PatientRow, unknown>[] = [
   },
   {
     id: "plans",
-    header: "Plans",
+    accessorFn: (row) => row.treatments?.length ?? 0,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Plans
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
     cell: ({ row }) => {
       const patient = row.original;
       const pending = patient.treatments?.filter((t) => t.status === "pending").length ?? 0;
@@ -197,8 +224,16 @@ const columns: ColumnDef<PatientRow, unknown>[] = [
   },
   {
     id: "last_contact",
-    header: "Last Contact",
     accessorFn: (row) => row.updated_at,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Last Contact
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground">
         {formatRelativeTime(row.original.updated_at)}
@@ -207,7 +242,16 @@ const columns: ColumnDef<PatientRow, unknown>[] = [
   },
   {
     id: "status",
-    header: "Status",
+    accessorFn: (row) => getPatientStatus(row).label,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Status
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
     cell: ({ row }) => {
       const { label, variant } = getPatientStatus(row.original);
       return <Badge variant={variant}>{label}</Badge>;
@@ -282,15 +326,27 @@ export default function PatientsPage() {
   const patients = (data?.data ?? []) as PatientRow[];
   const hasPatients = patients.length > 0 || isLoading;
 
+  usePageHeader({
+    title: "Patients",
+    portalToolbar: true,
+    search: (
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-[180px] h-9">
+          <SelectValue placeholder="Filter by status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All patients</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="inactive">Inactive</SelectItem>
+          <SelectItem value="archived">Archived / DNC</SelectItem>
+        </SelectContent>
+      </Select>
+    ),
+    actions: <Button size="sm">Import Patients</Button>,
+  });
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Patients"
-        description="Manage your patient list and follow-up status"
-      >
-        <Button>Import Patients</Button>
-      </PageHeader>
-
       {!hasPatients && !isLoading ? (
         <EmptyState
           icon={Users}
@@ -301,20 +357,6 @@ export default function PatientsPage() {
         </EmptyState>
       ) : (
         <>
-          <div className="flex items-center gap-3">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All patients</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="archived">Archived / DNC</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <DataTable
             data={patients}
             columns={columns}
@@ -322,6 +364,7 @@ export default function PatientsPage() {
             onRowClick={(row) => router.push(`/patients/${row.id}`)}
             onRowHover={(row) => prefetchPatient(row.id)}
             searchPlaceholder="Search by name, phone, or email..."
+            stickyToolbar
             pagination
           />
         </>

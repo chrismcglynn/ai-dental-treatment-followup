@@ -10,7 +10,7 @@ import {
   Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { GeneralTab } from "@/components/features/settings/GeneralTab";
 import { TeamTab } from "@/components/features/settings/TeamTab";
 import { IntegrationsTab } from "@/components/features/settings/IntegrationsTab";
@@ -50,12 +50,10 @@ function SettingsContent() {
 
   const ActiveComponent = TAB_COMPONENTS[activeTab];
 
+  usePageHeader({ title: "Settings" });
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Settings"
-        description="Manage your practice and account settings"
-      />
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Vertical Tab Navigation */}

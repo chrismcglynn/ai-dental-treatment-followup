@@ -969,6 +969,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(12),
     delivered_at: daysAgo(12),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(12),
   },
   {
@@ -987,6 +989,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(5),
     delivered_at: daysAgo(5),
     read_at: daysAgo(4),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(5),
   },
   // Inbound reply from Maria
@@ -1006,6 +1010,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(2),
   },
 
@@ -1026,6 +1032,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(18),
     delivered_at: daysAgo(18),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(18),
   },
   {
@@ -1044,6 +1052,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(13),
     delivered_at: daysAgo(13),
     read_at: daysAgo(12),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(13),
   },
   {
@@ -1062,6 +1072,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(6),
     delivered_at: daysAgo(6),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(6),
   },
   // Inbound reply from James
@@ -1081,6 +1093,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(5),
   },
 
@@ -1101,6 +1115,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(5),
     delivered_at: daysAgo(5),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(5),
   },
   // Inbound reply from Priya
@@ -1120,6 +1136,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(1),
   },
 
@@ -1140,6 +1158,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(17),
     delivered_at: daysAgo(17),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(17),
   },
   {
@@ -1158,6 +1178,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(7),
     delivered_at: daysAgo(7),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(7),
   },
   // Inbound reply from David
@@ -1177,6 +1199,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(8),
   },
 
@@ -1197,6 +1221,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(8),
     delivered_at: daysAgo(8),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(8),
   },
   {
@@ -1215,6 +1241,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(3),
     delivered_at: daysAgo(3),
     read_at: daysAgo(3),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(3),
   },
   // Inbound reply from Sarah
@@ -1234,6 +1262,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(3),
   },
 
@@ -1254,6 +1284,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(13),
     delivered_at: daysAgo(13),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(13),
   },
   {
@@ -1272,6 +1304,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(6),
     delivered_at: daysAgo(6),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(6),
   },
 
@@ -1292,6 +1326,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(4),
     delivered_at: daysAgo(4),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(4),
   },
 
@@ -1312,6 +1348,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(9),
     delivered_at: daysAgo(9),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(9),
   },
 
@@ -1332,6 +1370,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(27),
     delivered_at: daysAgo(27),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(27),
   },
   {
@@ -1350,6 +1390,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(20),
     delivered_at: daysAgo(20),
     read_at: daysAgo(19),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(20),
   },
   {
@@ -1368,6 +1410,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: daysAgo(8),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(9),
   },
 
@@ -1387,6 +1431,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(33),
     delivered_at: daysAgo(33),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(33),
   },
   {
@@ -1405,6 +1451,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(28),
     delivered_at: daysAgo(28),
     read_at: daysAgo(27),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(28),
   },
   {
@@ -1423,6 +1471,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(21),
     delivered_at: daysAgo(21),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(21),
   },
   {
@@ -1441,6 +1491,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: daysAgo(12),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(13),
   },
 
@@ -1460,6 +1512,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(15),
     delivered_at: daysAgo(15),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(15),
   },
   {
@@ -1478,6 +1532,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: daysAgo(5),
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(7),
   },
 
@@ -1499,6 +1555,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(14),
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(14),
   },
 
@@ -1519,6 +1577,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(9),
     delivered_at: daysAgo(9),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(9),
   },
   {
@@ -1537,6 +1597,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(5),
     delivered_at: daysAgo(5),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(5),
   },
 
@@ -1557,6 +1619,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(18),
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(18),
   },
   {
@@ -1575,6 +1639,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(2),
     delivered_at: daysAgo(2),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(2),
   },
   {
@@ -1593,6 +1659,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(9),
     delivered_at: daysAgo(9),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(9),
   },
   {
@@ -1611,6 +1679,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(3),
     delivered_at: daysAgo(3),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(3),
   },
   {
@@ -1629,6 +1699,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(15),
     delivered_at: daysAgo(15),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(15),
   },
   {
@@ -1647,6 +1719,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(6),
     delivered_at: daysAgo(6),
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(6),
   },
   // Another failed message
@@ -1666,6 +1740,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: daysAgo(15),
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: daysAgo(15),
   },
   // Queued messages
@@ -1685,6 +1761,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: hoursAgo(2),
   },
   {
@@ -1703,6 +1781,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: hoursAgo(1),
   },
   {
@@ -1721,6 +1801,8 @@ export const SANDBOX_MESSAGES: Message[] = [
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: hoursAgo(3),
   },
 ];
@@ -1737,6 +1819,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 1,
     status: "open",
     assigned_to: null,
+    latest_intent: "wants_to_book",
     created_at: daysAgo(12),
     updated_at: daysAgo(2),
   },
@@ -1749,6 +1832,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 1,
     status: "open",
     assigned_to: null,
+    latest_intent: "has_question",
     created_at: daysAgo(18),
     updated_at: daysAgo(5),
   },
@@ -1761,6 +1845,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 1,
     status: "open",
     assigned_to: null,
+    latest_intent: "wants_to_book",
     created_at: daysAgo(5),
     updated_at: daysAgo(1),
   },
@@ -1773,6 +1858,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 0,
     status: "open",
     assigned_to: null,
+    latest_intent: "not_ready",
     created_at: daysAgo(17),
     updated_at: daysAgo(8),
   },
@@ -1785,6 +1871,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 1,
     status: "open",
     assigned_to: null,
+    latest_intent: "other",
     created_at: daysAgo(8),
     updated_at: daysAgo(3),
   },
@@ -1797,6 +1884,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 0,
     status: "closed",
     assigned_to: null,
+    latest_intent: "wants_to_book",
     created_at: daysAgo(27),
     updated_at: daysAgo(8),
   },
@@ -1809,6 +1897,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 0,
     status: "closed",
     assigned_to: null,
+    latest_intent: "wants_to_book",
     created_at: daysAgo(33),
     updated_at: daysAgo(12),
   },
@@ -1821,6 +1910,7 @@ export const SANDBOX_CONVERSATIONS: Conversation[] = [
     unread_count: 0,
     status: "closed",
     assigned_to: null,
+    latest_intent: "wants_to_book",
     created_at: daysAgo(15),
     updated_at: daysAgo(5),
   },

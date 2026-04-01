@@ -144,6 +144,124 @@ export function useUpdateSequence() {
   });
 }
 
+// --- AI-powered sequence suggestion ---
+
+interface SuggestSequenceParams {
+  treatmentDescriptions: string[];
+  treatmentCodes: string[];
+  sequences: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    treatment_type: string | null;
+    conversion_rate: number;
+    patient_count: number;
+  }>;
+}
+
+interface SequenceSuggestion {
+  sequenceId: string;
+  score: number;
+  reason: string;
+}
+
+export function useSuggestSequence() {
+  const { isSandbox } = useSandbox();
+
+  return useMutation<{ suggestions: SequenceSuggestion[] }, Error, SuggestSequenceParams>({
+    mutationFn: async (params) => {
+      if (isSandbox) {
+        await simulateDelay(800);
+        // Return sequences sorted by code overlap for sandbox
+        const suggestions = params.sequences.map((seq) => {
+          const seqCodes = (seq.treatment_type ?? "")
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          const matchCount = params.treatmentCodes.filter((code) =>
+            seqCodes.includes(code)
+          ).length;
+          return {
+            sequenceId: seq.id,
+            score: matchCount > 0 ? 70 + matchCount * 10 : 30,
+            reason:
+              matchCount > 0
+                ? `${matchCount} code${matchCount > 1 ? "s" : ""} match`
+                : "No direct code overlap",
+          };
+        });
+        suggestions.sort((a, b) => b.score - a.score);
+        return { suggestions };
+      }
+
+      const response = await fetch("/api/ai/suggest-sequence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error("AI suggestions unavailable");
+      }
+
+      return response.json();
+    },
+  });
+}
+
+// --- AI-powered sequence generation (when no sequences exist) ---
+
+interface GenerateSequenceParams {
+  treatmentDescriptions: string[];
+  treatmentCodes: string[];
+}
+
+export interface GeneratedSequence {
+  name: string;
+  procedures: string[];
+  steps: Array<{
+    dayOffset: number;
+    channel: "sms" | "email" | "voicemail";
+    tone: "friendly" | "clinical" | "urgent";
+  }>;
+  reasoning: string;
+}
+
+export function useGenerateSequence() {
+  const { isSandbox } = useSandbox();
+
+  return useMutation<GeneratedSequence, Error, GenerateSequenceParams>({
+    mutationFn: async (params) => {
+      if (isSandbox) {
+        await simulateDelay(1200);
+        return {
+          name: "AI-Recommended Follow-Up",
+          procedures: params.treatmentCodes,
+          steps: [
+            { dayOffset: 3, channel: "sms", tone: "friendly" },
+            { dayOffset: 10, channel: "email", tone: "friendly" },
+            { dayOffset: 21, channel: "sms", tone: "clinical" },
+          ],
+          reasoning:
+            "3-step sequence with SMS-first approach for highest engagement",
+        };
+      }
+
+      const response = await fetch("/api/ai/generate-sequence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error("AI generation unavailable");
+      }
+
+      return response.json();
+    },
+  });
+}
+
 export function useDeleteSequence() {
   const queryClient = useQueryClient();
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);

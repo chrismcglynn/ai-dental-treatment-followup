@@ -4,7 +4,7 @@ import { Providers } from "@/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FollowUp - AI Treatment Follow-up",
+  title: "Retaine - AI Treatment Follow-up",
   description: "Intelligent patient follow-up and revenue recovery for dental practices",
 };
 

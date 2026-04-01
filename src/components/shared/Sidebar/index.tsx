@@ -44,7 +44,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 border-r transition-all duration-300",
+        "hidden lg:flex flex-col fixed top-2 bottom-2 left-2 z-30 rounded-2xl shadow-sm overflow-hidden transition-all duration-300",
         "bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))]",
         isOpen ? "w-60" : "w-16"
       )}

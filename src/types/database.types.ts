@@ -316,6 +316,8 @@ export interface Database {
           sent_at: string | null;
           delivered_at: string | null;
           read_at: string | null;
+          intent: string | null;
+          intent_confidence: number | null;
           created_at: string;
         };
         Insert: {
@@ -334,6 +336,8 @@ export interface Database {
           sent_at?: string | null;
           delivered_at?: string | null;
           read_at?: string | null;
+          intent?: string | null;
+          intent_confidence?: number | null;
           created_at?: string;
         };
         Update: {
@@ -352,6 +356,8 @@ export interface Database {
           sent_at?: string | null;
           delivered_at?: string | null;
           read_at?: string | null;
+          intent?: string | null;
+          intent_confidence?: number | null;
           created_at?: string;
         };
       };
@@ -365,6 +371,7 @@ export interface Database {
           unread_count: number;
           status: "open" | "closed" | "archived";
           assigned_to: string | null;
+          latest_intent: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -377,6 +384,7 @@ export interface Database {
           unread_count?: number;
           status: "open" | "closed" | "archived";
           assigned_to?: string | null;
+          latest_intent?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -389,6 +397,7 @@ export interface Database {
           unread_count?: number;
           status?: "open" | "closed" | "archived";
           assigned_to?: string | null;
+          latest_intent?: string | null;
           created_at?: string;
           updated_at?: string;
         };
