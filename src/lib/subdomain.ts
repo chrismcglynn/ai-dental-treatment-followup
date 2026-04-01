@@ -30,6 +30,7 @@ export function getSubdomain(host: string): "demo" | "app" | "root" | null {
     const sub = hostWithoutPort.replace(`.${ROOT_DOMAIN}`, "");
     if (sub === "demo") return "demo";
     if (sub === "app") return "app";
+    if (sub === "www") return "root"; // www treated same as root domain
     return null; // unknown subdomain — no enforcement
   }
 
