@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   MessageSquare,
@@ -142,10 +143,24 @@ function ConversationListSkeleton() {
   );
 }
 
-export function ConversationList() {
+interface ConversationListProps {
+  /** Conversation to keep visible even if it no longer matches the active filter */
+  pinnedConversation?: ConversationWithPatient | null;
+}
+
+export function ConversationList({ pinnedConversation }: ConversationListProps) {
   const { selectedConversationId, setSelectedConversation, filter, setFilter } =
     useInboxStore();
   const { data: conversations, isLoading } = useConversations();
+
+  // Merge the pinned conversation into the list if it's not already present
+  const displayConversations = useMemo(() => {
+    if (!conversations) return undefined;
+    if (!pinnedConversation || conversations.some((c) => c.id === pinnedConversation.id)) {
+      return conversations;
+    }
+    return [...conversations, pinnedConversation];
+  }, [conversations, pinnedConversation]);
 
   return (
     <div className="flex flex-col h-full border-r border-border">
@@ -177,7 +192,7 @@ export function ConversationList() {
       <ScrollArea className="flex-1" aria-live="polite" aria-label="Conversations">
         {isLoading ? (
           <ConversationListSkeleton />
-        ) : !conversations?.length ? (
+        ) : !displayConversations?.length ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">
@@ -185,7 +200,7 @@ export function ConversationList() {
             </p>
           </div>
         ) : (
-          conversations.map((conv) => (
+          displayConversations.map((conv) => (
             <ConversationItem
               key={conv.id}
               conversation={conv}

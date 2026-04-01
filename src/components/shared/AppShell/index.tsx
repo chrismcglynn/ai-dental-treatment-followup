@@ -39,7 +39,7 @@ export function AppShell({ children }: AppShellProps) {
         </div>
         <main className="flex-1 min-h-0 flex flex-col lg:rounded-2xl lg:border lg:border-border/60 lg:bg-background lg:shadow-sm lg:overflow-hidden">
           <PageHeader />
-          <div className="flex-1 min-h-0 p-4 pt-4 lg:p-6 lg:pt-6 pb-20 lg:pb-6 lg:overflow-y-auto scrollbar-thin">
+          <div className="flex-1 min-h-0 flex flex-col p-4 pt-4 lg:p-6 lg:pt-6 pb-20 lg:pb-6 lg:overflow-y-auto scrollbar-thin">
             {children}
           </div>
         </main>

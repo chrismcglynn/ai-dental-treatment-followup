@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Inbox } from "lucide-react";
 import { usePageHeader } from "@/hooks/usePageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -13,12 +13,14 @@ import {
 import { useInboxStore } from "@/stores/inbox-store";
 import { useInboxRealtime } from "@/hooks/useInboxRealtime";
 import { useConversations } from "@/hooks/useInbox";
+import { type ConversationWithPatient } from "@/types/app.types";
 
 export default function InboxPage() {
   const selectedConversationId = useInboxStore(
     (s) => s.selectedConversationId
   );
   const pendingPatientId = useInboxStore((s) => s.pendingPatientId);
+  const filter = useInboxStore((s) => s.filter);
   const setSelectedConversation = useInboxStore((s) => s.setSelectedConversation);
   const setPendingPatientId = useInboxStore((s) => s.setPendingPatientId);
   const { data: conversations, isLoading } = useConversations();
@@ -37,10 +39,23 @@ export default function InboxPage() {
     }
   }, [pendingPatientId, conversations, setSelectedConversation, setPendingPatientId]);
 
-  const selectedConversation = useMemo(
-    () => conversations?.find((c) => c.id === selectedConversationId) ?? null,
-    [conversations, selectedConversationId]
-  );
+  // Keep a ref to the last selected conversation so it stays visible
+  // even after it drops out of the current filter (e.g. marking unread → read)
+  const lastSelectedRef = useRef<ConversationWithPatient | null>(null);
+
+  const selectedConversation = useMemo(() => {
+    const found = conversations?.find((c) => c.id === selectedConversationId) ?? null;
+    if (found) {
+      lastSelectedRef.current = found;
+      return found;
+    }
+    // Still selected but no longer in filtered list — keep showing it
+    if (selectedConversationId && lastSelectedRef.current?.id === selectedConversationId) {
+      return lastSelectedRef.current;
+    }
+    lastSelectedRef.current = null;
+    return null;
+  }, [conversations, selectedConversationId]);
 
   const hasConversations = !!conversations?.length;
 
@@ -48,9 +63,9 @@ export default function InboxPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-12rem)]">
-          <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
+      <div className="h-full min-h-0 overflow-hidden">
+        <div className="border border-border rounded-lg overflow-hidden bg-background h-full">
+          <div className="grid grid-cols-[360px_1fr] grid-rows-1 h-full min-h-0 overflow-hidden">
             <div className="border-r border-border p-3 space-y-0">
               <Skeleton className="h-9 w-full mb-3" />
               {Array.from({ length: 6 }).map((_, i) => (
@@ -76,7 +91,7 @@ export default function InboxPage() {
     );
   }
 
-  if (!hasConversations && conversations !== undefined) {
+  if (!hasConversations && conversations !== undefined && filter === "all") {
     return (
       <div className="space-y-6">
         <EmptyState
@@ -89,11 +104,11 @@ export default function InboxPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-7rem)]">
-        <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
+    <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden bg-background h-full">
+        <div className="grid grid-cols-[360px_1fr] grid-rows-1 h-full min-h-0 overflow-hidden">
           {/* Left pane — conversation list */}
-          <ConversationList />
+          <ConversationList pinnedConversation={selectedConversation} />
 
           {/* Right pane — thread or empty state */}
           {selectedConversation ? (
