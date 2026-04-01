@@ -24,19 +24,21 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     if (isDemoPath(pathname)) {
-      return NextResponse.redirect(buildUrl("demo", pathname));
+      return NextResponse.redirect(buildUrl("demo", "/"));
     }
     // App routes (dashboard, auth, api, portal, etc.) → app subdomain
     return NextResponse.redirect(buildUrl("app", pathname));
   }
 
   // ── demo.retaine.io ──
-  // Only serves /demo. Root path rewrites to /demo.
+  // Serves the demo. "/" rewrites internally to /demo (URL stays as demo.retaine.io/).
   if (subdomain === "demo") {
-    if (pathname === "/") {
-      return NextResponse.redirect(new URL("/demo", request.url));
-    }
-    if (isDemoPath(pathname)) {
+    if (pathname === "/" || isDemoPath(pathname)) {
+      if (pathname === "/") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/demo";
+        return NextResponse.rewrite(url);
+      }
       return NextResponse.next();
     }
     if (isMarketingPath(pathname)) {
@@ -50,9 +52,6 @@ export async function middleware(request: NextRequest) {
   if (subdomain === "app") {
     if (isMarketingPath(pathname) && pathname !== "/") {
       return NextResponse.redirect(buildUrl("root", pathname));
-    }
-    if (isDemoPath(pathname)) {
-      return NextResponse.redirect(buildUrl("demo", pathname));
     }
     // "/" on app subdomain → dashboard
     if (pathname === "/") {
