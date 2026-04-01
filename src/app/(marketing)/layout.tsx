@@ -6,7 +6,7 @@ import { StickyRevenueBanner } from "@/components/marketing/StickyRevenueBanner"
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://Retaine.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://retaine.io"
   ),
   title: {
     default: "Retaine — AI Treatment Plan Follow-Up for Dental Practices",

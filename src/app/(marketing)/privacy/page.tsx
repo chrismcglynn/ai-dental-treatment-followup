@@ -61,8 +61,8 @@ export default function PrivacyPage() {
         <h2 style={{ fontFamily: "var(--font-playfair)" }}>6. Contact</h2>
         <p>
           For privacy-related inquiries, please contact us at{" "}
-          <a href="mailto:privacy@retaine.com" className="text-[var(--m-teal)] hover:underline">
-            privacy@retaine.com
+          <a href="mailto:privacy@retaine.io" className="text-[var(--m-teal)] hover:underline">
+            privacy@retaine.io
           </a>.
         </p>
       </div>

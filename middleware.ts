@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
     return await updateSession(request);
   }
 
-  // ── Root domain (retaine.com) ──
+  // ── Root domain (retaine.io) ──
   // Serves marketing pages only. Everything else → app subdomain.
   if (subdomain === "root") {
     if (isMarketingPath(pathname)) {
@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(buildUrl("app", pathname));
   }
 
-  // ── app.retaine.com ──
+  // ── app.retaine.io ──
   // Serves the authenticated app. Marketing/demo routes get redirected out.
   if (subdomain === "app") {
     if (isMarketingPath(pathname) && pathname !== "/") {
