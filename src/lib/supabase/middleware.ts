@@ -81,7 +81,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/inbox") ||
     pathname.startsWith("/analytics") ||
     pathname.startsWith("/settings") ||
-    pathname === "/"
+    pathname === "/" // on app subdomain, "/" redirects to /dashboard before reaching here
   ) {
     const { data: memberships } = await supabase
       .from("practice_members")
