@@ -1,11 +1,13 @@
 "use client";
 
 import { type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/shared/Sidebar";
 import { TopNav } from "@/components/shared/TopNav";
 import { MobileNav } from "@/components/shared/MobileNav";
 import { MobileSidebar } from "./mobile-sidebar";
 import { SandboxBanner } from "@/app/(dashboard)/sandbox-banner";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { SandboxActivityFeed } from "@/components/shared/SandboxActivityFeed";
 import { SandboxTour } from "@/components/shared/SandboxTour";
 import { ToastRenderer } from "@/components/shared/ToastRenderer";
@@ -18,10 +20,11 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const isOpen = usePracticeStore((s) => s.sidebarOpen);
+  const pathname = usePathname();
+  const isInbox = pathname === "/inbox";
 
   return (
     <div className="min-h-screen bg-background">
-      <SandboxBanner />
       <Sidebar />
       <MobileSidebar />
       <div
@@ -30,14 +33,18 @@ export function AppShell({ children }: AppShellProps) {
           isOpen ? "lg:ml-60" : "lg:ml-16"
         )}
       >
-        <TopNav />
+        <div className="sticky top-0 z-20">
+          <SandboxBanner />
+          <TopNav />
+          <PageHeader />
+        </div>
         <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 scrollbar-thin">
           {children}
         </main>
       </div>
       <MobileNav />
       <SandboxTour />
-      <SandboxActivityFeed />
+      {!isInbox && <SandboxActivityFeed />}
       <ToastRenderer />
     </div>
   );

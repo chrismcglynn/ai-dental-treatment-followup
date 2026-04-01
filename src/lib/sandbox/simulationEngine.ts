@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSandbox, type SimulationSpeed } from "@/lib/sandbox";
 import { useSandboxStore, type SandboxActivity, type SandboxStore } from "@/stores/sandbox-store";
-import { useUiStore } from "@/stores/ui-store";
+import { useNotificationStore } from "@/stores/notification-store";
 import { patientKeys } from "@/hooks/usePatients";
 import { sequenceKeys } from "@/hooks/useSequences";
 import { analyticsKeys } from "@/hooks/useAnalytics";
@@ -197,6 +197,8 @@ function handleSequenceStepSent(store: SandboxStore): EventResult | null {
     sent_at: now,
     delivered_at: null,
     read_at: null,
+    intent: null,
+    intent_confidence: null,
     created_at: now,
   };
 
@@ -279,6 +281,8 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
     sent_at: null,
     delivered_at: null,
     read_at: null,
+    intent: "wants_to_book",
+    intent_confidence: 0.9,
     created_at: now,
   };
 
@@ -305,6 +309,7 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
       unread_count: 1,
       status: "open",
       assigned_to: null,
+      latest_intent: "wants_to_book",
       created_at: now,
       updated_at: now,
     };
@@ -317,6 +322,7 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
       type: "replied",
       description: `New reply: "${replyBody.slice(0, 60)}${replyBody.length > 60 ? "..." : ""}"`,
       patientName,
+      patientId: patient.id,
       timestamp: now,
     },
     invalidateKeys: [["inbox"], ["patients"], ["analytics"]],
@@ -441,7 +447,7 @@ export function useSimulationEngine() {
   const { isSandbox, simulationActive, simulationSpeed } = useSandbox();
   const store = useSandboxStore();
   const queryClient = useQueryClient();
-  const addToast = useUiStore((s) => s.addToast);
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -489,12 +495,22 @@ export function useSimulationEngine() {
           });
         }
 
-        // Revenue toast for PLAN_BOOKED
+        // Notification for PLAN_BOOKED
         if (eventType === "PLAN_BOOKED" && result.activityItem.amount) {
-          addToast({
+          addNotification({
             title: "Treatment plan booked!",
             description: `${result.activityItem.patientName} — $${result.activityItem.amount.toLocaleString()} recovered`,
-            variant: "success",
+            type: "booking",
+          });
+        }
+
+        // Notification for PATIENT_REPLIED
+        if (eventType === "PATIENT_REPLIED") {
+          addNotification({
+            title: "New patient reply",
+            description: result.activityItem.description,
+            type: "reply",
+            patientId: result.activityItem.patientId,
           });
         }
       }
@@ -512,5 +528,5 @@ export function useSimulationEngine() {
         timerRef.current = null;
       }
     };
-  }, [isSandbox, simulationActive, simulationSpeed, store, queryClient, addToast]);
+  }, [isSandbox, simulationActive, simulationSpeed, store, queryClient, addNotification]);
 }

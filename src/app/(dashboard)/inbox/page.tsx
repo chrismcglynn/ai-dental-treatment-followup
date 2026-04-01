@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Inbox } from "lucide-react";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConversationList } from "@/components/features/inbox/ConversationList";
@@ -18,10 +18,24 @@ export default function InboxPage() {
   const selectedConversationId = useInboxStore(
     (s) => s.selectedConversationId
   );
+  const pendingPatientId = useInboxStore((s) => s.pendingPatientId);
+  const setSelectedConversation = useInboxStore((s) => s.setSelectedConversation);
+  const setPendingPatientId = useInboxStore((s) => s.setPendingPatientId);
   const { data: conversations, isLoading } = useConversations();
 
   // Subscribe to realtime updates
   useInboxRealtime();
+
+  // Auto-select conversation when navigating from a notification
+  useEffect(() => {
+    if (pendingPatientId && conversations?.length) {
+      const convo = conversations.find((c) => c.patient_id === pendingPatientId);
+      if (convo) {
+        setSelectedConversation(convo.id);
+      }
+      setPendingPatientId(null);
+    }
+  }, [pendingPatientId, conversations, setSelectedConversation, setPendingPatientId]);
 
   const selectedConversation = useMemo(
     () => conversations?.find((c) => c.id === selectedConversationId) ?? null,
@@ -30,13 +44,11 @@ export default function InboxPage() {
 
   const hasConversations = !!conversations?.length;
 
+  usePageHeader({ title: "Inbox" });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <PageHeader
-          title="Inbox"
-          description="Patient replies and conversations"
-        />
         <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-12rem)]">
           <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
             <div className="border-r border-border p-3 space-y-0">
@@ -67,10 +79,6 @@ export default function InboxPage() {
   if (!hasConversations && conversations !== undefined) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Inbox"
-          description="Patient replies and conversations"
-        />
         <EmptyState
           icon={Inbox}
           title="Inbox is empty"
@@ -82,12 +90,7 @@ export default function InboxPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Inbox"
-        description="Patient replies and conversations"
-      />
-
-      <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-12rem)]">
+      <div className="border border-border rounded-lg overflow-hidden bg-background h-[calc(100vh-7rem)]">
         <div className="grid grid-cols-[340px_1fr] h-full overflow-hidden">
           {/* Left pane — conversation list */}
           <ConversationList />

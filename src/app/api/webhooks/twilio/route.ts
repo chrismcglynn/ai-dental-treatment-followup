@@ -1,25 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const BOOKING_INTENT_KEYWORDS = [
-  "book",
-  "schedule",
-  "appointment",
-  "yes",
-  "ready",
-  "interested",
-  "sign me up",
-  "when can",
-  "available",
-  "call me",
-  "come in",
-];
-
-function hasBookingIntent(text: string): boolean {
-  const lower = text.toLowerCase();
-  return BOOKING_INTENT_KEYWORDS.some((kw) => lower.includes(kw));
-}
-
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const messageSid = formData.get("MessageSid") as string;
@@ -39,18 +20,19 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (patient) {
-      await supabase.from("messages").insert({
-        practice_id: patient.practice_id,
-        patient_id: patient.id,
-        channel: "sms",
-        direction: "inbound",
-        status: "received",
-        body,
-        external_id: messageSid,
-      });
-
-      // Detect booking intent for urgent flagging
-      const urgent = hasBookingIntent(body);
+      const { data: message } = await supabase
+        .from("messages")
+        .insert({
+          practice_id: patient.practice_id,
+          patient_id: patient.id,
+          channel: "sms",
+          direction: "inbound",
+          status: "received",
+          body,
+          external_id: messageSid,
+        })
+        .select("id")
+        .single();
 
       // Update or create conversation
       const { data: conversation } = await supabase
@@ -60,7 +42,10 @@ export async function POST(request: NextRequest) {
         .eq("practice_id", patient.practice_id)
         .single();
 
+      let conversationId: string | undefined;
+
       if (conversation) {
+        conversationId = conversation.id;
         await supabase
           .from("conversations")
           .update({
@@ -71,24 +56,35 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", conversation.id);
       } else {
-        await supabase.from("conversations").insert({
-          practice_id: patient.practice_id,
-          patient_id: patient.id,
-          last_message_at: new Date().toISOString(),
-          last_message_preview: body.substring(0, 100),
-          unread_count: 1,
-          status: "open",
-        });
+        const { data: newConv } = await supabase
+          .from("conversations")
+          .insert({
+            practice_id: patient.practice_id,
+            patient_id: patient.id,
+            last_message_at: new Date().toISOString(),
+            last_message_preview: body.substring(0, 100),
+            unread_count: 1,
+            status: "open",
+          })
+          .select("id")
+          .single();
+        conversationId = newConv?.id;
       }
 
-      // If patient is in an active sequence and replied, update enrollment status
-      if (urgent) {
-        await supabase
-          .from("sequence_enrollments")
-          .update({ status: "converted" })
-          .eq("patient_id", patient.id)
-          .eq("practice_id", patient.practice_id)
-          .eq("status", "active");
+      // Fire async AI intent classification (non-blocking)
+      if (message?.id) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        fetch(`${appUrl}/api/ai/classify-intent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messageId: message.id,
+            body,
+            practiceId: patient.practice_id,
+            patientId: patient.id,
+            conversationId,
+          }),
+        }).catch((err) => console.error("Async intent classification failed:", err));
       }
     }
   } else if (status) {

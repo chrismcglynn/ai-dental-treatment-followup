@@ -29,7 +29,6 @@ import { useSimulationEngine } from "@/lib/sandbox/simulationEngine";
 import { useUiStore } from "@/stores/ui-store";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import {cn} from "@/lib/utils";
 import {usePracticeStore} from "@/stores/practice-store";
 import { exitSandboxAction } from "./actions";
 
@@ -50,7 +49,6 @@ export function SandboxBanner() {
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
 
-  const isOpen = usePracticeStore((s) => s.sidebarOpen);
   const activePracticeId = usePracticeStore((s) => s.activePracticeId);
   const activePractice = usePracticeStore((s) => s.activePractice);
   const setActivePractice = usePracticeStore((s) => s.setActivePractice);
@@ -99,10 +97,7 @@ export function SandboxBanner() {
         role="status"
         aria-label="Sandbox mode active"
         // className="z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200"
-        className={cn(
-          "z-50 flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200",
-          isOpen ? "lg:ml-60" : "lg:ml-16"
-        )}
+        className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-200"
       >
         <div className="flex items-center gap-2">
           <FlaskConical className="h-4 w-4 shrink-0" />

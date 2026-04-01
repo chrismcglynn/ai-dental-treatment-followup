@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Zap, Plus } from "lucide-react";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,13 +50,21 @@ export default function SequencesPage() {
     }
   }
 
+  const hasSequences = !isLoading && sequences && sequences.length > 0;
+
+  usePageHeader({
+    title: "Sequences",
+    actions: hasSequences ? (
+      <Button size="sm" onClick={() => router.push("/sequences/new")}>
+        <Plus className="mr-2 h-4 w-4" />
+        Create Sequence
+      </Button>
+    ) : undefined,
+  });
+
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Sequences"
-          description="AI-powered follow-up sequences for treatment acceptance"
-        />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[180px] rounded-lg" />
@@ -66,21 +74,8 @@ export default function SequencesPage() {
     );
   }
 
-  const hasSequences = sequences && sequences.length > 0;
-
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Sequences"
-        description="AI-powered follow-up sequences for treatment acceptance"
-      >
-        {hasSequences && (
-          <Button onClick={() => router.push("/sequences/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Sequence
-          </Button>
-        )}
-      </PageHeader>
 
       {hasSequences ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

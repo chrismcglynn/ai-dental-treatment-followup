@@ -6,7 +6,6 @@ import {
   ListChecks,
   MessageSquare,
   TrendingUp,
-  Plus,
   Mail,
   Phone,
   MessageCircle,
@@ -78,7 +77,7 @@ const RechartsBarChart = dynamic(
   { ssr: false, loading: () => <div className="h-[280px] animate-pulse rounded bg-muted" /> }
 );
 import { motion } from "framer-motion";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,7 +92,6 @@ import {
 import { usePendingTreatmentsWithPatients } from "@/hooks/usePatients";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentActivity, isLoading: activityLoading } =
     useRecentActivity();
@@ -108,18 +106,10 @@ export default function DashboardPage() {
 
   const conversionRate = stats?.conversion_rate ?? 0;
 
+  usePageHeader({ title: "Dashboard" });
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of your practice's follow-up performance"
-        actions={
-          <Button onClick={() => router.push("/sequences/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Sequence
-          </Button>
-        }
-      />
 
       {/* Pending Treatments — revenue opportunity */}
       {pendingCount > 0 && (

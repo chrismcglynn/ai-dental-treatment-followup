@@ -1,7 +1,14 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, AlertTriangle } from "lucide-react";
+import {
+  MessageSquare,
+  AlertTriangle,
+  CalendarCheck,
+  HelpCircle,
+  Clock,
+  Ban,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,23 +19,36 @@ import { useInboxStore, type InboxFilter } from "@/stores/inbox-store";
 import { useConversations } from "@/hooks/useInbox";
 import { type ConversationWithPatient } from "@/types/app.types";
 
-const BOOKING_KEYWORDS = [
-  "book",
-  "schedule",
-  "appointment",
-  "yes",
-  "ready",
-  "interested",
-  "sign me up",
-  "when can",
-  "available",
-];
-
-function hasBookingIntent(preview: string | null): boolean {
-  if (!preview) return false;
-  const lower = preview.toLowerCase();
-  return BOOKING_KEYWORDS.some((kw) => lower.includes(kw));
-}
+const INTENT_CONFIG: Record<
+  string,
+  { icon: React.ElementType; className: string; label: string }
+> = {
+  wants_to_book: {
+    icon: CalendarCheck,
+    className: "text-green-600 dark:text-green-400",
+    label: "Wants to book",
+  },
+  has_question: {
+    icon: HelpCircle,
+    className: "text-blue-600 dark:text-blue-400",
+    label: "Has question",
+  },
+  stop: {
+    icon: Ban,
+    className: "text-red-600 dark:text-red-400",
+    label: "Opt-out",
+  },
+  wrong_number: {
+    icon: AlertTriangle,
+    className: "text-orange-600 dark:text-orange-400",
+    label: "Wrong number",
+  },
+  not_ready: {
+    icon: Clock,
+    className: "text-muted-foreground",
+    label: "Not ready",
+  },
+};
 
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -45,7 +65,9 @@ function ConversationItem({
 }) {
   const patient = conversation.patient;
   const isUnread = conversation.unread_count > 0;
-  const isUrgent = hasBookingIntent(conversation.last_message_preview);
+  const intentConfig = conversation.latest_intent
+    ? INTENT_CONFIG[conversation.latest_intent]
+    : null;
 
   return (
     <button
@@ -88,8 +110,11 @@ function ConversationItem({
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
             SMS
           </Badge>
-          {isUrgent && (
-            <AlertTriangle className="h-3 w-3 text-accent shrink-0" />
+          {intentConfig && (
+            <span className={cn("flex items-center gap-1", intentConfig.className)}>
+              <intentConfig.icon className="h-3 w-3 shrink-0" />
+              <span className="text-[10px]">{intentConfig.label}</span>
+            </span>
           )}
         </div>
 
@@ -132,6 +157,9 @@ export function ConversationList() {
           <TabsList className="w-full">
             <TabsTrigger value="all" className="flex-1 text-xs">
               All
+            </TabsTrigger>
+            <TabsTrigger value="urgent" className="flex-1 text-xs">
+              Urgent
             </TabsTrigger>
             <TabsTrigger value="unread" className="flex-1 text-xs">
               Unread

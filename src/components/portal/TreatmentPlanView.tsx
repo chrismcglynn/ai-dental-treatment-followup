@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookingConfirmationScreen } from "./BookingConfirmationScreen";
 import { useSandboxStore } from "@/stores/sandbox-store";
-import { useUiStore } from "@/stores/ui-store";
+
 import { broadcastPortalBooking } from "@/lib/sandbox/portalBroadcast";
 import { format, addMonths } from "date-fns";
 
@@ -346,7 +346,7 @@ export function TreatmentPlanView({
   const [submission, setSubmission] = useState<BookingSubmission | null>(null);
 
   const sandboxStore = useSandboxStore();
-  const addToast = useUiStore((s) => s.addToast);
+
 
   const canSubmit =
     availability.months.length > 0 &&
@@ -405,6 +405,8 @@ export function TreatmentPlanView({
               sent_at: now,
               delivered_at: null,
               read_at: null,
+              intent: "wants_to_book",
+              intent_confidence: 1,
               created_at: now,
             }
           : null;
@@ -458,11 +460,7 @@ export function TreatmentPlanView({
           });
         }
 
-        addToast({
-          title: "Treatment plan booked!",
-          description: `${patient.first_name} — $${amount.toLocaleString()} recovered`,
-          variant: "success",
-        });
+        // Notification handled by the notification bell — no toast needed
       } else {
         await fetch("/api/portal/request-booking", {
           method: "POST",

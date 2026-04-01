@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { MessageSquareText, ExternalLink, CalendarCheck } from "lucide-react";
+import {
+  MessageSquareText,
+  ExternalLink,
+  CalendarCheck,
+  HelpCircle,
+  Ban,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -14,10 +22,23 @@ import {
   useSendReply,
 } from "@/hooks/useInbox";
 import { usePatientTreatments, useMarkAsBooked, usePatientEnrollments } from "@/hooks/usePatients";
+import { Badge } from "@/components/ui/badge";
 import { useSandbox } from "@/lib/sandbox";
+import { usePracticeStore } from "@/stores/practice-store";
 import { DEFAULT_PRACTICE_HOURS } from "@/components/portal/TreatmentPlanView";
 import { type ConversationWithPatient } from "@/types/app.types";
 import { type Tables } from "@/types/database.types";
+
+const INTENT_BADGE_CONFIG: Record<
+  string,
+  { icon: React.ElementType; label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  wants_to_book: { icon: CalendarCheck, label: "Wants to book", variant: "default" },
+  has_question: { icon: HelpCircle, label: "Has question", variant: "secondary" },
+  stop: { icon: Ban, label: "Opted out", variant: "destructive" },
+  wrong_number: { icon: AlertTriangle, label: "Wrong number", variant: "outline" },
+  not_ready: { icon: Clock, label: "Not ready", variant: "outline" },
+};
 
 function formatDateSeparator(date: Date): string {
   if (isToday(date)) return "Today";
@@ -86,6 +107,7 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   const markRead = useMarkConversationRead();
   const sendReply = useSendReply();
   const { isSandbox, sandboxStore } = useSandbox();
+  const practiceName = usePracticeStore((s) => s.activePractice?.name ?? "Our Practice");
   const { data: treatments } = usePatientTreatments(conversation.patient_id);
   const { data: enrollments } = usePatientEnrollments(conversation.patient_id);
   const markAsBooked = useMarkAsBooked();
@@ -122,9 +144,22 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
       {/* Thread header — pinned top */}
       <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <div>
-          <h3 className="text-sm font-semibold">
-            {patient.first_name} {patient.last_name}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold">
+              {patient.first_name} {patient.last_name}
+            </h3>
+            {conversation.latest_intent &&
+              INTENT_BADGE_CONFIG[conversation.latest_intent] && (() => {
+                const config = INTENT_BADGE_CONFIG[conversation.latest_intent!];
+                const Icon = config.icon;
+                return (
+                  <Badge variant={config.variant} className="text-[10px] gap-1 h-5">
+                    <Icon className="h-3 w-3" />
+                    {config.label}
+                  </Badge>
+                );
+              })()}
+          </div>
           {patient.phone && (
             <p className="text-xs text-muted-foreground">{patient.phone}</p>
           )}
@@ -221,6 +256,16 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
             })
           }
           isSending={sendReply.isPending}
+          patientFirstName={patient.first_name}
+          recentMessages={messages?.map((m) => ({
+            direction: m.direction,
+            body: m.body,
+          }))}
+          latestIntent={conversation.latest_intent}
+          treatmentDescription={
+            treatments?.find((t) => t.status === "pending")?.description ?? null
+          }
+          practiceName={practiceName}
         />
       </div>
     </div>

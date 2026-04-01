@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { type Tables } from "@/types/database.types";
 import { type ConversationWithPatient } from "@/types/app.types";
 
-export type InboxFilter = "all" | "unread" | "needs_reply" | "replied";
+export type InboxFilter = "all" | "urgent" | "unread" | "needs_reply" | "replied";
 
 export async function getConversations(
   practiceId: string,
@@ -18,6 +18,9 @@ export async function getConversations(
     .order("last_message_at", { ascending: false });
 
   switch (filter) {
+    case "urgent":
+      query = query.in("latest_intent", ["wants_to_book", "has_question"]);
+      break;
     case "unread":
       query = query.gt("unread_count", 0);
       break;

@@ -1,29 +1,140 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   ClipboardList,
-  CheckSquare,
   Zap,
   ArrowRight,
-  Calendar,
+  ArrowUpDown,
   DollarSign,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { format, formatDistanceToNow } from "date-fns";
+import { usePageHeader } from "@/hooks/usePageHeader";
+import { DataTable } from "@/components/shared/DataTable";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import {
   usePendingTreatmentsWithPatients,
   type PendingTreatmentRow,
 } from "@/hooks/usePatients";
 import { EnrollDialog } from "./EnrollDialog";
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+const columns: ColumnDef<PendingTreatmentRow, unknown>[] = [
+  {
+    id: "patient",
+    accessorFn: (row) => `${row.patient.first_name} ${row.patient.last_name}`,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Patient
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
+    cell: ({ row }) => {
+      const { patient } = row.original;
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="text-xs">
+              {getInitials(patient.first_name, patient.last_name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">
+              {patient.first_name} {patient.last_name}
+            </p>
+            {patient.phone && (
+              <p className="text-xs text-muted-foreground truncate">
+                {patient.phone}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    id: "code",
+    accessorFn: (row) => row.treatment.code,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Code
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
+    cell: ({ row }) => (
+      <Badge variant="outline" className="text-xs font-mono">
+        {row.original.treatment.code}
+      </Badge>
+    ),
+  },
+  {
+    id: "description",
+    accessorFn: (row) => row.treatment.description,
+    header: "Description",
+    cell: ({ row }) => (
+      <span className="text-sm text-muted-foreground truncate max-w-[250px] block">
+        {row.original.treatment.description}
+      </span>
+    ),
+  },
+  {
+    id: "amount",
+    accessorFn: (row) => row.treatment.amount,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Amount
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center gap-1 text-sm font-medium">
+        <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+        {row.original.treatment.amount.toLocaleString()}
+      </div>
+    ),
+  },
+  {
+    id: "presented",
+    accessorFn: (row) => row.treatment.presented_at,
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Presented
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+    ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.treatment.presented_at);
+      return (
+        <div className="text-sm">
+          <p>{format(date, "MMM d, yyyy")}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatDistanceToNow(date, { addSuffix: true })}
+          </p>
+        </div>
+      );
+    },
+  },
+];
 
 export default function PendingTreatmentsPage() {
   const router = useRouter();
@@ -31,23 +142,23 @@ export default function PendingTreatmentsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [enrollOpen, setEnrollOpen] = useState(false);
 
-  const toggleSelect = (treatmentId: string) => {
+  const toggleSelect = useCallback((treatmentId: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(treatmentId)) next.delete(treatmentId);
       else next.add(treatmentId);
       return next;
     });
-  };
+  }, []);
 
-  const toggleAll = () => {
+  const toggleAll = useCallback(() => {
     if (!rows) return;
-    if (selected.size === rows.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(rows.map((r) => r.treatment.id)));
-    }
-  };
+    setSelected((prev) =>
+      prev.size === rows.length
+        ? new Set()
+        : new Set(rows.map((r) => r.treatment.id))
+    );
+  }, [rows]);
 
   const selectedRows = useMemo(() => {
     if (!rows) return [];
@@ -64,118 +175,147 @@ export default function PendingTreatmentsPage() {
     [selectedRows]
   );
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Pending Treatment Plans"
-          description="Review and enroll patients into follow-up sequences"
-          breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Pending Treatments" },
-          ]}
-        />
-        <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const hasRows = rows && rows.length > 0;
+
+  usePageHeader({
+    title: "Pending Treatments",
+    portalToolbar: true,
+  });
+
+  // Prepend a checkbox column
+  const columnsWithSelect: ColumnDef<PendingTreatmentRow, unknown>[] = useMemo(
+    () => [
+      {
+        id: "select",
+        header: () => (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleAll();
+            }}
+            className="flex items-center justify-center"
+          >
+            <div
+              className={`h-4 w-4 rounded border-2 flex items-center justify-center transition-colors ${
+                rows && selected.size === rows.length && rows.length > 0
+                  ? "bg-primary border-primary"
+                  : selected.size > 0
+                  ? "bg-primary/50 border-primary"
+                  : "border-muted-foreground/30"
+              }`}
+            >
+              {selected.size > 0 && (
+                <svg
+                  className="h-3 w-3 text-primary-foreground"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                >
+                  <path
+                    d="M2 6l3 3 5-5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </div>
+          </button>
+        ),
+        cell: ({ row }) => {
+          const isChecked = selected.has(row.original.treatment.id);
+          return (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleSelect(row.original.treatment.id);
+              }}
+              className="flex items-center justify-center"
+            >
+              <div
+                className={`h-4 w-4 rounded border-2 flex items-center justify-center transition-colors ${
+                  isChecked
+                    ? "bg-primary border-primary"
+                    : "border-muted-foreground/30"
+                }`}
+              >
+                {isChecked && (
+                  <svg
+                    className="h-3 w-3 text-primary-foreground"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </button>
+          );
+        },
+        enableSorting: false,
+        enableHiding: false,
+      },
+      ...columns,
+    ],
+    [selected, rows, toggleAll, toggleSelect]
+  );
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Pending Treatment Plans"
-        description={
-          hasRows
-            ? `${rows.length} treatment plan${rows.length !== 1 ? "s" : ""} awaiting follow-up`
-            : "Review and enroll patients into follow-up sequences"
-        }
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Pending Treatments" },
-        ]}
-      />
-
-      {!hasRows ? (
+      {!isLoading && !hasRows && rows !== undefined ? (
         <EmptyState
           icon={ClipboardList}
           title="No pending treatment plans"
           description="All treatment plans have been enrolled in follow-up sequences. Great job!"
         >
-          <Button
-            variant="outline"
-            onClick={() => router.push("/dashboard")}
-          >
+          <Button variant="outline" onClick={() => router.push("/dashboard")}>
             Back to Dashboard
           </Button>
         </EmptyState>
       ) : (
         <>
-          {/* Selection toolbar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={toggleAll}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <div
-                  className={`h-4 w-4 rounded border flex items-center justify-center transition-colors ${
-                    selected.size === rows.length
-                      ? "bg-primary border-primary"
-                      : selected.size > 0
-                      ? "bg-primary/50 border-primary"
-                      : "border-input"
-                  }`}
-                >
-                  {selected.size > 0 && (
-                    <CheckSquare className="h-3 w-3 text-primary-foreground" />
-                  )}
-                </div>
-                {selected.size === 0
-                  ? "Select all"
-                  : selected.size === rows.length
-                  ? "Deselect all"
-                  : `${selected.size} selected`}
-              </button>
-              {selected.size > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {uniquePatientIds.size} patient{uniquePatientIds.size !== 1 ? "s" : ""}
-                  {" \u00b7 "}
-                  ${totalValue.toLocaleString()} total value
+          {/* Selection action bar */}
+          {selected.size > 0 && (
+            <div className="flex items-center justify-between rounded-lg border bg-primary/5 px-4 py-3">
+              <span className="text-sm">
+                <span className="font-medium">{selected.size}</span> selected
+                {" \u00b7 "}
+                <span className="text-muted-foreground">
+                  {uniquePatientIds.size} patient
+                  {uniquePatientIds.size !== 1 ? "s" : ""}
+                  {" \u00b7 "}${totalValue.toLocaleString()}
                 </span>
-              )}
-            </div>
-            {selected.size > 0 && (
-              <Button onClick={() => setEnrollOpen(true)}>
+              </span>
+              <Button onClick={() => setEnrollOpen(true)} size="sm">
                 <Zap className="mr-2 h-4 w-4" />
                 Enroll in Sequence
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Treatment list */}
-          <Card>
-            <CardContent className="p-0">
-              {rows.map((row, idx) => (
-                <TreatmentRow
-                  key={row.treatment.id}
-                  row={row}
-                  isSelected={selected.has(row.treatment.id)}
-                  onToggle={() => toggleSelect(row.treatment.id)}
-                  showSeparator={idx > 0}
-                />
-              ))}
-            </CardContent>
-          </Card>
+          <DataTable
+            data={rows ?? []}
+            columns={columnsWithSelect}
+            loading={isLoading}
+            searchPlaceholder="Search patients, codes, descriptions..."
+            stickyToolbar
+            onRowClick={(row) => toggleSelect(row.treatment.id)}
+            emptyState={
+              <span className="text-sm text-muted-foreground">
+                No matching treatment plans found.
+              </span>
+            }
+          />
 
-          {/* Enroll dialog */}
           <EnrollDialog
             open={enrollOpen}
             onOpenChange={setEnrollOpen}
@@ -188,92 +328,5 @@ export default function PendingTreatmentsPage() {
         </>
       )}
     </div>
-  );
-}
-
-function TreatmentRow({
-  row,
-  isSelected,
-  onToggle,
-  showSeparator,
-}: {
-  row: PendingTreatmentRow;
-  isSelected: boolean;
-  onToggle: () => void;
-  showSeparator: boolean;
-}) {
-  const { treatment, patient } = row;
-  const patientName = `${patient.first_name} ${patient.last_name}`;
-  const initials = `${patient.first_name[0]}${patient.last_name[0]}`.toUpperCase();
-  const daysAgo = formatDistanceToNow(new Date(treatment.presented_at), {
-    addSuffix: true,
-  });
-
-  return (
-    <>
-      {showSeparator && <Separator />}
-      <button
-        type="button"
-        onClick={onToggle}
-        className={`w-full flex items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${
-          isSelected ? "bg-primary/5" : ""
-        }`}
-      >
-        {/* Checkbox */}
-        <div
-          className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-            isSelected
-              ? "bg-primary border-primary"
-              : "border-muted-foreground/30"
-          }`}
-        >
-          {isSelected && (
-            <svg
-              className="h-3 w-3 text-primary-foreground"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <path
-                d="M2 6l3 3 5-5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
-        </div>
-
-        {/* Patient avatar */}
-        <Avatar className="h-9 w-9 shrink-0">
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-        </Avatar>
-
-        {/* Patient + treatment info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium truncate">{patientName}</p>
-            <Badge variant="outline" className="text-[10px] shrink-0">
-              {treatment.code}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground truncate">
-            {treatment.description}
-          </p>
-        </div>
-
-        {/* Amount */}
-        <div className="flex items-center gap-1 text-sm font-medium shrink-0">
-          <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-          {treatment.amount.toLocaleString()}
-        </div>
-
-        {/* Presented date */}
-        <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground shrink-0 w-28 justify-end">
-          <Calendar className="h-3 w-3" />
-          {daysAgo}
-        </div>
-      </button>
-    </>
   );
 }

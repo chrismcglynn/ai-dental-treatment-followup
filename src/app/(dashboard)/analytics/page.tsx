@@ -20,7 +20,7 @@ import {
   type SortingState,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { usePageHeader } from "@/hooks/usePageHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,11 @@ const tooltipStyle = {
 export default function AnalyticsPage() {
   const [days, setDays] = useState<DateRange>(30);
 
+  usePageHeader({
+    title: "Analytics",
+    actions: <DateRangePicker value={days} onChange={setDays} />,
+  });
+
   const { data: stats, isLoading: statsLoading } = useAnalyticsStats(days);
   const { data: revenue, isLoading: revenueLoading } = useRevenueOverTime(days);
   const { data: channels, isLoading: channelsLoading } = useChannelBreakdown(days);
@@ -80,11 +85,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Analytics"
-        description="Track your follow-up performance and revenue recovery"
-        actions={<DateRangePicker value={days} onChange={setDays} />}
-      />
 
       {/* Row 1 — Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
