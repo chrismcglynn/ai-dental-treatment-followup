@@ -35,9 +35,7 @@ export async function middleware(request: NextRequest) {
   if (subdomain === "demo") {
     if (pathname === "/" || isDemoPath(pathname)) {
       if (pathname === "/") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/demo";
-        return NextResponse.rewrite(url);
+        return NextResponse.rewrite(new URL("/demo", request.url));
       }
       return NextResponse.next();
     }
