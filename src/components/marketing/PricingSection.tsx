@@ -82,10 +82,10 @@ export function PricingSection() {
         >
           Questions about pricing? Email us at{" "}
           <a
-            href="mailto:hello@retaine.com"
+            href="mailto:hello@retaine.io"
             className="text-[var(--m-teal)] font-semibold hover:underline"
           >
-            hello@retaine.com
+            hello@retaine.io
           </a>
         </p>
       </div>
