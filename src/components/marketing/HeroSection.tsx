@@ -130,12 +130,33 @@ function DashboardMockup() {
         </div>
 
         <div className="h-px bg-[var(--m-border)] mt-4 mb-3" />
-        <div
-          className="text-[10px] text-[var(--m-slate-light)]"
-          style={{ fontFamily: "var(--font-dm-sans)" }}
-        >
-          <span className="text-[var(--m-amber)]">&#9889;</span> 3 sequences
-          running &middot; 8 plans in queue
+        {/* Pending revenue alert */}
+        <div className="rounded-lg bg-[var(--m-teal-light)] border border-[var(--m-teal)]/20 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-[var(--m-teal)]/15 flex items-center justify-center shrink-0">
+              <span className="text-[10px] text-[var(--m-teal)]">$</span>
+            </div>
+            <div className="flex-1">
+              <div
+                className="text-[11px] font-bold text-[var(--m-navy)]"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                <span
+                  className="text-[var(--m-teal)]"
+                  style={{ fontFamily: "var(--font-dm-mono)" }}
+                >
+                  $28,400
+                </span>{" "}
+                waiting to be recovered
+              </div>
+              <div
+                className="text-[9px] text-[var(--m-slate-light)]"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                14 accepted plans not yet in a sequence
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -184,10 +205,11 @@ export function HeroSection() {
               className="text-lg text-[var(--m-slate)] leading-relaxed mb-8 max-w-lg"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
-              Retaine automatically follows up with patients who have
-              unscheduled treatment plans — via SMS, email, and voicemail — and
-              turns accepted plans into booked appointments. Average practices
-              recover $150,000+ in unscheduled revenue per year.
+              Retaine uses AI to follow up with patients who have
+              unscheduled treatment plans — generating personalized SMS, email,
+              and voicemail sequences, classifying patient replies, and turning
+              accepted plans into booked appointments. Average practices recover
+              $150,000+ in unscheduled revenue per year.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
