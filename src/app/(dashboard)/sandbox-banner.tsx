@@ -133,7 +133,7 @@ export function SandboxBanner() {
             value={simulationSpeed}
             onValueChange={(val) => setSimulationSpeed(val as SimulationSpeed)}
           >
-            <SelectTrigger className="h-7 w-[110px] border-amber-300 bg-white/60 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+            <SelectTrigger className="h-7 w-[120px] border-amber-300 bg-white/60 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -160,24 +160,24 @@ export function SandboxBanner() {
           </Button>
 
           {/* Connect real PMS CTA */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  onClick={() => setExitDialogOpen(true)}
-                  className="h-7 gap-1.5 bg-amber-700 text-white hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-500"
-                >
-                  <Plug className="h-3 w-3" />
-                  <span className="hidden sm:inline">Connect real PMS</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[240px] text-center">
-                Ready to connect your real practice? Your sequences and settings
-                will carry over.
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/*<TooltipProvider>*/}
+          {/*  <Tooltip>*/}
+          {/*    <TooltipTrigger asChild>*/}
+          {/*      <Button*/}
+          {/*        size="sm"*/}
+          {/*        onClick={() => setExitDialogOpen(true)}*/}
+          {/*        className="h-7 gap-1.5 bg-amber-700 text-white hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-500"*/}
+          {/*      >*/}
+          {/*        <Plug className="h-3 w-3" />*/}
+          {/*        <span className="hidden sm:inline">Connect real PMS</span>*/}
+          {/*      </Button>*/}
+          {/*    </TooltipTrigger>*/}
+          {/*    <TooltipContent side="bottom" className="max-w-[240px] text-center">*/}
+          {/*      Ready to connect your real practice? Your sequences and settings*/}
+          {/*      will carry over.*/}
+          {/*    </TooltipContent>*/}
+          {/*  </Tooltip>*/}
+          {/*</TooltipProvider>*/}
         </div>
       </div>
 

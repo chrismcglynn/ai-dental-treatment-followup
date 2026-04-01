@@ -12,7 +12,7 @@ export function TopNav() {
   const pageTitle = useUiStore((s) => s.pageHeader?.title);
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:bg-transparent lg:backdrop-blur-none lg:border-border/40 px-4 lg:px-6">
       <Button
         variant="ghost"
         size="icon"

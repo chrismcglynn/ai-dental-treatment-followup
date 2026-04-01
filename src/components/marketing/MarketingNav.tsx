@@ -24,10 +24,10 @@ export function MarketingNav({ hideLinks }: { hideLinks?: boolean } = {}) {
       <nav className="mx-auto max-w-[1200px] flex items-center justify-between px-6 py-4">
         <Link href="/">
           <span
-            className="text-3xl tracking-tight text-[--m-teal-mid]"
+            className="text-3xl tracking-tight text-[var(--m-navy)]"
             style={{ fontFamily: "var(--font-dm-serif)" }}
           >
-            Retaine
+            Ret<span className="text-[--m-teal-mid]">ai</span>ne
           </span>
         </Link>
 
