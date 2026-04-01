@@ -7,7 +7,7 @@
  * localhost           → no enforcement (dev mode)
  */
 
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "retaine.com";
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "retaine.io";
 
 /** Marketing paths served from the root domain */
 const MARKETING_PATHS = ["/", "/request-demo", "/privacy", "/hipaa"];
