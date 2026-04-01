@@ -30,9 +30,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(buildUrl("app", pathname));
   }
 
-  // ── demo.retaine.com ──
-  // Only serves /demo. Everything else gets redirected.
+  // ── demo.retaine.io ──
+  // Only serves /demo. Root path rewrites to /demo.
   if (subdomain === "demo") {
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/demo";
+      return NextResponse.rewrite(url);
+    }
     if (isDemoPath(pathname)) {
       return NextResponse.next();
     }
