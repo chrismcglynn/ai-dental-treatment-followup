@@ -13,7 +13,6 @@ export function StickyRevenueBanner() {
     if (dismissed) return;
 
     let scrollTriggered = false;
-    let timerTriggered = false;
 
     const show = () => {
       if (!dismissed) setVisible(true);
@@ -21,7 +20,6 @@ export function StickyRevenueBanner() {
 
     // Show after 10s on page
     const timer = setTimeout(() => {
-      timerTriggered = true;
       show();
     }, 10000);
 
