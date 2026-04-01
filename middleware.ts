@@ -34,9 +34,7 @@ export async function middleware(request: NextRequest) {
   // Only serves /demo. Root path rewrites to /demo.
   if (subdomain === "demo") {
     if (pathname === "/") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/demo";
-      return NextResponse.rewrite(url);
+      return NextResponse.redirect(new URL("/demo", request.url));
     }
     if (isDemoPath(pathname)) {
       return NextResponse.next();
