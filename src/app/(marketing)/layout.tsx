@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { playfairDisplay, dmSans, dmMono, dmSerif } from "@/lib/fonts";
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import { StickyRevenueBanner } from "@/components/marketing/StickyRevenueBanner";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -35,6 +36,7 @@ export default function MarketingLayout({
       <MarketingNav />
       <main>{children}</main>
       <MarketingFooter />
+      <StickyRevenueBanner />
     </div>
   );
 }

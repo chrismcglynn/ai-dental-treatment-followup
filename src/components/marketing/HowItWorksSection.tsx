@@ -28,11 +28,19 @@ function useScrollReveal() {
 function SequenceBuilderMockup() {
   return (
     <div className="rounded-xl border border-[var(--m-border)] bg-white shadow-lg p-5 max-w-sm">
-      <div
-        className="text-xs font-semibold text-[var(--m-navy)] mb-3"
-        style={{ fontFamily: "var(--font-dm-sans)" }}
-      >
-        Sequence: Crown Follow-Up
+      <div className="flex items-center justify-between mb-3">
+        <div
+          className="text-xs font-semibold text-[var(--m-navy)]"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
+        >
+          Sequence: Crown Follow-Up
+        </div>
+        <span
+          className="inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full bg-[var(--m-teal-light)] text-[var(--m-teal)] border border-[var(--m-teal)]/20"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
+        >
+          &#x2728; AI Generated
+        </span>
       </div>
       <div className="space-y-3">
         {[
@@ -99,6 +107,29 @@ function SequenceBuilderMockup() {
           you...&quot;
         </p>
       </div>
+      {/* AI match score */}
+      <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-[var(--m-teal)]/30 px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="text-[10px] font-semibold text-[var(--m-teal)]"
+            style={{ fontFamily: "var(--font-dm-mono)" }}
+          >
+            92%
+          </span>
+          <span
+            className="text-[10px] text-[var(--m-slate)]"
+            style={{ fontFamily: "var(--font-dm-sans)" }}
+          >
+            match for D2740 Crown
+          </span>
+        </div>
+        <span
+          className="ml-auto text-[9px] font-medium text-[var(--m-teal)] px-1.5 py-0.5 rounded bg-[var(--m-teal-light)]"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
+        >
+          AI Recommended
+        </span>
+      </div>
     </div>
   );
 }
@@ -110,9 +141,24 @@ function InboxMockup() {
         {/* Conversation list */}
         <div className="w-1/3 border-r border-[var(--m-border)] bg-[var(--m-off-white)]">
           {[
-            { name: "Maria C.", unread: true },
-            { name: "James W.", unread: false },
-            { name: "Priya N.", unread: false },
+            {
+              name: "Maria C.",
+              unread: true,
+              intent: "Wants to book",
+              intentColor: "bg-emerald-100 text-emerald-700",
+            },
+            {
+              name: "James W.",
+              unread: true,
+              intent: "Has question",
+              intentColor: "bg-blue-100 text-blue-700",
+            },
+            {
+              name: "Priya N.",
+              unread: false,
+              intent: "Not ready",
+              intentColor: "bg-gray-100 text-gray-500",
+            },
           ].map((conv) => (
             <div
               key={conv.name}
@@ -127,16 +173,30 @@ function InboxMockup() {
                 )}
                 {conv.name}
               </div>
+              <span
+                className={`inline-block text-[8px] font-medium px-1.5 py-0.5 rounded-full mt-1 ${conv.intentColor}`}
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {conv.intent}
+              </span>
             </div>
           ))}
         </div>
         {/* Thread */}
         <div className="w-2/3 p-3">
-          <div
-            className="text-xs font-semibold text-[var(--m-navy)] mb-3"
-            style={{ fontFamily: "var(--font-dm-sans)" }}
-          >
-            Maria C. — Crown #14
+          <div className="flex items-center justify-between mb-3">
+            <div
+              className="text-xs font-semibold text-[var(--m-navy)]"
+              style={{ fontFamily: "var(--font-dm-sans)" }}
+            >
+              Maria C. — Crown #14
+            </div>
+            <span
+              className="text-[8px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700"
+              style={{ fontFamily: "var(--font-dm-sans)" }}
+            >
+              &#x2713; Wants to book
+            </span>
           </div>
           <div className="space-y-2">
             <div className="rounded-lg bg-[var(--m-teal-light)] px-3 py-2 max-w-[85%]">
@@ -161,13 +221,37 @@ function InboxMockup() {
               </p>
             </div>
           </div>
-          <div className="mt-3 rounded-lg border border-[var(--m-border)] px-3 py-2">
-            <span
-              className="text-[10px] text-[var(--m-slate-light)]"
+          {/* AI suggest reply */}
+          <div className="mt-2 rounded-lg bg-[var(--m-teal-light)] border border-[var(--m-teal)]/20 px-3 py-2">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-[9px]">&#x2728;</span>
+              <span
+                className="text-[9px] font-semibold text-[var(--m-teal)]"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                AI Suggested Reply
+              </span>
+            </div>
+            <p
+              className="text-[10px] text-[var(--m-slate)] leading-snug"
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
-              Type a reply...
-            </span>
+              &quot;Great! We have openings this week. Would Thursday at 2pm work
+              for you?&quot;
+            </p>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex-1 rounded-lg border border-[var(--m-border)] px-3 py-1.5">
+              <span
+                className="text-[10px] text-[var(--m-slate-light)]"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                Type a reply...
+              </span>
+            </div>
+            <button className="rounded-lg bg-[var(--m-teal)] px-2.5 py-1.5 text-[9px] font-semibold text-white">
+              Send
+            </button>
           </div>
         </div>
       </div>
@@ -258,6 +342,141 @@ function AnalyticsMockup() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function PendingTriageMockup() {
+  return (
+    <div className="rounded-xl border border-[var(--m-border)] bg-white shadow-lg p-5 max-w-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div
+          className="text-xs font-semibold text-[var(--m-navy)]"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
+        >
+          Pending Treatments
+        </div>
+        <span
+          className="text-[10px] font-medium text-[var(--m-teal)]"
+          style={{ fontFamily: "var(--font-dm-sans)" }}
+        >
+          3 selected &middot; $6,450
+        </span>
+      </div>
+      {/* Treatment rows */}
+      <div className="space-y-1.5 mb-4">
+        {[
+          {
+            name: "Maria C.",
+            code: "D2740",
+            desc: "Crown",
+            amount: "$1,450",
+            selected: true,
+          },
+          {
+            name: "James W.",
+            code: "D6010",
+            desc: "Implant",
+            amount: "$3,800",
+            selected: true,
+          },
+          {
+            name: "Priya N.",
+            code: "D2740",
+            desc: "Crown",
+            amount: "$1,200",
+            selected: true,
+          },
+        ].map((row) => (
+          <div
+            key={row.name}
+            className="flex items-center gap-2 rounded-lg bg-[var(--m-teal-light)] px-3 py-2"
+          >
+            <span className="w-3.5 h-3.5 rounded border-2 border-[var(--m-teal)] bg-[var(--m-teal)] flex items-center justify-center">
+              <span className="text-[8px] text-white font-bold">&#x2713;</span>
+            </span>
+            <span
+              className="text-[11px] font-medium text-[var(--m-navy)] flex-1"
+              style={{ fontFamily: "var(--font-dm-sans)" }}
+            >
+              {row.name}
+            </span>
+            <span
+              className="text-[9px] text-[var(--m-slate)] px-1.5 py-0.5 rounded bg-white"
+              style={{ fontFamily: "var(--font-dm-mono)" }}
+            >
+              {row.code}
+            </span>
+            <span
+              className="text-[10px] font-medium text-[var(--m-navy)]"
+              style={{ fontFamily: "var(--font-dm-mono)" }}
+            >
+              {row.amount}
+            </span>
+          </div>
+        ))}
+      </div>
+      {/* AI recommendation */}
+      <div className="rounded-lg border border-[var(--m-teal)]/30 bg-[var(--m-teal-light)] p-3">
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-[10px]">&#x2728;</span>
+          <span
+            className="text-[10px] font-semibold text-[var(--m-teal)]"
+            style={{ fontFamily: "var(--font-dm-sans)" }}
+          >
+            AI Sequence Match
+          </span>
+        </div>
+        <div className="space-y-1.5">
+          {[
+            {
+              name: "Crown Follow-Up",
+              score: "92%",
+              codes: "2/2 codes",
+              recommended: true,
+            },
+            {
+              name: "Implant Consult",
+              score: "88%",
+              codes: "1/1 codes",
+              recommended: false,
+            },
+          ].map((seq) => (
+            <div
+              key={seq.name}
+              className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 ${seq.recommended ? "bg-white border border-[var(--m-teal)]/30" : "bg-white/50"}`}
+            >
+              {seq.recommended && (
+                <span className="w-2 h-2 rounded-full bg-[var(--m-teal)]" />
+              )}
+              <span
+                className={`text-[10px] font-medium flex-1 ${seq.recommended ? "text-[var(--m-navy)]" : "text-[var(--m-slate)]"}`}
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {seq.name}
+              </span>
+              <span
+                className="text-[9px] text-[var(--m-slate)]"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {seq.codes}
+              </span>
+              <span
+                className="text-[10px] font-bold text-[var(--m-teal)]"
+                style={{ fontFamily: "var(--font-dm-mono)" }}
+              >
+                {seq.score}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <button
+        className="mt-3 w-full rounded-lg bg-[var(--m-teal)] py-2 text-[11px] font-semibold text-white"
+        style={{ fontFamily: "var(--font-dm-sans)" }}
+      >
+        Enroll 3 patients &rarr;
+      </button>
     </div>
   );
 }
@@ -357,13 +576,18 @@ function PatientPortalMockup() {
 
 const rows = [
   {
-    title: "Build your follow-up sequences once. Run them forever.",
-    body: "Configure exactly how you want to reach each type of patient. Crown follow-ups, implant consults, and SRP reminders can all have their own cadence, tone, and timing. AI writes the messages — you review, tweak the tone, and approve. Drag steps to reorder. Set delays in days or hours.",
+    title: "Describe the procedure. AI builds the entire sequence.",
+    body: "Tell Retaine what you're following up on — crowns, implants, SRP — and AI generates a complete multi-step sequence: channels, timing, tone progression, and personalized messages. Already have sequences? AI automatically matches new treatment plans to the best one with a confidence score. You review, tweak, and approve. Drag steps to reorder. Set delays in days or hours.",
     visual: <SequenceBuilderMockup />,
   },
   {
-    title: "Never miss a patient reply again.",
-    body: "When patients respond via SMS, your team sees every conversation in a unified inbox with real-time updates. Reply directly from Retaine. See delivery status for every message. No more digging through texting apps or shared phones.",
+    title: "Select treatments. AI picks the right sequence instantly.",
+    body: "Your pending treatments page shows every accepted plan that hasn't been scheduled — with total revenue at stake. Select patients, and AI instantly ranks your sequences by relevance: matching procedure codes, treatment categories, and past conversion performance. One click to enroll. No guesswork, no manual assignment.",
+    visual: <PendingTriageMockup />,
+  },
+  {
+    title: "AI reads every reply so your team doesn't have to triage.",
+    body: "When patients respond, AI instantly classifies their intent — booking requests, questions, opt-outs — and drafts a context-aware reply your team can send in one click. Every conversation lives in a unified inbox with real-time updates, intent badges, and delivery status. No more digging through texting apps or guessing what patients want.",
     visual: <InboxMockup />,
   },
   {

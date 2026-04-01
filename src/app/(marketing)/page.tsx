@@ -3,6 +3,7 @@ import { ProblemSection } from "@/components/marketing/ProblemSection";
 import { SolutionSection } from "@/components/marketing/SolutionSection";
 import { RevenueCalculator } from "@/components/marketing/RevenueCalculator";
 import { HowItWorksSection } from "@/components/marketing/HowItWorksSection";
+import { ComparisonSection } from "@/components/marketing/ComparisonSection";
 import { PmsIntegrationsSection } from "@/components/marketing/PmsIntegrationsSection";
 import { ComplianceSection } from "@/components/marketing/ComplianceSection";
 import { TestimonialSection } from "@/components/marketing/TestimonialSection";
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <SolutionSection />
       <RevenueCalculator />
       <HowItWorksSection />
+      <ComparisonSection />
       <PmsIntegrationsSection />
       <ComplianceSection />
       <TestimonialSection />

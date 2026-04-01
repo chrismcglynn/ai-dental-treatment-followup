@@ -4,17 +4,17 @@ const steps = [
   {
     icon: ClipboardCheck,
     title: "Treatment plan detected",
-    body: "Retaine syncs with your PMS and instantly identifies every accepted treatment plan that hasn't been scheduled yet.",
+    body: "Retaine syncs with your PMS and instantly identifies every accepted treatment plan that hasn't been scheduled. AI matches each plan to the best follow-up sequence automatically.",
   },
   {
     icon: MessageSquare,
     title: "AI-powered multi-channel outreach",
-    body: "Personalized SMS, email, and voicemail messages go out on your configured schedule — sounding like they came from your front desk, not a robot.",
+    body: "AI generates personalized SMS, email, and voicemail messages tailored to each procedure and patient. When patients reply, AI classifies their intent and drafts a response — your team just clicks send.",
   },
   {
     icon: CalendarCheck,
     title: "Patient books. Revenue recovered.",
-    body: "Patients reply, click a secure booking link, or call in. You track every outcome in one dashboard. Average conversion: 34%.",
+    body: "Patients reply, click a secure booking link, or call in. AI detects booking intent and flags conversions automatically. You track every dollar recovered in real time. Average conversion: 34%.",
   },
 ];
 
