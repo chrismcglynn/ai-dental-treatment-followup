@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Play, Building2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Play, Building2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/shared/AppShell";
 import { useSandboxStore } from "@/stores/sandbox-store";
+import { decodePrefill } from "@/lib/demo-prefill";
 
 import { DemoSessionProvider } from "./DemoSessionProvider";
 import { DemoSignupForm, type DemoSignupData } from "./DemoSignupForm";
 import DashboardPage from "@/app/(dashboard)/dashboard/page";
 
-type DemoStep = "landing" | "signup" | "dashboard";
+type DemoStep = "landing" | "prefilled" | "signup" | "dashboard";
 
 export function DemoPageClient() {
   type Phase = "loading" | "resuming" | "ready";
@@ -19,6 +21,20 @@ export function DemoPageClient() {
   const [signupData, setSignupData] = useState<DemoSignupData | null>(null);
   // Snapshot of user data captured at hydration time (avoids reactive flicker)
   const resumeData = useRef<{ fullName: string; practiceName: string } | null>(null);
+
+  const searchParams = useSearchParams();
+
+  // Check for prefill data from ?d= query param
+  useEffect(() => {
+    const encoded = searchParams.get("d");
+    if (encoded) {
+      const prefill = decodePrefill(encoded);
+      if (prefill) {
+        setSignupData(prefill);
+        setStep("prefilled");
+      }
+    }
+  }, [searchParams]);
 
   // Single effect: wait for hydration, then decide phase in the same tick
   useEffect(() => {
@@ -136,6 +152,71 @@ export function DemoPageClient() {
     );
   }
 
+  if (step === "prefilled" && signupData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="flex flex-col items-center space-y-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+              <Building2 className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+              Welcome, {signupData.full_name}!
+            </h1>
+            <p className="text-sm text-muted-foreground text-center">
+              Your interactive demo is ready to explore
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Building2 className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {signupData.practice_name}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {signupData.email}
+                </p>
+              </div>
+              <CheckCircle2 className="ml-auto h-5 w-5 shrink-0 text-green-500" />
+            </div>
+
+            <div className="border-t border-border pt-3">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Name</span>
+                  <p className="font-medium text-foreground">{signupData.full_name}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Role</span>
+                  <p className="font-medium text-foreground capitalize">
+                    {signupData.role.replace("_", " ")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            className="w-full gap-2"
+            size="lg"
+            onClick={() => setStep("dashboard")}
+          >
+            Start Demo
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+
+          <p className="text-xs text-muted-foreground text-center">
+            Uses simulated data tailored to your practice
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (step === "signup") {
     return (
       <DemoSignupForm
@@ -153,7 +234,7 @@ export function DemoPageClient() {
       {/* Hero */}
       <div className="flex flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
         <div className="mx-auto max-w-3xl space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
             Retaine recovers unscheduled treatment revenue
           </h1>
           <p className="mx-auto max-w-xl text-lg text-muted-foreground">
@@ -173,7 +254,7 @@ export function DemoPageClient() {
             <Button
               size="lg"
               variant="outline"
-              className="gap-2"
+              className="gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
               disabled
               title="Coming soon"
             >

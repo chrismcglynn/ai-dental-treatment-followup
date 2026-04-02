@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { DemoPageClient } from "./DemoPageClient";
 
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default function DemoPage() {
-  return <DemoPageClient />;
+  return (
+    <Suspense>
+      <DemoPageClient />
+    </Suspense>
+  );
 }

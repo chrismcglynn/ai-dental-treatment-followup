@@ -71,8 +71,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(`${protocol}://demo.${rootDomain}${portSuffix}/`);
   }
 
-  // Marketing pages + everything else
-  return await updateSession(request);
+  // Marketing pages on root domain — no auth needed
+  return NextResponse.next();
 }
 
 export const config = {

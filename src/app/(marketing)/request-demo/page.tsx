@@ -103,8 +103,7 @@ export default function RequestDemoPage() {
               style={{ fontFamily: "var(--font-dm-sans)" }}
             >
               We&apos;re in private beta. Fill out the form below and
-              we&apos;ll be in touch within 1 business day to schedule your
-              personalized interactive demo.
+              we&apos;ll send your personalized interactive demo link shortly after.
             </p>
 
             <DemoRequestForm />

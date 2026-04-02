@@ -74,7 +74,7 @@ export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Building2 className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
             Try the demo
           </h1>
           <p className="text-sm text-muted-foreground text-center">
@@ -157,16 +157,18 @@ export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Continue
-              </Button>
+              <div className="pt-6">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  {submitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Continue
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
