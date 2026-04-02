@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, DollarSign } from "lucide-react";
 import Link from "next/link";
 
 export function StickyRevenueBanner() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const hidden = pathname === "/request-demo";
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || hidden) return;
 
     let scrollTriggered = false;
 
@@ -42,7 +45,7 @@ export function StickyRevenueBanner() {
       clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [dismissed]);
+  }, [dismissed, hidden]);
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -51,7 +54,7 @@ export function StickyRevenueBanner() {
 
   return (
     <AnimatePresence>
-      {visible && !dismissed && (
+      {visible && !dismissed && !hidden && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
