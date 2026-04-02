@@ -1,18 +1,43 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import { ArrowRight, Play, Building2, CheckCircle2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight, Play, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AppShell } from "@/components/shared/AppShell";
+import { usePracticeStore } from "@/stores/practice-store";
 import { useSandboxStore } from "@/stores/sandbox-store";
+import { SANDBOX_PRACTICE } from "@/lib/sandbox/sandboxData";
 import { decodePrefill } from "@/lib/demo-prefill";
 
-import { DemoSessionProvider } from "./DemoSessionProvider";
 import { DemoSignupForm, type DemoSignupData } from "./DemoSignupForm";
-import DashboardPage from "@/app/(dashboard)/dashboard/page";
 
-type DemoStep = "landing" | "prefilled" | "signup" | "dashboard";
+type DemoStep = "landing" | "prefilled" | "signup" | "seeding";
+
+/**
+ * Seeds practice + sandbox stores with demo data, then redirects to /dashboard.
+ * The (dashboard) layout's SandboxWrapper detects demoUser and auto-starts simulation.
+ */
+function seedDemoStores(data: DemoSignupData) {
+  // Clear tour state so SandboxTour starts fresh
+  sessionStorage.removeItem("Retaine-sandbox-tour");
+  sessionStorage.removeItem("Retaine-sandbox-tour-dismissed");
+
+  // Seed practice store
+  usePracticeStore.getState().setActivePractice({
+    ...SANDBOX_PRACTICE,
+    name: data.practice_name,
+  });
+
+  // Seed sandbox store
+  useSandboxStore.getState().setDemoUser({
+    full_name: data.full_name,
+    email: data.email,
+    role: data.role,
+  });
+  useSandboxStore.setState((s) => ({
+    practice: { ...s.practice, name: data.practice_name },
+  }));
+}
 
 export function DemoPageClient() {
   type Phase = "loading" | "resuming" | "ready";
@@ -22,6 +47,7 @@ export function DemoPageClient() {
   // Snapshot of user data captured at hydration time (avoids reactive flicker)
   const resumeData = useRef<{ fullName: string; practiceName: string } | null>(null);
 
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Check for prefill data from ?d= query param
@@ -48,16 +74,9 @@ export function DemoPageClient() {
         };
         setPhase("resuming");
 
-        const data: DemoSignupData = {
-          full_name: demoUser.full_name,
-          email: demoUser.email,
-          role: demoUser.role,
-          practice_name: practice.name,
-        };
         const timer = setTimeout(() => {
-          setSignupData(data);
-          setStep("dashboard");
           setPhase("ready");
+          router.push("/dashboard");
         }, 2000);
         return () => clearTimeout(timer);
       }
@@ -71,11 +90,29 @@ export function DemoPageClient() {
       handleHydrated();
     });
     return unsub;
-  }, []);
+  }, [router]);
 
-  // Show interstitial while loading or resuming
-  if (phase !== "ready") {
+  // When entering "seeding" step, seed stores then redirect after interstitial
+  useEffect(() => {
+    if (step !== "seeding" || !signupData) return;
+
+    seedDemoStores(signupData);
+
+    // Brief interstitial so the user sees the transition
+    const timer = setTimeout(() => {
+      router.push("/dashboard");
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [step, signupData, router]);
+
+  // Show interstitial while loading, resuming, or seeding
+  if (phase !== "ready" || step === "seeding") {
     const rd = resumeData.current;
+    // When seeding a new session, use the signup data
+    const sd = step === "seeding" ? signupData : null;
+    const displayName = rd?.fullName ?? sd?.full_name;
+    const displayPractice = rd?.practiceName ?? sd?.practice_name;
+
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">
         {/* Animated gradient background */}
@@ -95,10 +132,9 @@ export function DemoPageClient() {
 
           {/* Always render the same layout — skeleton or real text */}
           <div className="space-y-2">
-            {/* "Welcome back" — h-5 matches text-sm line height */}
-            {rd ? (
+            {displayName ? (
               <p className="h-5 text-sm font-medium text-muted-foreground tracking-wide uppercase">
-                Welcome back
+                {rd ? "Welcome back" : "Setting up your demo"}
               </p>
             ) : (
               <div className="flex h-5 items-center justify-center">
@@ -106,10 +142,9 @@ export function DemoPageClient() {
               </div>
             )}
 
-            {/* Name — h-8 sm:h-9 matches text-2xl/3xl line height */}
-            {rd ? (
+            {displayName ? (
               <h1 className="h-8 text-2xl font-bold text-foreground sm:h-9 sm:text-3xl">
-                {rd.fullName}
+                {displayName}
               </h1>
             ) : (
               <div className="flex h-8 items-center justify-center sm:h-9">
@@ -117,10 +152,9 @@ export function DemoPageClient() {
               </div>
             )}
 
-            {/* Practice name — h-9 sm:h-10 matches text-3xl/4xl line height */}
-            {rd ? (
+            {displayPractice ? (
               <p className="h-9 text-3xl font-bold text-primary sm:h-10 sm:text-4xl">
-                {rd.practiceName}
+                {displayPractice}
               </p>
             ) : (
               <div className="flex h-9 items-center justify-center sm:h-10">
@@ -133,22 +167,12 @@ export function DemoPageClient() {
           <div className="mt-2 h-1 w-48 overflow-hidden rounded-full bg-primary/10">
             <div
               className={`h-full w-full origin-left rounded-full bg-primary ${
-                rd ? "animate-[grow_2s_ease-in-out]" : "animate-pulse"
+                displayName ? "animate-[grow_2s_ease-in-out]" : "animate-pulse"
               }`}
             />
           </div>
         </div>
       </div>
-    );
-  }
-
-  if (step === "dashboard" && signupData) {
-    return (
-      <DemoSessionProvider signupData={signupData}>
-        <AppShell>
-          <DashboardPage />
-        </AppShell>
-      </DemoSessionProvider>
     );
   }
 
@@ -181,7 +205,9 @@ export function DemoPageClient() {
                   {signupData.email}
                 </p>
               </div>
-              <CheckCircle2 className="ml-auto h-5 w-5 shrink-0 text-green-500" />
+              <svg className="ml-auto h-5 w-5 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
 
             <div className="border-t border-border pt-3">
@@ -203,7 +229,7 @@ export function DemoPageClient() {
           <Button
             className="w-full gap-2"
             size="lg"
-            onClick={() => setStep("dashboard")}
+            onClick={() => setStep("seeding")}
           >
             Start Demo
             <ArrowRight className="h-4 w-4" />
@@ -222,7 +248,7 @@ export function DemoPageClient() {
       <DemoSignupForm
         onSubmit={(data) => {
           setSignupData(data);
-          setStep("dashboard");
+          setStep("seeding");
         }}
         onBack={() => setStep("landing")}
       />
