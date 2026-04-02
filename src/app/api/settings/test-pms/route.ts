@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getConnector, getSupportedPmsTypes } from "@/lib/integrations/factory";
+import type { PmsCredentials } from "@/lib/integrations/types";
 
 export async function POST(request: NextRequest) {
   const { pmsType, credentials } = await request.json();
@@ -10,34 +12,37 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate based on PMS type
-  switch (pmsType) {
-    case "open_dental": {
-      const { apiUrl, apiKey } = credentials;
-      if (!apiUrl || !apiKey) {
-        return NextResponse.json(
-          { error: "API URL and API key are required", code: "VALIDATION_ERROR" },
-          { status: 400 }
-        );
-      }
-
-      // In production, make a test call to the Open Dental API:
-      // try {
-      //   const res = await fetch(`${apiUrl}/patients?limit=1`, {
-      //     headers: { Authorization: `ODFHIR ${apiKey}` },
-      //   });
-      //   if (!res.ok) throw new Error(`API returned ${res.status}`);
-      // } catch (err) {
-      //   return NextResponse.json({ error: "Failed to connect to Open Dental" }, { status: 400 });
-      // }
-
-      return NextResponse.json({ status: "ok", message: "Connection successful" });
-    }
-
-    default:
-      return NextResponse.json(
-        { error: `Unsupported PMS type: ${pmsType}`, code: "UNSUPPORTED" },
-        { status: 400 }
-      );
+  // Validate PMS type is supported
+  if (!getSupportedPmsTypes().includes(pmsType)) {
+    return NextResponse.json(
+      { error: `Unsupported PMS type: ${pmsType}`, code: "UNSUPPORTED" },
+      { status: 400 }
+    );
   }
+
+  const { apiUrl, apiKey, developerKey } = credentials;
+  if (!apiUrl || !apiKey) {
+    return NextResponse.json(
+      { error: "API URL and API key are required", code: "VALIDATION_ERROR" },
+      { status: 400 }
+    );
+  }
+
+  const connector = getConnector(pmsType);
+  const pmsCreds: PmsCredentials = {
+    apiUrl,
+    apiKey,
+    extras: developerKey ? { developerKey } : undefined,
+  };
+
+  const result = await connector.testConnection(pmsCreds);
+
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error ?? "Connection failed", code: "CONNECTION_FAILED" },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({ status: "ok", message: "Connection successful" });
 }

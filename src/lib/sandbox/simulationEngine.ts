@@ -144,6 +144,7 @@ function handleNewPlanDetected(store: SandboxStore): EventResult {
     id: treatmentId,
     practice_id: "sandbox-practice-001",
     patient_id: patientId,
+    external_id: null,
     code: procedure.code,
     description: procedure.description,
     amount: procedure.amount,
