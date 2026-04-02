@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Play, Building2 } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useSandboxStore } from "@/stores/sandbox-store";
@@ -256,19 +257,21 @@ export function DemoPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       {/* Hero */}
-      <div className="flex flex-col items-center justify-center px-4 py-24 text-center sm:py-32">
+      <div className="flex flex-col items-center justify-center px-4 pt-24 text-center sm:pt-32">
         <div className="mx-auto max-w-3xl space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Retaine recovers unscheduled treatment revenue
+          <h1 className="opacity-0 animate-fade-up text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+            Stop losing revenue from
+            <span className="text-primary"> unscheduled treatments</span>
           </h1>
-          <p className="mx-auto max-w-xl text-lg text-muted-foreground">
-            Watch a live demo of a real dental practice&apos;s follow-up
-            sequences — no signup required
+          <p className="opacity-0 animate-fade-up [animation-delay:200ms] mx-auto max-w-xl text-lg text-muted-foreground">
+            Retaine automatically follows up with patients who leave
+            without booking — turning accepted plans into scheduled
+            appointments.
           </p>
 
-          <div className="flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-center">
+          <div className="opacity-0 animate-fade-up [animation-delay:400ms] flex flex-col items-center gap-3 pt-4 sm:flex-row sm:justify-center">
             <Button
               size="lg"
               onClick={() => setStep("signup")}
@@ -277,24 +280,39 @@ export function DemoPageClient() {
               Start interactive demo
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-              disabled
-              title="Coming soon"
-            >
-              <Play className="h-4 w-4" />
-              Watch 2-min video
-            </Button>
+            {/*<Button*/}
+            {/*  size="lg"*/}
+            {/*  variant="outline"*/}
+            {/*  className="gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"*/}
+            {/*  disabled*/}
+            {/*  title="Coming soon"*/}
+            {/*>*/}
+            {/*  <Play className="h-4 w-4" />*/}
+            {/*  Watch 2-min video*/}
+            {/*</Button>*/}
           </div>
 
-          <p className="text-xs text-muted-foreground pt-2">
+          <p className="opacity-0 animate-fade-in [animation-delay:600ms] text-xs text-muted-foreground pt-2">
             No account needed. Uses simulated data from a demo practice.
           </p>
         </div>
       </div>
 
+      {/* Dashboard preview with gradient reveal */}
+      <div className="relative mx-auto mt-16 max-w-5xl px-4 sm:mt-20 opacity-0 animate-slide-up-reveal [animation-delay:600ms]">
+        <div className="relative overflow-hidden rounded-t-xl border border-b-0 border-border/50 shadow-2xl shadow-primary/5">
+          <Image
+            src="/images/retaine-dashboard.png"
+            alt="Retaine dashboard showing recovered revenue and patient follow-ups"
+            width={1920}
+            height={1080}
+            className="w-full -mt-px"
+            priority
+          />
+          {/* Bottom gradient fade */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        </div>
+      </div>
     </div>
   );
 }

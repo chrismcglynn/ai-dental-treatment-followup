@@ -74,11 +74,26 @@ const config: Config = {
           from: { transform: "scaleX(0)" },
           to: { transform: "scaleX(1)" },
         },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "slide-up-reveal": {
+          from: { opacity: "0", transform: "translateY(40px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         grow: "grow 2s ease-in-out forwards",
+        "fade-up": "fade-up 0.8s ease-out forwards",
+        "fade-in": "fade-in 0.8s ease-out forwards",
+        "slide-up-reveal": "slide-up-reveal 1s ease-out forwards",
       },
     },
   },
