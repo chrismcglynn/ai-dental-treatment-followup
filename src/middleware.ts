@@ -12,8 +12,17 @@ export async function middleware(request: NextRequest) {
       url.pathname = "/demo";
       return NextResponse.rewrite(url);
     }
-    // Allow /demo/* paths through
-    if (pathname.startsWith("/demo")) {
+    // Allow /demo/* and app routes through (app routes needed for client-side nav)
+    if (
+      pathname.startsWith("/demo") ||
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/patients") ||
+      pathname.startsWith("/treatments") ||
+      pathname.startsWith("/sequences") ||
+      pathname.startsWith("/inbox") ||
+      pathname.startsWith("/analytics") ||
+      pathname.startsWith("/settings")
+    ) {
       return NextResponse.next();
     }
     // Everything else on demo subdomain → rewrite to /demo

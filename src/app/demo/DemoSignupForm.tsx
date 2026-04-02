@@ -170,14 +170,6 @@ export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
             </form>
           </CardContent>
         </Card>
-
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to demo landing
-        </button>
       </div>
     </div>
   );
