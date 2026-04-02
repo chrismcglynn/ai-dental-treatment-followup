@@ -4,7 +4,8 @@ import { useState } from "react";
 import { z } from "zod";
 
 const formSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   role: z.string().min(1, "Please select your role"),
   practiceName: z.string().min(1, "Practice name is required"),
@@ -40,7 +41,8 @@ const planRanges = ["Under 20", "20–50", "50–100", "100+", "Not sure"];
 
 export function DemoRequestForm() {
   const [form, setForm] = useState<FormData>({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     role: "",
     practiceName: "",
@@ -119,16 +121,14 @@ export function DemoRequestForm() {
           className="text-sm text-[var(--m-slate)] mb-6"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
-          We&apos;ll be in touch at{" "}
-          <strong className="text-[var(--m-navy)]">{form.email}</strong> within
-          1 business day to schedule your demo.
+          Thanks, {form.firstName}! We&apos;ll be in touch at{" "}
+          <strong className="text-[var(--m-navy)]">{form.email}</strong> shortly with your personalized demo link!
         </p>
         <p
-          className="text-sm text-[var(--m-slate)] mb-4"
+          className="text-xs text-[var(--m-slate-light)]"
           style={{ fontFamily: "var(--font-dm-sans)" }}
         >
-          In the meantime, explore our interactive sandbox demo — no signup
-          required:
+          Check your inbox (and spam folder, just in case).
         </p>
       </div>
     );
@@ -143,18 +143,33 @@ export function DemoRequestForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" style={{ fontFamily: "var(--font-dm-sans)" }}>
-      <div>
-        <label className={labelClass}>
-          Full Name <span className="text-[var(--m-red-soft)]">*</span>
-        </label>
-        <input
-          type="text"
-          className={inputClass}
-          value={form.fullName}
-          onChange={(e) => update("fullName", e.target.value)}
-          placeholder="Dr. Jane Smith"
-        />
-        {errors.fullName && <p className={errorClass}>{errors.fullName}</p>}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>
+            First Name <span className="text-[var(--m-red-soft)]">*</span>
+          </label>
+          <input
+            type="text"
+            className={inputClass}
+            value={form.firstName}
+            onChange={(e) => update("firstName", e.target.value)}
+            placeholder="Jane"
+          />
+          {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
+        </div>
+        <div>
+          <label className={labelClass}>
+            Last Name <span className="text-[var(--m-red-soft)]">*</span>
+          </label>
+          <input
+            type="text"
+            className={inputClass}
+            value={form.lastName}
+            onChange={(e) => update("lastName", e.target.value)}
+            placeholder="Smith"
+          />
+          {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
+        </div>
       </div>
 
       <div>

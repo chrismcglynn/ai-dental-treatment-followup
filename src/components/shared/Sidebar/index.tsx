@@ -12,9 +12,12 @@ import {
   ChevronLeft,
   Building2,
   ClipboardCheck,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePracticeStore } from "@/stores/practice-store";
+import { useSandboxStore } from "@/stores/sandbox-store";
 import { useUnreadCount } from "@/hooks/useInbox";
 import { usePendingTreatments } from "@/hooks/useAnalytics";
 import { Button } from "@/components/ui/button";
@@ -40,6 +43,7 @@ export function Sidebar() {
   const isOpen = usePracticeStore((s) => s.sidebarOpen);
   const toggle = usePracticeStore((s) => s.toggleSidebar);
   const practiceName = usePracticeStore((s) => s.activePractice?.name ?? "My Practice");
+  const isDemo = useSandboxStore((s) => !!s.demoUser);
 
   return (
     <aside
@@ -76,6 +80,39 @@ export function Sidebar() {
           ))}
         </nav>
       </ScrollArea>
+
+      {/* Demo CTA */}
+      {isDemo && (
+        <div className="px-3 pb-3">
+          {isOpen ? (
+            <a
+              href="https://app.retaine.io/auth/signup"
+              className="flex flex-col gap-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 p-3 transition-colors hover:from-primary/30 hover:to-primary/10"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs font-semibold text-[hsl(var(--sidebar-fg))]">
+                  Ready to go live?
+                </span>
+              </div>
+              <p className="text-[11px] leading-tight text-[hsl(var(--sidebar-fg))]/60">
+                Start recovering unscheduled revenue with your own practice data.
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                Get started <ArrowRight className="h-3 w-3" />
+              </span>
+            </a>
+          ) : (
+            <a
+              href="https://app.retaine.io/auth/signup"
+              className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 text-primary transition-colors hover:bg-primary/30"
+              title="Get started with Retaine"
+            >
+              <Sparkles className="h-4 w-4" />
+            </a>
+          )}
+        </div>
+      )}
 
       <Separator className="bg-white/10" />
 

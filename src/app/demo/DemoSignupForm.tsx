@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Loader2, ArrowLeft } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +48,7 @@ interface DemoSignupFormProps {
   onBack: () => void;
 }
 
-export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
+export function DemoSignupForm({ onSubmit }: DemoSignupFormProps) {
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -74,7 +74,7 @@ export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Building2 className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
             Try the demo
           </h1>
           <p className="text-sm text-muted-foreground text-center">
@@ -157,27 +157,21 @@ export function DemoSignupForm({ onSubmit, onBack }: DemoSignupFormProps) {
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Continue
-              </Button>
+              <div className="pt-6">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  {submitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Continue
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
-
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to demo landing
-        </button>
       </div>
     </div>
   );

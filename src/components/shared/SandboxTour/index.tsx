@@ -187,7 +187,10 @@ export function SandboxTour() {
     }
   }, []);
 
-  if (!isSandbox || dismissed) return null;
+  const isDemo = useSandboxStore((s) => !!s.demoUser);
+
+  // Hide tour on public demo subdomain — only show in prod sandbox
+  if (!isSandbox || dismissed || isDemo) return null;
 
   const completedCount = completed.size;
   const allDone = completedCount === TOUR_STEPS.length;
