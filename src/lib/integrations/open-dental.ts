@@ -136,7 +136,9 @@ async function odFetch<T>(
   path: string,
   params?: Record<string, string>
 ): Promise<T> {
-  const url = new URL(path, creds.apiUrl);
+  // Ensure base URL trailing slash so relative paths resolve correctly
+  const base = creds.apiUrl.endsWith("/") ? creds.apiUrl : creds.apiUrl + "/";
+  const url = new URL(path.replace(/^\//, ""), base);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
