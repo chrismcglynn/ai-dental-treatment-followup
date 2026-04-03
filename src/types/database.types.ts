@@ -25,6 +25,7 @@ export interface Database {
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode: boolean;
           sandbox_seeded_at: string | null;
+          metadata: Json;
           created_at: string;
           updated_at: string;
         };
@@ -43,6 +44,7 @@ export interface Database {
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode?: boolean;
           sandbox_seeded_at?: string | null;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -61,6 +63,7 @@ export interface Database {
           subscription_status?: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode?: boolean;
           sandbox_seeded_at?: string | null;
+          metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -146,6 +149,7 @@ export interface Database {
           id: string;
           practice_id: string;
           patient_id: string;
+          external_id: string | null;
           code: string;
           description: string;
           amount: number;
@@ -159,6 +163,7 @@ export interface Database {
           id?: string;
           practice_id: string;
           patient_id: string;
+          external_id?: string | null;
           code: string;
           description: string;
           amount: number;
@@ -172,6 +177,7 @@ export interface Database {
           id?: string;
           practice_id?: string;
           patient_id?: string;
+          external_id?: string | null;
           code?: string;
           description?: string;
           amount?: number;
@@ -180,6 +186,53 @@ export interface Database {
           decided_at?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+      };
+      sync_log: {
+        Row: {
+          id: string;
+          practice_id: string;
+          pms_type: string;
+          started_at: string;
+          completed_at: string;
+          status: "success" | "partial" | "failed";
+          patients_synced: number;
+          treatments_synced: number;
+          appointments_synced: number;
+          auto_conversions: number;
+          warnings: Json;
+          error: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          practice_id: string;
+          pms_type: string;
+          started_at: string;
+          completed_at: string;
+          status: "success" | "partial" | "failed";
+          patients_synced?: number;
+          treatments_synced?: number;
+          appointments_synced?: number;
+          auto_conversions?: number;
+          warnings?: Json;
+          error?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          practice_id?: string;
+          pms_type?: string;
+          started_at?: string;
+          completed_at?: string;
+          status?: "success" | "partial" | "failed";
+          patients_synced?: number;
+          treatments_synced?: number;
+          appointments_synced?: number;
+          auto_conversions?: number;
+          warnings?: Json;
+          error?: string | null;
+          created_at?: string;
         };
       };
       sequences: {
