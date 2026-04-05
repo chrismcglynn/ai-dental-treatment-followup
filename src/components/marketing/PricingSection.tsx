@@ -44,7 +44,7 @@ export function PricingSection() {
               className="text-4xl font-bold text-[var(--m-navy)]"
               style={{ fontFamily: "var(--font-dm-mono)" }}
             >
-              $199
+              $299
             </span>
             <span
               className="text-sm text-[var(--m-slate)]"

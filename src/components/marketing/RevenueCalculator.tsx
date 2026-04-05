@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const CONVERSION_WITH_AI = 0.34;
-const ANNUAL_COST = 199 * 12;
+const ANNUAL_COST = 299 * 12;
 
 function calculate(plansPerMonth: number, avgValue: number) {
   const unscheduledRevenue = plansPerMonth * 0.3 * 12 * avgValue;
