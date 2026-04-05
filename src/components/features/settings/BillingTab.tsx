@@ -43,9 +43,9 @@ const PLAN_FEATURES = [
 ];
 
 const DEMO_INVOICES = [
-  { id: "inv_001", date: "Mar 1, 2026", amount: "$199.00", status: "paid" },
-  { id: "inv_002", date: "Feb 1, 2026", amount: "$199.00", status: "paid" },
-  { id: "inv_003", date: "Jan 1, 2026", amount: "$199.00", status: "paid" },
+  { id: "inv_001", date: "Mar 1, 2026", amount: "$299.00", status: "paid" },
+  { id: "inv_002", date: "Feb 1, 2026", amount: "$299.00", status: "paid" },
+  { id: "inv_003", date: "Jan 1, 2026", amount: "$299.00", status: "paid" },
 ];
 
 export function BillingTab() {
@@ -91,7 +91,7 @@ export function BillingTab() {
         <CardContent className="space-y-4">
           <div>
             <p className="text-2xl font-semibold">
-              $199
+              $299
               <span className="text-sm font-normal text-muted-foreground">
                 /month
               </span>

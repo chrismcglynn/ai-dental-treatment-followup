@@ -87,7 +87,7 @@ export function SolutionSection() {
             >
               $150,000 – $300,000
             </span>{" "}
-            per year. At $199/month, that&apos;s a{" "}
+            per year. At $299/month, that&apos;s a{" "}
             <span className="font-bold">75–125&times; ROI</span>.
           </p>
         </div>
