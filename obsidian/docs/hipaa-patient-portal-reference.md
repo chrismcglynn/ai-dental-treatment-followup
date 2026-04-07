@@ -1,5 +1,5 @@
 # HIPAA-Compliant Patient Portal — Reference Document
-## FollowDent | Treatment Plan Follow-Up AI
+## Retaine | Treatment Plan Follow-Up AI
 
 ---
 
@@ -16,7 +16,7 @@ This is the architectural solution to a core HIPAA constraint: **PHI cannot live
 ```
 Sequence fires
      ↓
-Twilio sends SMS: "Hi Maria, your treatment plan is ready — view it here: https://app.followdent.com/portal/[TOKEN]"
+Twilio sends SMS: "Hi Maria, your treatment plan is ready — view it here: https://app.retaine.io/portal/[TOKEN]"
      ↓
 Patient clicks link
      ↓

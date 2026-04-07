@@ -52,7 +52,7 @@ supabase/
 
 The app uses an **adapter pattern** to normalize data from different dental PMS systems into a unified schema. Each PMS gets its own connector that implements the `PmsConnector` interface. Raw vendor data is validated through Zod schemas at the boundary — bad records are logged as warnings and skipped, never crashing the sync.
 
-See [`docs/pms-connector-architecture.md`](docs/pms-connector-architecture.md) for the full design doc.
+See [`docs/pms-connector-architecture.md`](obsidian/docs/pms-connector-architecture.md) for the full design doc.
 
 ### How It Works
 

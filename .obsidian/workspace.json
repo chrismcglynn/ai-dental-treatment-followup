@@ -1,0 +1,199 @@
+{
+  "main": {
+    "id": "0abb3f223ed15580",
+    "type": "split",
+    "children": [
+      {
+        "id": "488cbe3fa42c83e7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "256313bbc1fbabd2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2d80a0ac7e89feb5",
+    "type": "split",
+    "children": [
+      {
+        "id": "be54f49d365e04c5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9191fe67f0821c2e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "63946039dc784b79",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "c6069b0685a47da2",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "574ced23373f24c9",
+    "type": "split",
+    "children": [
+      {
+        "id": "49a48d407451bb03",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "214a0d93b53970c6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "ff4011d0f9c6fb98",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "5e65d2ebbedaca45",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8b58fae436421f70",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "0890f69a8ebe7b89",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "256313bbc1fbabd2",
+  "lastOpenFiles": [
+    "obsidian/prompts/sandbox-demo-claude-code-prompt.md",
+    "obsidian/prompts/patient-portal-poc-prompt.md",
+    "obsidian/prompts/landing-page-prompt.md",
+    "obsidian/prompts",
+    "obsidian/docs/sandbox-auth-signup-flow.md",
+    "obsidian/docs/pms-connector-architecture.md",
+    "obsidian/docs/patient-statuses-and-lifecycle.md",
+    "obsidian/docs/open-dental-integration-architecture.md",
+    "obsidian/docs/hipaa-patient-portal-reference.md",
+    "obsidian/docs/brevo-demo-link-setup.md",
+    "obsidian/docs/ai-features-plan.md",
+    "obsidian/docs/ada-dental-codes.md",
+    "obsidian/docs",
+    "obsidian",
+    "docs/obsidian",
+    "node_modules/eslint-plugin-jsx-a11y/README.md",
+    "docs/ada-dental-codes.md"
+  ]
+}

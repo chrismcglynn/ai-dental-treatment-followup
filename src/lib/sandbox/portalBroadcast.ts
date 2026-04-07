@@ -10,7 +10,7 @@
 import type { Message, Conversation } from "@/types/app.types";
 import type { SandboxActivity } from "@/stores/sandbox-store";
 
-const CHANNEL_NAME = "followdent-sandbox-portal";
+const CHANNEL_NAME = "retaine-sandbox-portal";
 
 // ─── Message types ──────────────────────────────────────────────────────────
 

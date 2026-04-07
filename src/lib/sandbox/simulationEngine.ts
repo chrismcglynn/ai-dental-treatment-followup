@@ -192,7 +192,7 @@ function handleSequenceStepSent(store: SandboxStore): EventResult | null {
     subject: channel === "email" ? "Follow-up on your treatment plan" : null,
     body: channel === "voicemail"
       ? `Hi ${patient.first_name}, this is Riverside Family Dental following up on your treatment plan. Check your text or email for a secure link to view your plan details, or give us a call back. Have a great day!`
-      : `Hi ${patient.first_name}, this is Riverside Family Dental. You have a treatment plan ready to schedule. View details here: https://followdent.com/portal/t/${simId("link")}`,
+      : `Hi ${patient.first_name}, this is Riverside Family Dental. You have a treatment plan ready to schedule. View details here: https://retaine.io/portal/t/${simId("link")}`,
     external_id: `sandbox-sim-${Date.now()}`,
     error: null,
     sent_at: now,
