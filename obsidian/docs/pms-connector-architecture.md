@@ -88,6 +88,7 @@ export const NormalizedPatientSchema = z.object({
 export const NormalizedTreatmentSchema = z.object({
   externalId: z.string(),                        // Vendor's treatment/procedure ID
   externalPatientId: z.string(),                 // Vendor's patient ID
+  externalProviderId: z.string().nullable(),      // Vendor's provider ID (for personalization)
   code: z.string(),                              // ADA CDT code (e.g., "D2740")
   description: z.string(),
   amount: z.number().nonneg(),                   // Fee in dollars
@@ -103,9 +104,18 @@ export const NormalizedAppointmentSchema = z.object({
   procedureDescription: z.string().nullable(),
 });
 
+export const NormalizedProviderSchema = z.object({
+  externalId: z.string(),                        // Vendor's provider ID
+  firstName: z.string(),
+  lastName: z.string().min(1),
+  suffix: z.string(),                            // DDS, DMD, RDH, etc.
+  status: z.enum(["active", "inactive"]),
+});
+
 export type NormalizedPatient = z.infer<typeof NormalizedPatientSchema>;
 export type NormalizedTreatment = z.infer<typeof NormalizedTreatmentSchema>;
 export type NormalizedAppointment = z.infer<typeof NormalizedAppointmentSchema>;
+export type NormalizedProvider = z.infer<typeof NormalizedProviderSchema>;
 
 // ─── Connector Interface ──────────────────────────────────────────────────────
 
@@ -145,6 +155,9 @@ export interface PmsConnector {
 
   /** Fetch appointments modified since cursor */
   fetchAppointments(creds: PmsCredentials, cursor: SyncCursor): Promise<SyncResult<NormalizedAppointment>>;
+
+  /** Fetch all providers (small dataset — no cursor needed) */
+  fetchProviders(creds: PmsCredentials): Promise<SyncResult<NormalizedProvider>>;
 }
 ```
 
@@ -158,6 +171,14 @@ export class OpenDentalConnector implements PmsConnector {
 
   async testConnection(creds: PmsCredentials) {
     // GET /patients?limit=1 — if 200, creds are valid
+  }
+
+  async fetchProviders(creds) {
+    // GET /providers
+    // Map: ProvNum → externalId, FName → firstName, LName → lastName
+    // Suffix → suffix (DDS, DMD, RDH)
+    // Filter out IsHidden = true
+    // Validate each record through NormalizedProviderSchema
   }
 
   async fetchPatients(creds, cursor) {
@@ -191,6 +212,16 @@ export class OpenDentalConnector implements PmsConnector {
 
 ### Key OpenDental Data Mappings
 
+**Providers** — `GET /providers`
+
+| OpenDental Field | Our Field | Transform |
+|---|---|---|
+| `ProvNum` | `externalId` | `String(ProvNum)` |
+| `FName` | `firstName` | Direct |
+| `LName` | `lastName` | Direct |
+| `Suffix` | `suffix` | Direct (DDS, DMD, RDH) |
+| `IsHidden` + `ProvStatus` | `status` | Hidden or non-Active → "inactive" |
+
 **Patients** — `GET /patients/Simple`
 
 | OpenDental Field | Our Field | Transform |
@@ -202,6 +233,7 @@ export class OpenDentalConnector implements PmsConnector {
 | `WirelessPhone` / `HmPhone` / `WkPhone` | `phone` | First non-empty, strip formatting |
 | `Birthdate` | `dateOfBirth` | Already `yyyy-MM-dd` |
 | `PatStatus` | `status` | "Patient" → "active", else "inactive" |
+| `PriProv` | `externalPrimaryProviderId` | `String(PriProv)` — patient's primary doctor |
 
 **Treatments** — `GET /treatplans` + `GET /proctps`
 
@@ -220,6 +252,7 @@ Our `treatments` table is flat (one row = one procedure with a code and fee), so
 | `ProcTP.FeeAmt` | `amount` | Direct (decimal dollars) |
 | `TreatPlan.DateTP` | `presentedAt` | Append `T00:00:00Z` for ISO |
 | `TreatPlan.TPStatus` | `status` | "Active"→"pending", "Inactive"→"declined", "Saved"→"pending" |
+| `ProcTP.ProvNum` | `externalProviderId` | `String(ProvNum)` — links to provider for personalized messages |
 
 **Appointments** — `GET /appointments`
 
@@ -242,11 +275,15 @@ The sync engine is vendor-agnostic. It only consumes `NormalizedPatient`, `Norma
 │  for each practice where pms_connected = true:           │
 │    1. connector = ConnectorFactory.get(practice.pms_type)│
 │    2. cursor = practice.metadata.last_sync_at            │
-│    3. patients = connector.fetchPatients(creds, cursor)  │
+│    3. providers = connector.fetchProviders(creds)        │
 │       → Zod validate each → upsert by external_id       │
-│    4. treatments = connector.fetchTreatments(creds, cur) │
+│    4. patients = connector.fetchPatients(creds, cursor)  │
 │       → Zod validate each → upsert by external_id       │
-│    5. appointments = connector.fetchAppointments(creds)  │
+│       → Link primary_provider_id                         │
+│    5. treatments = connector.fetchTreatments(creds, cur) │
+│       → Zod validate each → upsert by external_id       │
+│       → Link provider_id                                 │
+│    6. appointments = connector.fetchAppointments(creds)  │
 │       → For each "scheduled" appointment:                │
 │         - Match patient by external_id                   │
 │         - If patient has pending treatments → auto-book  │
@@ -326,6 +363,7 @@ src/lib/integrations/
     ├── open-dental.test.ts     # Adapter unit tests
     └── fixtures/
         └── open-dental/
+            ├── providers.json      # Exact OD API response shape
             ├── patients.json       # Exact OD API response shape
             ├── treatplans.json     # Exact OD API response shape
             ├── proctps.json        # Exact OD API response shape

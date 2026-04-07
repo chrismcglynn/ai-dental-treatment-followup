@@ -80,6 +80,7 @@ Open Dental's API is REST-based with API key authentication.
 | `GET /treatplans` | Presented treatment plans | `treatments` with `status="pending"` |
 | `GET /procedurelogs` | Completed/scheduled procedures | Treatment acceptance detection |
 | `GET /appointments` | Scheduled appointments | **Booking signal** — triggers auto-convert |
+| `GET /providers` | Provider/doctor details (name, suffix, status) | `providers` table — enables personalized messages ("Dr. Johnson wanted to follow up...") |
 | `GET /recalls` | Hygiene recall status | Future: recall follow-up sequences |
 
 ### Authentication
@@ -98,6 +99,15 @@ Open Dental uses a developer key + customer key model:
 - `AptDateTime` — Scheduled date/time
 - `ProcDescript` — Procedure description
 - `DateTStamp` — Last modified (use for delta sync)
+
+**Provider**
+- `ProvNum` — Unique provider ID
+- `FName` — First name
+- `LName` — Last name
+- `Suffix` — Credential (DDS, DMD, RDH, etc.)
+- `Abbr` — Short abbreviation
+- `IsHidden` — Whether provider is hidden/inactive
+- `ProvStatus` — Active/Inactive
 
 **Treatment Plan**
 - `TreatPlanNum` — Unique plan ID

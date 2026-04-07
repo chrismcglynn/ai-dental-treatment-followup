@@ -19,6 +19,9 @@ const proctps = JSON.parse(
 const appointments = JSON.parse(
   readFileSync(join(__dirname, "data/appointments.json"), "utf-8")
 );
+const providers = JSON.parse(
+  readFileSync(join(__dirname, "data/providers.json"), "utf-8")
+);
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -162,6 +165,14 @@ app.get("/api/v1/appointments", (req, res) => {
   res.json(result);
 });
 
+// ─── Providers ─────────────────────────────────────────────────────────────
+
+app.get("/api/v1/providers", (req, res) => {
+  // Providers endpoint returns all providers (small dataset, no cursor)
+  console.log(`[GET /providers] → ${providers.length} records`);
+  res.json(providers);
+});
+
 // ─── 404 catch-all ──────────────────────────────────────────────────────────
 
 app.use("/api/v1/*", (req, res) => {
@@ -179,6 +190,7 @@ app.listen(PORT, () => {
   console.log(`     Customer Key:  ${VALID_CUSTOMER_KEY}`);
   console.log(`     Header:        Authorization: ODFHIR ${VALID_DEVELOPER_KEY}/${VALID_CUSTOMER_KEY}`);
   console.log(`\n   Data loaded:`);
+  console.log(`     Providers:     ${providers.length}`);
   console.log(`     Patients:      ${patients.length}`);
   console.log(`     Treat Plans:   ${treatplans.length}`);
   console.log(`     Procedures:    ${Object.values(proctps).flat().length}`);
@@ -190,5 +202,6 @@ app.listen(PORT, () => {
   console.log(`     GET /api/v1/treatplans            ?SecDateTEdit=...`);
   console.log(`     GET /api/v1/proctps               ?TreatPlanNum=...`);
   console.log(`     GET /api/v1/appointments          ?DateTStamp=...`);
+  console.log(`     GET /api/v1/providers`);
   console.log(``);
 });

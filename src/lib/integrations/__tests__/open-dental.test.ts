@@ -11,6 +11,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { OpenDentalConnector } from "../open-dental";
 import {
+  NormalizedProviderSchema,
   NormalizedPatientSchema,
   NormalizedTreatmentSchema,
   NormalizedAppointmentSchema,
@@ -18,6 +19,7 @@ import {
   type SyncCursor,
 } from "../types";
 
+import providersFixture from "./fixtures/open-dental/providers.json";
 import patientsFixture from "./fixtures/open-dental/patients.json";
 import treatplansFixture from "./fixtures/open-dental/treatplans.json";
 import proctpsFixture from "./fixtures/open-dental/proctps.json";
@@ -277,6 +279,97 @@ describe("OpenDentalConnector", () => {
 
       const apt = result.data.find((a) => a.externalId === "30001")!;
       expect(apt.procedureDescription).toBe("D2740 Crown - porcelain/ceramic");
+    });
+  });
+
+  describe("fetchProviders", () => {
+    it("maps all fixture providers through NormalizedProviderSchema", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      expect(result.data.length).toBe(4);
+      expect(result.warnings.length).toBe(0);
+
+      for (const provider of result.data) {
+        const parsed = NormalizedProviderSchema.safeParse(provider);
+        expect(parsed.success).toBe(true);
+      }
+    });
+
+    it("maps ProvNum to externalId as string", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      expect(result.data[0].externalId).toBe("1");
+      expect(result.data[1].externalId).toBe("2");
+    });
+
+    it("maps name and suffix fields", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      const doc1 = result.data.find((p) => p.externalId === "1")!;
+      expect(doc1.firstName).toBe("Sarah");
+      expect(doc1.lastName).toBe("Johnson");
+      expect(doc1.suffix).toBe("DDS");
+    });
+
+    it("maps hygienist with empty suffix", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      const hyg = result.data.find((p) => p.externalId === "3")!;
+      expect(hyg.firstName).toBe("Rachel");
+      expect(hyg.lastName).toBe("Torres");
+      expect(hyg.suffix).toBe("");
+    });
+
+    it("maps IsHidden=true to status=inactive", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      const hidden = result.data.find((p) => p.externalId === "4")!;
+      expect(hidden.status).toBe("inactive");
+    });
+
+    it("maps active provider to status=active", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(providersFixture));
+      const result = await connector.fetchProviders(TEST_CREDS);
+
+      const active = result.data.find((p) => p.externalId === "1")!;
+      expect(active.status).toBe("active");
+    });
+  });
+
+  describe("provider fields on patients and treatments", () => {
+    it("maps PriProv to externalPrimaryProviderId on patients", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(patientsFixture));
+      const result = await connector.fetchPatients(TEST_CREDS, TEST_CURSOR);
+
+      const maria = result.data.find((p) => p.externalId === "10421")!;
+      expect(maria.externalPrimaryProviderId).toBe("1");
+
+      const priya = result.data.find((p) => p.externalId === "10423")!;
+      expect(priya.externalPrimaryProviderId).toBe("2");
+    });
+
+    it("maps ProvNum to externalProviderId on treatments", async () => {
+      mockFetch.mockResolvedValueOnce(mockResponse(treatplansFixture));
+      for (const plan of treatplansFixture) {
+        const planProcs =
+          proctpsFixture[String(plan.TreatPlanNum) as keyof typeof proctpsFixture] ?? [];
+        mockFetch.mockResolvedValueOnce(mockResponse(planProcs));
+      }
+
+      const result = await connector.fetchTreatments(TEST_CREDS, TEST_CURSOR);
+
+      // Crown (ProcTPNum 8001) has ProvNum 1
+      const crown = result.data.find((t) => t.externalId === "8001")!;
+      expect(crown.externalProviderId).toBe("1");
+
+      // Implant (ProcTPNum 8002) has ProvNum 2
+      const implant = result.data.find((t) => t.externalId === "8002")!;
+      expect(implant.externalProviderId).toBe("2");
     });
   });
 });

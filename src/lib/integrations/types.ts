@@ -4,6 +4,14 @@ import { z } from "zod";
 // Every PMS adapter must return data conforming to these schemas.
 // Zod validates at the adapter boundary — bad records get logged, not crashed on.
 
+export const NormalizedProviderSchema = z.object({
+  externalId: z.string().min(1),
+  firstName: z.string(),
+  lastName: z.string().min(1),
+  suffix: z.string(),
+  status: z.enum(["active", "inactive"]),
+});
+
 export const NormalizedPatientSchema = z.object({
   externalId: z.string().min(1),
   firstName: z.string().min(1),
@@ -12,6 +20,7 @@ export const NormalizedPatientSchema = z.object({
   phone: z.string().nullable(),
   dateOfBirth: z.string().nullable(), // yyyy-MM-dd
   status: z.enum(["active", "inactive"]),
+  externalPrimaryProviderId: z.string().nullable(),
 });
 
 export const NormalizedTreatmentSchema = z.object({
@@ -23,6 +32,7 @@ export const NormalizedTreatmentSchema = z.object({
   amount: z.number().nonnegative(),
   status: z.enum(["pending", "accepted", "declined", "completed"]),
   presentedAt: z.string(), // ISO date
+  externalProviderId: z.string().nullable(),
 });
 
 export const NormalizedAppointmentSchema = z.object({
@@ -33,6 +43,7 @@ export const NormalizedAppointmentSchema = z.object({
   procedureDescription: z.string().nullable(),
 });
 
+export type NormalizedProvider = z.infer<typeof NormalizedProviderSchema>;
 export type NormalizedPatient = z.infer<typeof NormalizedPatientSchema>;
 export type NormalizedTreatment = z.infer<typeof NormalizedTreatmentSchema>;
 export type NormalizedAppointment = z.infer<typeof NormalizedAppointmentSchema>;
@@ -88,6 +99,11 @@ export interface PmsConnector {
     creds: PmsCredentials,
     cursor: SyncCursor
   ): Promise<SyncResult<NormalizedAppointment>>;
+
+  /** Fetch all providers (small dataset, no cursor needed) */
+  fetchProviders(
+    creds: PmsCredentials
+  ): Promise<SyncResult<NormalizedProvider>>;
 }
 
 // ─── Sync Log ─────────────────────────────────────────────────────────────────
@@ -98,6 +114,7 @@ export interface SyncLogEntry {
   started_at: string;
   completed_at: string;
   status: "success" | "partial" | "failed";
+  providers_synced: number;
   patients_synced: number;
   treatments_synced: number;
   appointments_synced: number;

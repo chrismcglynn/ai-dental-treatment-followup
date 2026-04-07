@@ -1,0 +1,42 @@
+[
+  {
+    "ProvNum": 1,
+    "Abbr": "DOC1",
+    "FName": "Sarah",
+    "LName": "Johnson",
+    "Suffix": "DDS",
+    "IsHidden": false,
+    "ProvStatus": "Active",
+    "IsSecondary": false
+  },
+  {
+    "ProvNum": 2,
+    "Abbr": "DOC2",
+    "FName": "Michael",
+    "LName": "Chen",
+    "Suffix": "DMD",
+    "IsHidden": false,
+    "ProvStatus": "Active",
+    "IsSecondary": false
+  },
+  {
+    "ProvNum": 3,
+    "Abbr": "HYG1",
+    "FName": "Rachel",
+    "LName": "Torres",
+    "Suffix": "",
+    "IsHidden": false,
+    "ProvStatus": "Active",
+    "IsSecondary": true
+  },
+  {
+    "ProvNum": 4,
+    "Abbr": "DOC3",
+    "FName": "David",
+    "LName": "Park",
+    "Suffix": "DDS",
+    "IsHidden": true,
+    "ProvStatus": "Inactive",
+    "IsSecondary": false
+  }
+]

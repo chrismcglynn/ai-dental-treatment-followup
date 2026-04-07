@@ -4,6 +4,7 @@ import type {
   PmsCredentials,
   SyncCursor,
   SyncLogEntry,
+  NormalizedProvider,
   NormalizedPatient,
   NormalizedTreatment,
   NormalizedAppointment,
@@ -42,15 +43,80 @@ function getCursor(practice: PracticeRow): SyncCursor {
 
 // ─── Upsert Helpers ───────────────────────────────────────────────────────────
 
+async function upsertProviders(
+  supabase: SupabaseClient,
+  practiceId: string,
+  providers: NormalizedProvider[]
+): Promise<number> {
+  if (providers.length === 0) return 0;
+
+  let count = 0;
+  for (const provider of providers) {
+    const { data: existing } = await supabase
+      .from("providers")
+      .select("id")
+      .eq("practice_id", practiceId)
+      .eq("external_id", provider.externalId)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase
+        .from("providers")
+        .update({
+          first_name: provider.firstName,
+          last_name: provider.lastName,
+          suffix: provider.suffix,
+          status: provider.status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+
+      if (!error) count++;
+    } else {
+      const { error } = await supabase.from("providers").insert({
+        practice_id: practiceId,
+        external_id: provider.externalId,
+        first_name: provider.firstName,
+        last_name: provider.lastName,
+        suffix: provider.suffix,
+        status: provider.status,
+      });
+
+      if (!error) count++;
+    }
+  }
+  return count;
+}
+
+/** Build a lookup of provider external_id → internal provider id. */
+async function buildProviderMap(
+  supabase: SupabaseClient,
+  practiceId: string
+): Promise<Map<string, string>> {
+  const { data: providerRows } = await supabase
+    .from("providers")
+    .select("id, external_id")
+    .eq("practice_id", practiceId);
+
+  return new Map(
+    (providerRows ?? []).map((p) => [p.external_id, p.id])
+  );
+}
+
 async function upsertPatients(
   supabase: SupabaseClient,
   practiceId: string,
-  patients: NormalizedPatient[]
+  patients: NormalizedPatient[],
+  providerMap: Map<string, string>
 ): Promise<number> {
   if (patients.length === 0) return 0;
 
   let count = 0;
   for (const patient of patients) {
+    const primaryProviderId = patient.externalPrimaryProviderId
+      ? providerMap.get(patient.externalPrimaryProviderId) ?? null
+      : null;
+
     // Check if patient exists by external_id
     const { data: existing } = await supabase
       .from("patients")
@@ -70,6 +136,7 @@ async function upsertPatients(
           phone: patient.phone,
           date_of_birth: patient.dateOfBirth,
           status: patient.status,
+          primary_provider_id: primaryProviderId,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
@@ -86,6 +153,7 @@ async function upsertPatients(
         phone: patient.phone,
         date_of_birth: patient.dateOfBirth,
         status: patient.status,
+        primary_provider_id: primaryProviderId,
         tags: [],
         metadata: {},
       });
@@ -99,7 +167,8 @@ async function upsertPatients(
 async function upsertTreatments(
   supabase: SupabaseClient,
   practiceId: string,
-  treatments: NormalizedTreatment[]
+  treatments: NormalizedTreatment[],
+  providerMap: Map<string, string>
 ): Promise<number> {
   if (treatments.length === 0) return 0;
 
@@ -122,6 +191,10 @@ async function upsertTreatments(
     const patientId = patientMap.get(treatment.externalPatientId);
     if (!patientId) continue; // Patient not synced yet — skip
 
+    const providerId = treatment.externalProviderId
+      ? providerMap.get(treatment.externalProviderId) ?? null
+      : null;
+
     // Check if treatment exists by external_id
     const { data: existing } = await supabase
       .from("treatments")
@@ -138,6 +211,7 @@ async function upsertTreatments(
           description: treatment.description,
           amount: treatment.amount,
           status: treatment.status,
+          provider_id: providerId,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
@@ -153,6 +227,7 @@ async function upsertTreatments(
         amount: treatment.amount,
         status: treatment.status,
         presented_at: treatment.presentedAt,
+        provider_id: providerId,
       });
 
       if (!error) count++;
@@ -249,6 +324,7 @@ export async function syncPractice(
       started_at: startedAt,
       completed_at: new Date().toISOString(),
       status: "failed",
+      providers_synced: 0,
       patients_synced: 0,
       treatments_synced: 0,
       appointments_synced: 0,
@@ -261,6 +337,7 @@ export async function syncPractice(
   const connector = getConnector(practice.pms_type);
   const cursor = getCursor(practice);
 
+  let providersSynced = 0;
   let patientsSynced = 0;
   let treatmentsSynced = 0;
   let appointmentsSynced = 0;
@@ -268,25 +345,39 @@ export async function syncPractice(
   let fatalError: string | null = null;
 
   try {
-    // 1. Sync patients first (treatments reference them)
+    // 1. Sync providers first (patients and treatments reference them)
+    const providerResult = await connector.fetchProviders(creds);
+    allWarnings.push(...providerResult.warnings);
+    providersSynced = await upsertProviders(
+      supabase,
+      practice.id,
+      providerResult.data
+    );
+
+    // Build provider lookup for linking FKs
+    const providerMap = await buildProviderMap(supabase, practice.id);
+
+    // 2. Sync patients (link primary_provider_id)
     const patientResult = await connector.fetchPatients(creds, cursor);
     allWarnings.push(...patientResult.warnings);
     patientsSynced = await upsertPatients(
       supabase,
       practice.id,
-      patientResult.data
+      patientResult.data,
+      providerMap
     );
 
-    // 2. Sync treatments
+    // 3. Sync treatments (link provider_id)
     const treatmentResult = await connector.fetchTreatments(creds, cursor);
     allWarnings.push(...treatmentResult.warnings);
     treatmentsSynced = await upsertTreatments(
       supabase,
       practice.id,
-      treatmentResult.data
+      treatmentResult.data,
+      providerMap
     );
 
-    // 3. Sync appointments and detect bookings
+    // 4. Sync appointments and detect bookings
     const appointmentResult = await connector.fetchAppointments(creds, cursor);
     allWarnings.push(...appointmentResult.warnings);
     appointmentsSynced = appointmentResult.data.length;
@@ -296,8 +387,9 @@ export async function syncPractice(
       appointmentResult.data
     );
 
-    // 4. Update the sync cursor
+    // 5. Update the sync cursor
     const latestTimestamp = [
+      providerResult.serverTimestamp,
       patientResult.serverTimestamp,
       treatmentResult.serverTimestamp,
       appointmentResult.serverTimestamp,
@@ -341,6 +433,7 @@ export async function syncPractice(
     started_at: startedAt,
     completed_at: new Date().toISOString(),
     status,
+    providers_synced: providersSynced,
     patients_synced: patientsSynced,
     treatments_synced: treatmentsSynced,
     appointments_synced: appointmentsSynced,

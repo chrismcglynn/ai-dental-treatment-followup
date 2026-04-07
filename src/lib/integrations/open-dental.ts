@@ -3,9 +3,11 @@ import {
   type PmsCredentials,
   type SyncCursor,
   type SyncResult,
+  type NormalizedProvider,
   type NormalizedPatient,
   type NormalizedTreatment,
   type NormalizedAppointment,
+  NormalizedProviderSchema,
   NormalizedPatientSchema,
   NormalizedTreatmentSchema,
   NormalizedAppointmentSchema,
@@ -13,6 +15,17 @@ import {
 
 // ─── OpenDental API Types ─────────────────────────────────────────────────────
 // Mirrors the exact shapes returned by the OD REST API.
+
+interface OdProvider {
+  ProvNum: number;
+  Abbr: string;
+  FName: string;
+  LName: string;
+  Suffix: string;
+  IsHidden: boolean;
+  ProvStatus: string;
+  [key: string]: unknown;
+}
 
 interface OdPatient {
   PatNum: number;
@@ -24,6 +37,8 @@ interface OdPatient {
   WirelessPhone: string;
   Birthdate: string; // yyyy-MM-dd
   PatStatus: string; // "Patient", "NonPatient", "Inactive", "Archived", "Deceased", "Prospective"
+  PriProv: number;
+  SecProv: number;
   [key: string]: unknown; // passthrough for extra fields
 }
 
@@ -45,6 +60,7 @@ interface OdProcTP {
   Descript: string;
   FeeAmt: number;
   DateTP: string;
+  ProvNum: number;
   [key: string]: unknown;
 }
 
@@ -101,6 +117,14 @@ function mapTreatmentStatus(
     default:
       return "pending";
   }
+}
+
+function mapProviderStatus(
+  odStatus: string,
+  isHidden: boolean
+): "active" | "inactive" {
+  if (isHidden) return "inactive";
+  return odStatus === "Active" ? "active" : "inactive";
 }
 
 function mapAppointmentStatus(
@@ -208,6 +232,9 @@ export class OpenDentalConnector implements PmsConnector {
             ? record.Birthdate
             : null,
         status: mapPatientStatus(record.PatStatus),
+        externalPrimaryProviderId: record.PriProv
+          ? String(record.PriProv)
+          : null,
       };
 
       const result = NormalizedPatientSchema.safeParse(mapped);
@@ -265,6 +292,7 @@ export class OpenDentalConnector implements PmsConnector {
           amount: proc.FeeAmt ?? 0,
           status,
           presentedAt: odDateToIso(plan.DateTP),
+          externalProviderId: proc.ProvNum ? String(proc.ProvNum) : null,
         };
 
         const result = NormalizedTreatmentSchema.safeParse(mapped);
@@ -311,6 +339,40 @@ export class OpenDentalConnector implements PmsConnector {
       } else {
         warnings.push(
           `Appointment ${record.AptNum}: ${result.error.issues.map((i) => i.message).join(", ")}`
+        );
+      }
+    }
+
+    return {
+      data,
+      serverTimestamp: new Date().toISOString(),
+      warnings,
+    };
+  }
+
+  async fetchProviders(
+    creds: PmsCredentials
+  ): Promise<SyncResult<NormalizedProvider>> {
+    const raw = await odFetch<OdProvider[]>(creds, "/providers");
+
+    const data: NormalizedProvider[] = [];
+    const warnings: string[] = [];
+
+    for (const record of raw) {
+      const mapped = {
+        externalId: String(record.ProvNum),
+        firstName: record.FName?.trim() ?? "",
+        lastName: record.LName?.trim() ?? "",
+        suffix: record.Suffix?.trim() ?? "",
+        status: mapProviderStatus(record.ProvStatus, record.IsHidden),
+      };
+
+      const result = NormalizedProviderSchema.safeParse(mapped);
+      if (result.success) {
+        data.push(result.data);
+      } else {
+        warnings.push(
+          `Provider ${record.ProvNum}: ${result.error.issues.map((i) => i.message).join(", ")}`
         );
       }
     }
