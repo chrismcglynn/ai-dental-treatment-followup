@@ -1,10 +1,10 @@
 # PMS Connector Architecture
 
-> Design doc for a vendor-agnostic integration layer that normalizes data from any dental practice management system (OpenDental, Dentrix, Eaglesoft, etc.) into our unified data model. Goal: onboard real practices without the app breaking due to unexpected data shapes.
+> Design doc for a vendor-agnostic integration layer that normalizes data from any dental practice management system (OpenDental, Dentrix, Eaglesoft, etc.) into our unified data model. See [[open-dental-integration-architecture]] for the first concrete implementation. Goal: onboard real practices without the app breaking due to unexpected data shapes.
 
 ## Problem
 
-Our sandbox demo uses hardcoded seed data that perfectly matches our internal types. Real PMS systems return data shaped differently from each other and from our model:
+Our [[sandbox-auth-signup-flow|sandbox]] demo uses hardcoded seed data that perfectly matches our internal types. Real PMS systems return data shaped differently from each other and from our model:
 
 | Concept | Our Model | OpenDental | Dentrix | Eaglesoft |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ The sync engine is vendor-agnostic. It only consumes `NormalizedPatient`, `Norma
 │       → For each "scheduled" appointment:                │
 │         - Match patient by external_id                   │
 │         - If patient has pending treatments → auto-book  │
-│         - Call markPatientBooked() (existing function)   │
+│         - Call markPatientBooked() — see [[patient-statuses-and-lifecycle#Conversion Detection]]   │
 │    6. Update practice.metadata.last_sync_at              │
 │    7. Log sync results to sync_log table                 │
 └──────────────────────────────────────────────────────────┘
@@ -552,3 +552,14 @@ The goal is **never crash the sync, always surface problems**.
 - PMS API calls made server-side only
 - Audit trail via `sync_log` table
 - On-premise OD servers: validate SSL, enforce HTTPS, timeout after 30s
+
+---
+
+## Related
+
+- [[open-dental-integration-architecture]] — OpenDental adapter: the reference implementation of `PmsConnector`
+- [[ada-dental-codes]] — ADA CDT codes used in the `NormalizedTreatmentSchema.code` field
+- [[patient-statuses-and-lifecycle]] — Status values that normalized data maps into
+- [[why-now-timing-analysis]] — PMS middleware APIs (Kolla, DentalBridge) as a key timing enabler
+- [[product-hurdles-and-mitigation]] — PMS integration fragility is Hurdle #2
+- [[competitive-landscape]] — Legacy PMS targeting strategy (Open Dental as beachhead)

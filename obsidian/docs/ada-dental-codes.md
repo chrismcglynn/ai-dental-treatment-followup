@@ -742,3 +742,12 @@
 ---
 
 *Based on the ADA Current Dental Terminology (CDT-2024/CDT-2025). The official CDT code set is published and updated annually by the American Dental Association. Always verify codes against the current CDT manual for billing and documentation purposes.*
+
+---
+
+## Related
+
+- [[ai-features-plan]] — Smart sequence assignment uses ADA code overlap to match treatments to sequences
+- [[pms-connector-architecture]] — Normalized treatment schema maps vendor procedure codes to ADA CDT codes
+- [[open-dental-integration-architecture]] — OD `ProcCode` fields map directly to ADA codes
+- [[patient-statuses-and-lifecycle]] — Treatment plans reference ADA codes via the `treatments.code` field

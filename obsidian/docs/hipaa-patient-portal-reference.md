@@ -1,5 +1,5 @@
 # HIPAA-Compliant Patient Portal — Reference Document
-## FollowDent | Treatment Plan Follow-Up AI
+## Retaine | Treatment Plan Follow-Up AI
 
 ---
 
@@ -7,7 +7,7 @@
 
 The patient portal is a **secure, stateless, single-use view** that patients reach after clicking a link in an SMS or email follow-up. It allows them to view their treatment plan and express intent to book — without ever requiring a login, password, or account.
 
-This is the architectural solution to a core HIPAA constraint: **PHI cannot live in an SMS or email body.** The message contains only an opaque token URL. The portal page, accessed via that token, renders the PHI.
+This is the architectural solution to a core HIPAA constraint: **PHI cannot live in an SMS or email body** (see [[hipaa-baa-go-live-checklist]]). The message contains only an opaque token URL. The portal page, accessed via that token, renders the PHI.
 
 ---
 
@@ -16,7 +16,7 @@ This is the architectural solution to a core HIPAA constraint: **PHI cannot live
 ```
 Sequence fires
      ↓
-Twilio sends SMS: "Hi Maria, your treatment plan is ready — view it here: https://app.followdent.com/portal/[TOKEN]"
+Twilio sends SMS: "Hi Maria, your treatment plan is ready — view it here: https://app.retaine.io/portal/[TOKEN]"
      ↓
 Patient clicks link
      ↓
@@ -290,7 +290,7 @@ Before issuing a new token for a patient+plan pair, all existing unused tokens f
 
 ## Sandbox / Demo Behavior
 
-In sandbox mode, portal token generation must be mocked. The sandbox store lives in `src/stores/sandbox-store.ts` (Zustand with sessionStorage persistence). Portal token methods should be added directly to the store interface following the existing mutation pattern:
+In [[sandbox-auth-signup-flow|sandbox]] mode, portal token generation must be mocked. The sandbox store lives in `src/stores/sandbox-store.ts` (Zustand with sessionStorage persistence). Portal token methods should be added directly to the store interface following the existing mutation pattern:
 
 ```typescript
 // In stores/sandbox-store.ts — add to SandboxStoreActions interface
@@ -387,3 +387,13 @@ supabase/
 - DB table is `treatments` (not `treatment_plans`), FK is `treatment_id`
 - Migration naming: `00NNN_description.sql` (zero-padded sequential numbers)
 - Sandbox IDs: all prefixed with `sandbox-` — detected by `isSandboxId()` from `@/lib/sandbox/sandboxData`
+
+---
+
+## Related
+
+- [[hipaa-baa-go-live-checklist]] — BAA requirements for Supabase, Twilio, and Resend before launch
+- [[patient-statuses-and-lifecycle]] — Treatment statuses and the `treatments` table this portal references
+- [[sandbox-auth-signup-flow]] — Sandbox mode for portal token generation
+- [[product-hurdles-and-mitigation]] — HIPAA compliance (Hurdle #1) and patient privacy (Hurdle #5)
+- [[ai-features-plan]] — Reply drafting must follow the same "no PHI in message body" constraint

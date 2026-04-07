@@ -71,7 +71,7 @@ Example CTA button: **"Launch Your Demo"** linking to `{{ contact.DEMO_LINK }}`
 1. User clicks the link in the email
 2. They land on `demo.retaine.io?d=<encoded-data>`
 3. The demo page decodes the `d` param and shows a welcome card with their name, practice, and email pre-filled
-4. They click "Start Demo" and enter the sandbox dashboard
+4. They click "Start Demo" and enter the [[sandbox-auth-signup-flow|sandbox]] dashboard
 5. If someone visits `demo.retaine.io` without a `?d=` param (e.g., from an expo), they see the normal landing page with a signup form
 
 ## Manually Generating a Demo Link
@@ -90,3 +90,11 @@ btoa(JSON.stringify({
 Valid roles: `dentist`, `hygienist`, `front_office`, `office_manager`, `dental_assistant`
 
 Append the output to: `https://demo.retaine.io?d=<output>`
+
+---
+
+## Related
+
+- [[sandbox-auth-signup-flow]] — What happens after the user clicks the demo link and enters the sandbox
+- [[origin-story-and-pilot-plan]] — The sandbox/demo as a core sales tool for the pilot strategy
+- [[product-hurdles-and-mitigation]] — Demo page addresses Hurdle #6 (long sales cycles)

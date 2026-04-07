@@ -839,7 +839,7 @@ export const useSandboxStore = create<SandboxStore>()(
       },
     }),
     {
-      name: "followdent-sandbox",
+      name: "retaine-sandbox",
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? sessionStorage : {
           getItem: () => null,

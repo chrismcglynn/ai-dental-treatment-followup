@@ -1,6 +1,6 @@
 # Open Dental Integration Architecture
 
-> Design doc for integrating with Open Dental's REST API as our first PMS integration target. Open Dental is open-source with well-documented APIs, making it ideal for initial launch.
+> Design doc for integrating with Open Dental's REST API as our first PMS integration target. Open Dental is open-source with well-documented APIs, making it ideal for initial launch. See [[pms-connector-architecture]] for the vendor-agnostic adapter layer this plugs into.
 
 ## Overview
 
@@ -54,7 +54,7 @@ This is where automatic booking detection lives.
 **Treatment Plans**
 - Import presented treatment plans via `treatplans` + `procedurelogs` endpoints
 - Creates `treatments` records with `status: "pending"`
-- Maps OD procedure codes (ADA codes like D2740) directly to our `treatments.code`
+- Maps OD procedure codes ([[ada-dental-codes|ADA codes]] like D2740) directly to our `treatments.code`
 
 **Appointments (The Booking Signal)**
 - Poll for new/modified appointments since last sync
@@ -162,7 +162,7 @@ These files already exist and are scaffolded for this work:
 | `src/hooks/useSettings.ts` | `useTestPmsConnection()` | Client hook for test connection |
 | `practices` table | `pms_type`, `pms_connected` | Stores connection state |
 | `patients` table | `external_id` | Maps to OD `PatNum` |
-| `src/lib/api/patients.ts` | `markPatientBooked()` | Reusable for auto-conversion |
+| `src/lib/api/patients.ts` | `markPatientBooked()` | Reusable for [[patient-statuses-and-lifecycle#Conversion Detection|auto-conversion]] |
 
 ## Implementation Plan
 
@@ -206,3 +206,14 @@ These files already exist and are scaffolded for this work:
 - [ ] Do we support OD Cloud vs on-premise vs both? (Cloud is easier — single API endpoint; on-premise requires the practice to expose their server)
 - [ ] Sync frequency: 15 min? 5 min? Configurable per practice?
 - [ ] Do we need real-time via OD's eConnector webhooks, or is polling sufficient for MVP?
+
+---
+
+## Related
+
+- [[pms-connector-architecture]] — Vendor-agnostic adapter layer; OpenDental is the reference implementation
+- [[ada-dental-codes]] — ADA CDT codes that OD `ProcCode` fields map to
+- [[patient-statuses-and-lifecycle]] — Auto-conversion of enrollments when bookings are detected
+- [[why-now-timing-analysis]] — PMS middleware reducing integration barriers (Reason #1)
+- [[product-hurdles-and-mitigation]] — PMS integration fragility is Hurdle #2
+- [[competitive-landscape]] — Open Dental as the beachhead PMS target

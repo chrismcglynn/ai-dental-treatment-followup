@@ -1,0 +1,229 @@
+{
+  "main": {
+    "id": "605f6ba8dc18debf",
+    "type": "split",
+    "children": [
+      {
+        "id": "6853baac1b80adeb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f879decb5d11a886",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          },
+          {
+            "id": "083dbd9b778c7e4c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "operations/key-metrics-and-kpis.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "key-metrics-and-kpis"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0543f3799f0a4ba1",
+    "type": "split",
+    "children": [
+      {
+        "id": "14fda955391350eb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a9d626be958bce9a",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5aea29c4ffc40fdd",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "dashboard",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7065ae82122da56a",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "2bba19c77512ac76",
+    "type": "split",
+    "children": [
+      {
+        "id": "027af9d4ca4a2350",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a0fa6d18ee9389b8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "operations/key-metrics-and-kpis.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for key-metrics-and-kpis"
+            }
+          },
+          {
+            "id": "9ecc5c9242254413",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Market and Problem Size.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Market and Problem Size"
+            }
+          },
+          {
+            "id": "0e0bc47ebb4ec8f8",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "c7b2b9c40bf5e191",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "6ca6a2d0b0fff8a8",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Market and Problem Size.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Market and Problem Size"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "083dbd9b778c7e4c",
+  "lastOpenFiles": [
+    "strategy/investor-pitch-narrative.md",
+    "docs/hipaa-patient-portal-reference.md",
+    "strategy/go-to-market-playbook.md",
+    "strategy/competitive-landscape.md",
+    "docs/brevo-demo-link-setup.md",
+    "docs/ai-features-plan.md",
+    "strategy/product-roadmap.md",
+    "strategy/origin-story-and-pilot-plan.md",
+    "operations/pilot-launch-checklist.md",
+    "operations/product-hurdles-and-mitigation.md",
+    "operations/unit-economics-and-scaling-costs.md",
+    "operations/key-metrics-and-kpis.md",
+    "strategy/pricing-rationale.md",
+    "compliance/a2p-10dlc-registration-guide.md",
+    "compliance/soc2-requirements.md",
+    "compliance/hipaa-baa-go-live-checklist.md",
+    "strategy/market-size-and-opportunity.md",
+    "strategy/why-now-timing-analysis.md",
+    "docs/open-dental-integration-architecture.md",
+    "Market and Problem Size.md",
+    "compliance",
+    "operations",
+    "strategy",
+    "Why now competitive analysis.md",
+    "Estimated Startup Costs.md",
+    "Product Hurdles and Mitigation.md",
+    "Retaine's Competitive Landscape.md",
+    "HIPAA & BAA Go-Live Checklist.md",
+    "SOC2 Compliance Requirements & Necessity.md"
+  ]
+}
