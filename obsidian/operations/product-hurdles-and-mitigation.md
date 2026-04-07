@@ -23,7 +23,7 @@
 **Mitigation:**
 - **Patient portal designed** — secure, stateless, single-use view keeps PHI out of SMS/email bodies entirely. Token-hash storage means even a DB dump yields no usable links
 - Sign Twilio BAA (Enterprise Edition) before launch (see [[hipaa-baa-go-live-checklist]])
-- Register A2P 10DLC before sending any messages
+- [[a2p-10dlc-registration-guide|Register A2P 10DLC]] before sending any messages (start 4-6 weeks early)
 - Separate healthcare and marketing consent — two different opt-ins
 - Build STOP/opt-out handling from day one (TCPA requirement)
 

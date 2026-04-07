@@ -45,3 +45,6 @@ Instead of pitch decks, fire up the [[sandbox-auth-signup-flow|sandbox]] — sim
 - [[brevo-demo-link-setup]] — Demo link distribution via email
 - [[hipaa-baa-go-live-checklist]] — BAAs required before the pilot goes live
 - [[product-hurdles-and-mitigation]] — Risks to manage during the pilot
+- [[pilot-launch-checklist]] — Consolidated go/no-go gates before the pilot
+- [[key-metrics-and-kpis]] — What to instrument and track during the pilot
+- [[product-roadmap]] — What's built, what ships for pilot, what's next

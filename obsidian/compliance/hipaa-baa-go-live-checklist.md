@@ -42,7 +42,7 @@ The standard Claude.ai chat interface **cannot** be used with PHI — BAAs only 
 - [ ] BAA template for practices reviewed by healthcare attorney
 - [ ] BAA clause added to standard customer contract
 - [ ] Onboarding flow confirms practice has patient consent to contact
-- [ ] A2P 10DLC registration completed for each practice's phone number
+- [ ] [[a2p-10dlc-registration-guide|A2P 10DLC registration]] completed for each practice's phone number
 - [ ] STOP/opt-out handling implemented and tested
 - [ ] Outbound messages minimize PHI (link to [[hipaa-patient-portal-reference|patient portal]] for details — architecture spec'd)
 - [ ] Healthcare and marketing consent are separated (two opt-ins)

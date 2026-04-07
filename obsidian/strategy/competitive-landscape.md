@@ -56,3 +56,4 @@ Buyers weren't users (sold at trade shows to dentists, not front desk). Codebase
 - [[ai-features-plan]] — AI-powered features that differentiate from competitors
 - [[pms-connector-architecture]] — PMS integration strategy across vendor ecosystems
 - [[product-hurdles-and-mitigation]] — Competitor response is Hurdle #7; data moat as defense
+- [[pricing-rationale]] — Why $299 and how it positions against competitor pricing
