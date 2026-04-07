@@ -76,3 +76,13 @@ At $149.5K MRR, Stripe takes ~$8,073/mo — more than all infrastructure combine
 
 - Twilio: 50% HIPAA fee reduction for 2-year commitment (saves $3K/yr)
 - Stripe: Custom rates ~2.4% + $0.30 at $100K+ volume (saves ~$750/mo)
+
+---
+
+## Related
+
+- [[market-size-and-opportunity]] — ROI calculation and TAM/SAM/SOM at $299/mo
+- [[origin-story-and-pilot-plan]] — 110-location rollout = ~$395K ARR
+- [[hipaa-baa-go-live-checklist]] — Supabase HIPAA add-on and Twilio Enterprise BAA costs
+- [[soc2-requirements]] — Vanta/Drata costs (~$800/mo) when SOC 2 readiness tracking begins
+- [[product-hurdles-and-mitigation]] — Compliance costs as fixed overhead in Hurdles #1-2

@@ -11,7 +11,7 @@ Chris's wife is a lead RDH at a practice whose owners operate ~110 practices nat
 
 ## 90-Day Pilot Strategy
 
-1. **Weeks 1-4: Finish integrations & polish** — Twilio, Resend, PMS connector for the pilot practice's system. Staging environment testing with wife walking through every workflow as front desk staff
+1. **Weeks 1-4: Finish integrations & polish** — Twilio, Resend, [[pms-connector-architecture|PMS connector]] for the pilot practice's system. Staging environment testing with wife walking through every workflow as front desk staff
 2. **Weeks 4-8: White-glove pilot** — One practice, hands-on setup. Instrument everything: revenue recovered, response rates, time to book. Build a clean before/after story
 3. **Weeks 8-12: Let results speak** — Don't pitch VC owners until 60-90 days of real data exist. Then ask for a 3-4 practice expansion, not a full rollout. Let them escalate it themselves
 
@@ -32,4 +32,16 @@ Wife's professional relationship is the foundation. The product must be genuinel
 
 ## The Sandbox as Sales Tool
 
-Instead of pitch decks, fire up the sandbox — simulation engine runs, booking events fire, the revenue counter ticks up, activity feed is live. A visceral, memorable demo that no slides can replicate.
+Instead of pitch decks, fire up the [[sandbox-auth-signup-flow|sandbox]] — simulation engine runs, booking events fire, the revenue counter ticks up, activity feed is live. A visceral, memorable demo that no slides can replicate.
+
+---
+
+## Related
+
+- [[market-size-and-opportunity]] — $89B problem, 42x ROI, TAM/SAM/SOM
+- [[unit-economics-and-scaling-costs]] — 110-location rollout = ~$395K ARR at $299/mo
+- [[competitive-landscape]] — Retaine's positioning vs. Weave, Dental Intelligence, Oryx
+- [[sandbox-auth-signup-flow]] — How the sandbox demo environment works technically
+- [[brevo-demo-link-setup]] — Demo link distribution via email
+- [[hipaa-baa-go-live-checklist]] — BAAs required before the pilot goes live
+- [[product-hurdles-and-mitigation]] — Risks to manage during the pilot

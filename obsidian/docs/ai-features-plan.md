@@ -2,7 +2,7 @@
 
 ## Context
 
-The app currently uses simple keyword matching to detect booking intent in patient replies, manual sequence-to-treatment matching via ADA code overlap, and no reply assistance for staff. These three features add Claude-powered intelligence to replace brittle heuristics and reduce front desk workload.
+The app currently uses simple keyword matching to detect booking intent in patient replies, manual sequence-to-treatment matching via [[ada-dental-codes|ADA code]] overlap, and no reply assistance for staff. These three features add Claude-powered intelligence to replace brittle heuristics and reduce front desk workload.
 
 All three features call Claude server-side via the Anthropic API (already integrated at `/src/app/api/preview-message/route.ts`). Anthropic API inputs are not used for model training, and prompts will contain only first names and procedure descriptions (no SSNs, DOBs, insurance IDs) -- consistent with the existing integration pattern.
 
@@ -54,8 +54,8 @@ Regenerate `src/types/database.types.ts`.
 - Calls Claude with classification prompt (see below)
 - Updates `messages.intent` + `messages.intent_confidence`
 - Updates `conversations.latest_intent`
-- If `wants_to_book` -> auto-converts active enrollments (existing logic)
-- If `stop` -> marks enrollments as `opted_out`
+- If `wants_to_book` -> auto-converts active enrollments (see [[patient-statuses-and-lifecycle#Conversion Detection]])
+- If `stop` -> marks enrollments as `opted_out` (see [[patient-statuses-and-lifecycle#Sequence Enrollment Statuses]])
 
 **Modify:** `src/app/api/webhooks/twilio/route.ts`
 - Keep existing `hasBookingIntent()` keyword check as synchronous fast path for immediate enrollment conversion
@@ -103,7 +103,7 @@ User: Patient SMS: "{messageBody}"
 - Show intent badge in thread header next to patient name
 
 ### Sandbox/demo mode
-- No real Claude calls. Add `latest_intent` values to seeded conversations in `src/lib/sandbox/sandboxData.ts`
+- No real Claude calls in [[sandbox-auth-signup-flow|sandbox]] mode. Add `latest_intent` values to seeded conversations in `src/lib/sandbox/sandboxData.ts`
 - Weight toward `wants_to_book` for demo impact
 
 ### Fallback
@@ -183,7 +183,7 @@ export function useSuggestSequence() {
 ```
 
 ### Sandbox/demo mode
-- Skip API call. Return hardcoded suggestion matching the first sequence with highest code overlap after 800ms simulated delay.
+- In [[sandbox-auth-signup-flow|sandbox]] mode, skip API call. Return hardcoded suggestion matching the first sequence with highest code overlap after 800ms simulated delay.
 
 ### Fallback
 - If AI unavailable, silently fall back to existing code-matching sort. Show subtle "AI suggestions unavailable" note.
@@ -349,7 +349,7 @@ export function useDraftReply() {
 The hook accepts recent messages as a parameter (from parent's `useConversationMessages` query) to avoid double-fetching.
 
 ### Sandbox/demo mode
-- Return hardcoded contextual replies based on `latestIntent` after 1s simulated delay
+- In [[sandbox-auth-signup-flow|sandbox]] mode, return hardcoded contextual replies based on `latestIntent` after 1s simulated delay
 - `wants_to_book` -> "Hi {name}! We'd love to get you scheduled. Would mornings or afternoons work better? - {practice}"
 - `has_question` -> "Hi {name}, great question! Give us a call at [number] and we can go over everything. - {practice}"
 - Default -> "Hi {name}, thanks for your message! How can we help? - {practice}"
@@ -394,3 +394,14 @@ The hook accepts recent messages as a parameter (from parent's `useConversationM
 - **Feature 1:** Send inbound SMS via Twilio test tool -> verify `messages.intent` column populated -> verify conversation list shows correct badge -> verify `stop` intent opts out enrollment
 - **Feature 2:** Select pending treatments -> open EnrollDialog -> verify AI suggestion appears with reason text -> verify fallback to code matching when API key missing
 - **Feature 3:** Open conversation -> click "Suggest Reply" -> verify draft populates textarea -> verify draft respects HIPAA rules (no clinical details) -> edit and send -> verify message delivers normally
+
+---
+
+## Related
+
+- [[ada-dental-codes]] — ADA CDT codes used for sequence-to-treatment matching in Feature 2
+- [[patient-statuses-and-lifecycle]] — Enrollment statuses and conversion detection that Feature 1 automates
+- [[hipaa-patient-portal-reference]] — HIPAA constraints on message content (no PHI in SMS body)
+- [[hipaa-baa-go-live-checklist]] — BAA requirements for Claude API when processing PHI
+- [[sandbox-auth-signup-flow]] — Sandbox mode handling for all three features
+- [[product-hurdles-and-mitigation]] — AI message quality is Hurdle #4

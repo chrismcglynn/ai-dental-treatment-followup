@@ -44,9 +44,20 @@ The standard Claude.ai chat interface **cannot** be used with PHI — BAAs only 
 - [ ] Onboarding flow confirms practice has patient consent to contact
 - [ ] A2P 10DLC registration completed for each practice's phone number
 - [ ] STOP/opt-out handling implemented and tested
-- [ ] Outbound messages minimize PHI (link to portal for details)
+- [ ] Outbound messages minimize PHI (link to [[hipaa-patient-portal-reference|patient portal]] for details — architecture spec'd)
 - [ ] Healthcare and marketing consent are separated (two opt-ins)
 
 ## Important Disclaimer
 
 This is a reference document, not legal advice. Consult a healthcare attorney before launch to review BAA templates, customer contracts, and messaging compliance.
+
+---
+
+## Related
+
+- [[hipaa-patient-portal-reference]] — Portal architecture that keeps PHI out of SMS/email bodies
+- [[unit-economics-and-scaling-costs]] — Supabase HIPAA ($350/mo) and Twilio Enterprise ($500/mo) as fixed costs
+- [[product-hurdles-and-mitigation]] — HIPAA/SMS compliance is Hurdle #1
+- [[why-now-timing-analysis]] — HIPAA-compliant SMS maturity as a key timing enabler (Reason #2)
+- [[soc2-requirements]] — SOC 2 overlaps with HIPAA controls but is voluntary
+- [[ai-features-plan]] — Reply drafting must follow "no PHI in message body" constraint

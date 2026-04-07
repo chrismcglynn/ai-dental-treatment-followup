@@ -110,7 +110,7 @@ Sequences themselves have a `trigger_type` that determines when they fire:
 
 ## Conversion Detection
 
-When a patient replies to an outbound message (via Twilio webhook at `/api/webhooks/twilio`), the system checks for booking-intent keywords like "book", "schedule", "appointment", or "yes". If detected, all active enrollments for that patient are updated to `status = "converted"`.
+When a patient replies to an outbound message (via Twilio webhook at `/api/webhooks/twilio`), the system checks for booking-intent keywords like "book", "schedule", "appointment", or "yes". If detected, all active enrollments for that patient are updated to `status = "converted"`. See [[ai-features-plan#Feature 1 Reply Intent Classification]] for the Claude-powered replacement of this keyword matching.
 
 ---
 
@@ -122,3 +122,13 @@ It's important to distinguish between these two:
 - **Patient display status** (computed label in the UI): `Do not contact`, `In sequence`, `Pending`, or `No active plan`. This is derived from the combination of the patient record status, their treatments, and their enrollments.
 
 The database field is simple; the display label tells the full story at a glance.
+
+---
+
+## Related
+
+- [[ai-features-plan]] — Intent classification (Feature 1) automates conversion detection with Claude
+- [[open-dental-integration-architecture]] — PMS sync auto-converts enrollments when appointments are detected
+- [[pms-connector-architecture]] — Normalized status mapping from vendor-specific values to our model
+- [[sandbox-auth-signup-flow]] — Sandbox seeds patients, treatments, and enrollments for demo
+- [[hipaa-patient-portal-reference]] — Patient portal references the `treatments` table and statuses

@@ -33,4 +33,14 @@ Current tools generate call lists for staff to manually work through. No existin
 
 ## Target Buyer Profile
 
-Tech-forward practices on legacy PMS (Open Dental, Dentrix, Eaglesoft) that already layer point solutions — online booking, digital intake, Weave/Lighthouse. These practices have demonstrated willingness to adopt tools and are the fastest-yes customers.
+Tech-forward practices on legacy PMS ([[open-dental-integration-architecture|Open Dental]], Dentrix, Eaglesoft) that already layer point solutions — online booking, digital intake, Weave/Lighthouse. These practices have demonstrated willingness to adopt tools and are the fastest-yes customers.
+
+---
+
+## Related
+
+- [[unit-economics-and-scaling-costs]] — Cost breakdown and margin curve at $299/mo
+- [[origin-story-and-pilot-plan]] — Pilot path from 1 practice to 110-location rollout
+- [[competitive-landscape]] — Why incumbents haven't captured this market
+- [[why-now-timing-analysis]] — Market readiness and the convergence window
+- [[product-hurdles-and-mitigation]] — ROI pitch framing for Hurdle #6 (sales cycles)

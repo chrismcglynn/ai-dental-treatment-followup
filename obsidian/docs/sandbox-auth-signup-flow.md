@@ -41,7 +41,7 @@ The `seedSandboxData()` function in `src/lib/sandbox/seedSandboxData.ts` inserts
 | treatments            | 8     | Crowns, implants, SRP, composites, etc.  |
 | sequences             | 3     | Crown, Implant, Perio follow-up sequences|
 | touchpoints           | 9     | SMS/email/voicemail steps across sequences|
-| sequence_enrollments  | 5     | Active enrollments for first 5 patients  |
+| sequence_enrollments  | 5     | Active [[patient-statuses-and-lifecycle#Sequence Enrollment Statuses|enrollments]] for first 5 patients  |
 
 ## Database columns
 
@@ -84,3 +84,13 @@ alter table practices add column sandbox_seeded_at timestamptz;
 ## Testing without Supabase
 
 Use `/demo` instead — it bypasses auth entirely, sets a fake practice in the store via `DemoSessionProvider`, and runs the sandbox purely client-side with in-memory data.
+
+---
+
+## Related
+
+- [[brevo-demo-link-setup]] — How demo links are generated and sent via Brevo email
+- [[hipaa-patient-portal-reference]] — Sandbox portal token mocking for demo mode
+- [[origin-story-and-pilot-plan]] — The sandbox as a core sales/demo tool
+- [[product-hurdles-and-mitigation]] — 10-min onboarding target (Hurdle #3) and sandbox as sales tool (Hurdle #6)
+- [[patient-statuses-and-lifecycle]] — Seeded data includes patients, treatments, and enrollments in various statuses

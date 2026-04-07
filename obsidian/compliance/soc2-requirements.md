@@ -32,3 +32,12 @@ They overlap significantly. Current HIPAA infrastructure (Supabase HIPAA add-on,
 1. **Now:** Track toward SOC 2 readiness without paying for the audit. Use Vanta (~$800/mo) or Drata for continuous control monitoring and a "readiness score"
 2. **When pitching multi-location groups:** Credibly say "SOC 2 Type II in process" — often enough to pass procurement
 3. **Trigger for actual audit:** When a 20+ location prospect requires it as a condition of signing. That's when it becomes a real cost of sales
+
+---
+
+## Related
+
+- [[hipaa-baa-go-live-checklist]] — HIPAA compliance (the legal requirement) vs. SOC 2 (voluntary certification)
+- [[unit-economics-and-scaling-costs]] — Vanta/Drata costs when readiness tracking begins
+- [[origin-story-and-pilot-plan]] — DSO expansion may eventually trigger SOC 2 requirement
+- [[product-hurdles-and-mitigation]] — Enterprise DSO sales cycles (Hurdle #6) may require SOC 2

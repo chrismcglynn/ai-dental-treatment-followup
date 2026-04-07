@@ -105,10 +105,14 @@
             "id": "083dbd9b778c7e4c",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "operations/product-hurdles-and-mitigation.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "product-hurdles-and-mitigation"
             }
           }
         ],
@@ -185,6 +189,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "operations/product-hurdles-and-mitigation.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -194,7 +199,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for product-hurdles-and-mitigation"
             }
           },
           {
@@ -274,14 +279,15 @@
   },
   "active": "083dbd9b778c7e4c",
   "lastOpenFiles": [
-    "Market and Problem Size.md",
     "compliance/soc2-requirements.md",
     "compliance/hipaa-baa-go-live-checklist.md",
-    "operations/product-hurdles-and-mitigation.md",
-    "operations/unit-economics-and-scaling-costs.md",
-    "strategy/why-now-timing-analysis.md",
-    "strategy/competitive-landscape.md",
     "strategy/market-size-and-opportunity.md",
+    "operations/product-hurdles-and-mitigation.md",
+    "strategy/competitive-landscape.md",
+    "strategy/why-now-timing-analysis.md",
+    "docs/open-dental-integration-architecture.md",
+    "Market and Problem Size.md",
+    "operations/unit-economics-and-scaling-costs.md",
     "strategy/origin-story-and-pilot-plan.md",
     "compliance",
     "operations",

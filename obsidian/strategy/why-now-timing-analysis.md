@@ -41,3 +41,14 @@ Per-seat/per-feature pricing made ROI murky and sales cycles long. The "$299/mo 
 ## Strategic Implication
 
 The window is real but not permanent. As LLMs commoditize, the advantage shifts from "can you build this" to "do you have the data." The moat to build is **conversion intelligence** — aggregate data on which timing, tone, channel, and procedure combinations convert best. That data asset is what makes this defensible and attractive to acquirers (Henry Schein, Patterson, Dentsply Sirona, Weave).
+
+---
+
+## Related
+
+- [[competitive-landscape]] — Incumbent blindspots and Oryx as the modern PMS threat
+- [[market-size-and-opportunity]] — The $89B problem and market readiness
+- [[pms-connector-architecture]] — PMS middleware APIs that removed the integration barrier
+- [[hipaa-baa-go-live-checklist]] — HIPAA compliance maturity that makes SMS follow-up viable
+- [[ai-features-plan]] — The AI personalization layer (Reason #4) in practice
+- [[product-hurdles-and-mitigation]] — Each hurdle maps to a "why now" timing reason
