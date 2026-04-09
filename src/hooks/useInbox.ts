@@ -4,6 +4,8 @@ import {
   getConversationMessages,
   markConversationRead,
   sendReply,
+  takeOverConversation,
+  returnToAutoConversation,
   type InboxFilter,
 } from "@/lib/api/inbox";
 import type { ConversationWithPatient, Message } from "@/types/app.types";
@@ -132,6 +134,67 @@ export function useSendReply() {
     },
     onError: () => {
       addToast({ title: "Failed to send reply", variant: "destructive" });
+    },
+  });
+}
+
+export function useTakeOverConversation() {
+  const queryClient = useQueryClient();
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        sandboxStore.updateConversation(conversationId, {
+          conversation_mode: "staff_handling",
+        });
+        return;
+      }
+      return takeOverConversation(conversationId);
+    },
+    onSuccess: () => {
+      addToast({ title: "You've taken over this conversation", variant: "success" });
+      queryClient.invalidateQueries({
+        queryKey: inboxKeys.all(activePracticeId!),
+      });
+    },
+    onError: () => {
+      addToast({ title: "Failed to take over conversation", variant: "destructive" });
+    },
+  });
+}
+
+export function useReturnToAuto() {
+  const queryClient = useQueryClient();
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const addToast = useUiStore((s) => s.addToast);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        sandboxStore.updateConversation(conversationId, {
+          conversation_mode: "auto_idle",
+          auto_reply_count: 0,
+          escalation_reason: null,
+          escalated_at: null,
+        });
+        return;
+      }
+      return returnToAutoConversation(conversationId);
+    },
+    onSuccess: () => {
+      addToast({ title: "AI auto-reply re-enabled for this conversation", variant: "success" });
+      queryClient.invalidateQueries({
+        queryKey: inboxKeys.all(activePracticeId!),
+      });
+    },
+    onError: () => {
+      addToast({ title: "Failed to return to auto mode", variant: "destructive" });
     },
   });
 }

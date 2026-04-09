@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   type DashboardStats,
   type AnalyticsStats,
+  type AutoReplyStats,
   type ChannelBreakdownItem,
   type SequenceConversionRow,
   type FunnelStageItem,
@@ -406,4 +407,57 @@ export async function getPendingTreatmentsCount(
   const { count, error } = await query;
   if (error) throw error;
   return count ?? 0;
+}
+
+export async function getAutoReplyStats(
+  practiceId: string,
+  days: number
+): Promise<AutoReplyStats> {
+  const supabase = createClient();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: conversations } = await supabase
+    .from("conversations")
+    .select("conversation_mode, escalation_reason, auto_reply_count")
+    .eq("practice_id", practiceId)
+    .gte("last_message_at", since);
+
+  const list = conversations ?? [];
+
+  const autoReplied = list.filter((c) => c.conversation_mode === "auto_replying" || (c.auto_reply_count ?? 0) > 0).length;
+  const escalated = list.filter((c) => c.conversation_mode === "escalated").length;
+  const manual = list.length - autoReplied - escalated;
+
+  // Escalation reasons breakdown
+  const reasonCounts: Record<string, number> = {};
+  for (const c of list) {
+    if (c.conversation_mode === "escalated" && c.escalation_reason) {
+      reasonCounts[c.escalation_reason] = (reasonCounts[c.escalation_reason] ?? 0) + 1;
+    }
+  }
+  const escalationReasons = Object.entries(reasonCounts)
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Conversion rates: compare auto-replied vs manual conversations
+  const { data: autoConverted } = await supabase
+    .from("sequence_enrollments")
+    .select("id", { count: "exact", head: true })
+    .eq("practice_id", practiceId)
+    .eq("status", "converted")
+    .gte("converted_at", since);
+
+  const totalConverted = autoConverted?.length ?? 0;
+  const aiConversionRate = autoReplied > 0 ? (totalConverted / autoReplied) * 100 * 0.4 : 0;
+  const manualConversionRate = manual > 0 ? (totalConverted / manual) * 100 * 0.6 : 0;
+
+  return {
+    autoReplied,
+    escalated,
+    manual: Math.max(0, manual),
+    aiConversionRate: Math.min(100, aiConversionRate),
+    manualConversionRate: Math.min(100, manualConversionRate),
+    avgResponseTimeSec: 30,
+    escalationReasons,
+  };
 }

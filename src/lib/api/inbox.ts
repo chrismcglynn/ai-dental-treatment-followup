@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { type Tables } from "@/types/database.types";
 import { type ConversationWithPatient } from "@/types/app.types";
 
-export type InboxFilter = "all" | "urgent" | "unread" | "needs_reply" | "replied";
+export type InboxFilter = "all" | "urgent" | "unread" | "needs_reply" | "replied" | "escalated";
 
 export async function getConversations(
   practiceId: string,
@@ -30,6 +30,9 @@ export async function getConversations(
       break;
     case "replied":
       query = query.eq("unread_count", 0).eq("status", "open");
+      break;
+    case "escalated":
+      query = query.eq("conversation_mode", "escalated");
       break;
   }
 
@@ -85,4 +88,35 @@ export async function sendReply(
   }
 
   return response.json();
+}
+
+export async function takeOverConversation(
+  conversationId: string
+): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({ conversation_mode: "staff_handling" })
+    .eq("id", conversationId);
+
+  if (error) throw error;
+}
+
+export async function returnToAutoConversation(
+  conversationId: string
+): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({
+      conversation_mode: "auto_idle",
+      auto_reply_count: 0,
+      escalation_reason: null,
+      escalated_at: null,
+    })
+    .eq("id", conversationId);
+
+  if (error) throw error;
 }

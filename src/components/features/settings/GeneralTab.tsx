@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Upload, Clock, Lock } from "lucide-react";
+import { Building2, Upload, Clock, Lock, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +20,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useUpdatePractice } from "@/hooks/useSettings";
 import { useSandbox } from "@/lib/sandbox";
 import { useSandboxStore } from "@/stores/sandbox-store";
+import type { BusinessHours, Practice } from "@/types/app.types";
 
 const TIMEZONES = [
   { value: "America/New_York", label: "Eastern (ET)" },
@@ -68,7 +70,11 @@ export function GeneralTab() {
   const [phone, setPhone] = useState(practice?.phone ?? "");
   const [email, setEmail] = useState(practice?.email ?? "");
   const [timezone, setTimezone] = useState(practice?.timezone ?? "");
-  const [businessHours, setBusinessHours] = useState(DEFAULT_HOURS);
+  const [businessHours, setBusinessHours] = useState<Record<string, { open: string; close: string; enabled: boolean }>>(
+    (practice?.business_hours as unknown as BusinessHours) ?? DEFAULT_HOURS
+  );
+  const [autoReplyEnabled, setAutoReplyEnabled] = useState(practice?.auto_reply_enabled ?? false);
+  const [maxAutoReplies, setMaxAutoReplies] = useState(practice?.max_auto_replies ?? 3);
 
   const handleSave = () => {
     updatePractice.mutate({ name, phone, email, timezone });
@@ -194,6 +200,80 @@ export function GeneralTab() {
         </CardContent>
       </Card>
 
+      {/* AI Auto-Reply */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            AI Auto-Reply
+          </CardTitle>
+          <CardDescription>
+            Let AI automatically respond to routine patient messages
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="auto-reply-toggle">Enable auto-reply</Label>
+              <p className="text-xs text-muted-foreground">
+                AI will reply to safe messages (e.g. &quot;not ready yet&quot;) and
+                escalate clinical, financial, or scheduling questions to your team.
+              </p>
+            </div>
+            <Switch
+              id="auto-reply-toggle"
+              checked={autoReplyEnabled}
+              onCheckedChange={setAutoReplyEnabled}
+              disabled={!isAdmin}
+            />
+          </div>
+          {autoReplyEnabled && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="max-auto-replies">Max auto-replies per conversation</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="max-auto-replies"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={maxAutoReplies}
+                    onChange={(e) => setMaxAutoReplies(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                    className="w-20"
+                    disabled={!isAdmin}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    AI will escalate to your team after this many replies
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/50 p-3 space-y-2 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground text-sm">Safety guardrails</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>30-second delay before sending (feels natural)</li>
+                  <li>Clinical concerns, insurance questions, and scheduling requests are always escalated to your team</li>
+                  <li>General patient questions are auto-replied; complex questions are escalated</li>
+                  <li>Every AI reply is tagged in the inbox so you can review</li>
+                  <li>STOP/opt-out handling is unchanged — always honored immediately</li>
+                </ul>
+              </div>
+            </>
+          )}
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Button
+                onClick={() => updatePractice.mutate({ auto_reply_enabled: autoReplyEnabled, max_auto_replies: maxAutoReplies })}
+                disabled={updatePractice.isPending}
+                variant="outline"
+                size="sm"
+              >
+                {updatePractice.isPending ? "Saving..." : "Save AI Settings"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Business Hours */}
       <Card>
         <CardHeader>
@@ -202,7 +282,8 @@ export function GeneralTab() {
             Business Hours
           </CardTitle>
           <CardDescription>
-            Messages will only be scheduled within your business hours
+            Messages will only be scheduled within your business hours.
+            AI auto-replies outside these hours will be escalated to your team.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -250,8 +331,13 @@ export function GeneralTab() {
           <Separator className="my-4" />
           {isAdmin && (
             <div className="flex justify-end">
-              <Button variant="outline" size="sm">
-                Save Hours
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => updatePractice.mutate({ business_hours: businessHours as unknown as Practice["business_hours"] })}
+                disabled={updatePractice.isPending}
+              >
+                {updatePractice.isPending ? "Saving..." : "Save Hours"}
               </Button>
             </div>
           )}

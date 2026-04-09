@@ -27,15 +27,17 @@ type SimulationEventType =
   | "MESSAGE_DELIVERED"
   | "PATIENT_REPLIED"
   | "PLAN_BOOKED"
-  | "SEQUENCE_ADVANCED";
+  | "SEQUENCE_ADVANCED"
+  | "AI_AUTO_REPLY";
 
 const EVENT_WEIGHTS: { type: SimulationEventType; weight: number }[] = [
-  { type: "SEQUENCE_STEP_SENT", weight: 30 },
-  { type: "MESSAGE_DELIVERED", weight: 25 },
-  { type: "SEQUENCE_ADVANCED", weight: 15 },
+  { type: "SEQUENCE_STEP_SENT", weight: 28 },
+  { type: "MESSAGE_DELIVERED", weight: 23 },
+  { type: "SEQUENCE_ADVANCED", weight: 14 },
   { type: "NEW_PLAN_DETECTED", weight: 12 },
   { type: "PATIENT_REPLIED", weight: 10 },
-  { type: "PLAN_BOOKED", weight: 8 },
+  { type: "PLAN_BOOKED", weight: 7 },
+  { type: "AI_AUTO_REPLY", weight: 6 },
 ];
 
 const TOTAL_WEIGHT = EVENT_WEIGHTS.reduce((s, e) => s + e.weight, 0);
@@ -93,6 +95,19 @@ const REPLY_TEMPLATES = [
 ];
 
 const CHANNELS: ("sms" | "email" | "voicemail")[] = ["sms", "email", "voicemail"];
+
+const AUTO_REPLY_TEMPLATES = [
+  "No worries at all, {name}! The offer is always open whenever you're ready. Feel free to reach out anytime. — Riverside Family Dental",
+  "Totally understand, {name}! We're here whenever the time is right. — Riverside Family Dental",
+  "Thanks for letting us know, {name}. Your treatment plan stays available whenever you'd like to move forward. — Riverside Family Dental",
+  "No problem, {name}! Reach out anytime you're ready and we'll get you scheduled. — Riverside Family Dental",
+];
+
+const AUTO_REPLY_QUESTION_TEMPLATES = [
+  "Great question, {name}! Your doctor can walk you through the details — check your treatment info at your portal link, or give us a call. We're happy to help!",
+  "Hi {name}! For details on that, check your personalized treatment page or give us a ring — we'd love to chat. — Riverside Family Dental",
+  "Good question, {name}! You can find more info on your treatment portal, or feel free to call us directly. — Riverside Family Dental",
+];
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -200,6 +215,7 @@ function handleSequenceStepSent(store: SandboxStore): EventResult | null {
     read_at: null,
     intent: null,
     intent_confidence: null,
+    sent_by: "system",
     created_at: now,
   };
 
@@ -284,6 +300,7 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
     read_at: null,
     intent: "wants_to_book",
     intent_confidence: 0.9,
+    sent_by: "staff",
     created_at: now,
   };
 
@@ -311,6 +328,10 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
       status: "open",
       assigned_to: null,
       latest_intent: "wants_to_book",
+      conversation_mode: "manual",
+      auto_reply_count: 0,
+      escalation_reason: null,
+      escalated_at: null,
       created_at: now,
       updated_at: now,
     };
@@ -420,6 +441,79 @@ function handleSequenceAdvanced(store: SandboxStore): EventResult | null {
   };
 }
 
+function handleAiAutoReply(store: SandboxStore): EventResult | null {
+  // Find conversations eligible for auto-reply:
+  // - manual or already auto_replying (under cap of 3)
+  // - safe intents: not_ready, other, or has_question
+  const eligibleConversations = store.conversations.filter(
+    (c) =>
+      (c.conversation_mode === "manual" || c.conversation_mode === "auto_replying") &&
+      c.status === "open" &&
+      (c.latest_intent === "not_ready" || c.latest_intent === "other" || c.latest_intent === "has_question") &&
+      (c.auto_reply_count ?? 0) < 3 &&
+      c.unread_count > 0
+  );
+
+  if (eligibleConversations.length === 0) return null;
+
+  const conversation = pick(eligibleConversations);
+  const patient = store.patients.find((p) => p.id === conversation.patient_id);
+  if (!patient) return null;
+
+  const now = nowISO();
+  const patientName = `${patient.first_name} ${patient.last_name}`;
+  const templates = conversation.latest_intent === "has_question"
+    ? AUTO_REPLY_QUESTION_TEMPLATES
+    : AUTO_REPLY_TEMPLATES;
+  const replyTemplate = pick(templates);
+  const replyBody = replyTemplate.replace("{name}", patient.first_name);
+
+  // Create the auto-reply message
+  const autoReplyMessage: Message = {
+    id: simId("message"),
+    practice_id: "sandbox-practice-001",
+    patient_id: patient.id,
+    enrollment_id: null,
+    touchpoint_id: null,
+    channel: "sms",
+    direction: "outbound",
+    status: "delivered",
+    subject: null,
+    body: replyBody,
+    external_id: `sandbox-auto-${Date.now()}`,
+    error: null,
+    sent_at: now,
+    delivered_at: now,
+    read_at: null,
+    intent: null,
+    intent_confidence: null,
+    sent_by: "ai_auto",
+    created_at: now,
+  };
+
+  store.addMessage(autoReplyMessage);
+
+  // Update conversation to auto_replying
+  store.updateConversation(conversation.id, {
+    conversation_mode: "auto_replying",
+    auto_reply_count: (conversation.auto_reply_count ?? 0) + 1,
+    last_message_at: now,
+    last_message_preview: replyBody.slice(0, 100),
+    unread_count: 0,
+  });
+
+  return {
+    activityItem: {
+      id: simId("activity"),
+      type: "replied",
+      description: `AI auto-replied: "${replyBody.slice(0, 50)}..."`,
+      patientName,
+      timestamp: now,
+    },
+    invalidateKeys: [["inbox"], ["analytics"]],
+  };
+}
+
 // ─── Event dispatcher ────────────────────────────────────────────────────────
 
 function dispatchEvent(
@@ -439,6 +533,8 @@ function dispatchEvent(
       return handlePlanBooked(store);
     case "SEQUENCE_ADVANCED":
       return handleSequenceAdvanced(store);
+    case "AI_AUTO_REPLY":
+      return handleAiAutoReply(store);
   }
 }
 

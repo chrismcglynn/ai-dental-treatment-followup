@@ -10,6 +10,9 @@ import {
   Ban,
   Clock,
   AlertTriangle,
+  Bot,
+  Hand,
+  RotateCcw,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +23,8 @@ import {
   useConversationMessages,
   useMarkConversationRead,
   useSendReply,
+  useTakeOverConversation,
+  useReturnToAuto,
 } from "@/hooks/useInbox";
 import { usePatientTreatments, useMarkAsBooked, usePatientEnrollments } from "@/hooks/usePatients";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +116,8 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
   const { data: treatments } = usePatientTreatments(conversation.patient_id);
   const { data: enrollments } = usePatientEnrollments(conversation.patient_id);
   const markAsBooked = useMarkAsBooked();
+  const takeOver = useTakeOverConversation();
+  const returnToAuto = useReturnToAuto();
 
   const hasPendingTreatment = treatments?.some((t) => t.status === "pending");
   const hasActiveEnrollment = enrollments?.some((e) => e.status === "active");
@@ -165,6 +172,31 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {(conversation.conversation_mode === "auto_replying" ||
+            conversation.conversation_mode === "escalated") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs border-amber-500/50 text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+              onClick={() => takeOver.mutate(conversation.id)}
+              disabled={takeOver.isPending}
+            >
+              <Hand className="mr-1.5 h-3 w-3" />
+              {takeOver.isPending ? "Taking over..." : "Take Over"}
+            </Button>
+          )}
+          {conversation.conversation_mode === "staff_handling" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs border-blue-500/50 text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+              onClick={() => returnToAuto.mutate(conversation.id)}
+              disabled={returnToAuto.isPending}
+            >
+              <RotateCcw className="mr-1.5 h-3 w-3" />
+              {returnToAuto.isPending ? "Returning..." : "Return to Auto"}
+            </Button>
+          )}
           {showMarkBooked && (
             <Button
               size="sm"
@@ -214,6 +246,36 @@ export function ConversationThread({ conversation }: ConversationThreadProps) {
         )}
         </div>
       </div>
+
+      {/* Auto-replying banner */}
+      {conversation.conversation_mode === "auto_replying" && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800">
+          <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+          <span className="text-sm text-blue-800 dark:text-blue-300">
+            AI is handling this conversation ({conversation.auto_reply_count} auto-{conversation.auto_reply_count === 1 ? "reply" : "replies"} sent)
+          </span>
+        </div>
+      )}
+
+      {/* Staff handling banner */}
+      {conversation.conversation_mode === "staff_handling" && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-950/30 border-b border-purple-200 dark:border-purple-800">
+          <Hand className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
+          <span className="text-sm text-purple-800 dark:text-purple-300">
+            Staff is handling this conversation — AI auto-reply paused
+          </span>
+        </div>
+      )}
+
+      {/* Escalation banner */}
+      {conversation.conversation_mode === "escalated" && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
+          <Bot className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="text-sm text-amber-800 dark:text-amber-300">
+            AI escalated: {conversation.escalation_reason ?? "Needs staff attention"}
+          </span>
+        </div>
+      )}
 
       {/* Messages — scrollable middle */}
       {isLoading ? (

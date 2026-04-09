@@ -30,6 +30,7 @@ import type {
   SequenceConversionRow,
   FunnelStageItem,
   EnrollmentWithSequence,
+  AutoReplyStats,
 } from "@/types/app.types";
 
 import type { InboxFilter } from "@/lib/api/inbox";
@@ -184,6 +185,8 @@ interface SandboxStoreActions {
   getSequenceConversions: () => SequenceConversionRow[];
 
   getFunnelData: () => FunnelStageItem[];
+
+  getAutoReplyStats: () => AutoReplyStats;
 
   // ── Mutations ─────────────────────────────────────────────────────────
 
@@ -469,6 +472,11 @@ export const useSandboxStore = create<SandboxStore>()(
               (c) => c.unread_count === 0 && c.status === "open"
             );
             break;
+          case "escalated":
+            result = result.filter(
+              (c) => c.conversation_mode === "escalated"
+            );
+            break;
         }
 
         return result
@@ -554,6 +562,36 @@ export const useSandboxStore = create<SandboxStore>()(
       getSequenceConversions: () => get().sequenceConversions,
 
       getFunnelData: () => get().funnel,
+
+      getAutoReplyStats: (): AutoReplyStats => {
+        const convos = get().conversations;
+        const autoReplied = convos.filter(
+          (c) => c.conversation_mode === "auto_replying" || (c.auto_reply_count ?? 0) > 0
+        ).length;
+        const escalated = convos.filter(
+          (c) => c.conversation_mode === "escalated"
+        ).length;
+        const manual = Math.max(0, convos.length - autoReplied - escalated);
+
+        const reasonCounts: Record<string, number> = {};
+        for (const c of convos) {
+          if (c.conversation_mode === "escalated" && c.escalation_reason) {
+            reasonCounts[c.escalation_reason] = (reasonCounts[c.escalation_reason] ?? 0) + 1;
+          }
+        }
+
+        return {
+          autoReplied,
+          escalated,
+          manual,
+          aiConversionRate: 28.5,
+          manualConversionRate: 22.1,
+          avgResponseTimeSec: 30,
+          escalationReasons: Object.entries(reasonCounts)
+            .map(([reason, count]) => ({ reason, count }))
+            .sort((a, b) => b.count - a.count),
+        };
+      },
 
       // ── Mutations ───────────────────────────────────────────────────
 
@@ -682,6 +720,7 @@ export const useSandboxStore = create<SandboxStore>()(
           read_at: null,
           intent: null,
           intent_confidence: null,
+          sent_by: "staff",
           created_at: nowISO(),
         };
 

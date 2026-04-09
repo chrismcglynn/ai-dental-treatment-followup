@@ -407,6 +407,7 @@ export function TreatmentPlanView({
               read_at: null,
               intent: "wants_to_book",
               intent_confidence: 1,
+              sent_by: "system" as const,
               created_at: now,
             }
           : null;

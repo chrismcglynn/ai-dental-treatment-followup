@@ -1,4 +1,16 @@
-import { type Tables } from "./database.types";
+import { type Tables, type Database } from "./database.types";
+
+// Enum aliases
+export type ConversationMode = Database["public"]["Enums"]["conversation_mode"];
+export type SentBy = Database["public"]["Enums"]["sent_by"];
+
+// Business hours type (stored as JSONB in practices.business_hours)
+export interface BusinessHoursDay {
+  open: string;  // "HH:mm" format
+  close: string; // "HH:mm" format
+  enabled: boolean;
+}
+export type BusinessHours = Record<string, BusinessHoursDay>;
 
 // Domain aliases
 export type Practice = Tables<"practices">;
@@ -103,6 +115,16 @@ export interface SequenceConversionRow {
 export interface FunnelStageItem {
   stage: string;
   value: number;
+}
+
+export interface AutoReplyStats {
+  autoReplied: number;
+  escalated: number;
+  manual: number;
+  aiConversionRate: number;
+  manualConversionRate: number;
+  avgResponseTimeSec: number;
+  escalationReasons: { reason: string; count: number }[];
 }
 
 // Filter types

@@ -22,6 +22,7 @@ import {
 } from "@tanstack/react-table";
 import { usePageHeader } from "@/hooks/usePageHeader";
 import { StatCard } from "@/components/shared/StatCard";
+import { AutoReplyAnalytics } from "@/components/features/analytics/AutoReplyAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -196,7 +197,10 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Row 3 — Table + Funnel */}
+      {/* Row 3 — AI Auto-Reply */}
+      <AutoReplyAnalytics days={days} />
+
+      {/* Row 4 — Table + Funnel */}
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>

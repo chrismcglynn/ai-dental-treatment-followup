@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Check, CheckCheck, Clock, AlertCircle } from "lucide-react";
+import { Check, CheckCheck, Clock, AlertCircle, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Tables } from "@/types/database.types";
 
@@ -44,6 +44,12 @@ export function MessageBubble({ message }: { message: Message }) {
             isOutbound ? "justify-end" : "justify-start"
           )}
         >
+          {isOutbound && message.sent_by === "ai_auto" && (
+            <span className="flex items-center gap-0.5 text-[10px] text-primary-foreground/70">
+              <Bot className="h-2.5 w-2.5" />
+              AI
+            </span>
+          )}
           <span
             className={cn(
               "text-[10px]",

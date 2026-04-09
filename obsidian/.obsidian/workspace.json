@@ -196,6 +196,20 @@
   },
   "active": "083dbd9b778c7e4c",
   "lastOpenFiles": [
+<<<<<<< Updated upstream
+=======
+    "plans/ai-automated-conversations.md",
+    "docs/sandbox-data-architecture.md",
+    "plans/provider-personalization.md",
+    "plans",
+    "strategy/go-to-market-playbook.md",
+    "docs/hipaa-patient-portal-reference.md",
+    "strategy/why-now-timing-analysis.md",
+    "strategy/product-roadmap.md",
+    "strategy/pricing-rationale.md",
+    "strategy/market-size-and-opportunity.md",
+    "strategy/origin-story-and-pilot-plan.md",
+>>>>>>> Stashed changes
     "strategy/investor-pitch-narrative.md",
     "docs/hipaa-patient-portal-reference.md",
     "strategy/go-to-market-playbook.md",
@@ -212,6 +226,7 @@
     "compliance/a2p-10dlc-registration-guide.md",
     "compliance/soc2-requirements.md",
     "compliance/hipaa-baa-go-live-checklist.md",
+<<<<<<< Updated upstream
     "strategy/market-size-and-opportunity.md",
     "strategy/why-now-timing-analysis.md",
     "docs/open-dental-integration-architecture.md",
@@ -225,5 +240,9 @@
     "Retaine's Competitive Landscape.md",
     "HIPAA & BAA Go-Live Checklist.md",
     "SOC2 Compliance Requirements & Necessity.md"
+=======
+    "compliance/a2p-10dlc-registration-guide.md",
+    "compliance"
+>>>>>>> Stashed changes
   ]
 }

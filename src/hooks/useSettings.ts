@@ -15,7 +15,7 @@ export function useUpdatePractice() {
 
   return useMutation({
     mutationFn: async (
-      updates: Partial<Pick<Practice, "name" | "phone" | "email" | "timezone">>
+      updates: Partial<Pick<Practice, "name" | "phone" | "email" | "timezone" | "auto_reply_enabled" | "max_auto_replies" | "business_hours">>
     ) => {
       if (!activePractice) throw new Error("No active practice");
       const supabase = createClient();

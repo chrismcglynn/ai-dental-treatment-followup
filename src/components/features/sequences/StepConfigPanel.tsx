@@ -7,11 +7,13 @@ import {
   Eye,
   Plus,
   ArrowLeft,
+  Bot,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { type StepData, type Channel, type Tone, TONE_CONFIG } from "./types";
 import { ProcedureCodeSelect } from "./ProcedureCodeSelect";
@@ -27,6 +29,8 @@ interface StepConfigPanelProps {
   onUpdateStep: (id: string, updates: Partial<StepData>) => void;
   onAddStep: () => void;
   onPreviewStep: (step: StepData) => void;
+  autoReplyEnabled: boolean;
+  onAutoReplyEnabledChange: (enabled: boolean) => void;
 }
 
 const channelButtons: { value: Channel; icon: typeof MessageSquare; label: string; activeClass: string }[] = [
@@ -46,6 +50,8 @@ export function StepConfigPanel({
   onUpdateStep,
   onAddStep,
   onPreviewStep,
+  autoReplyEnabled,
+  onAutoReplyEnabledChange,
 }: StepConfigPanelProps) {
   const selectedStep = steps.find((s) => s.id === selectedStepId);
 
@@ -183,6 +189,27 @@ export function StepConfigPanel({
           selected={procedures}
           onSelectedChange={onProceduresChange}
         />
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="auto-reply-toggle" className="text-xs text-muted-foreground uppercase tracking-wider cursor-pointer">
+              AI Auto-Reply
+            </Label>
+          </div>
+          <Switch
+            id="auto-reply-toggle"
+            checked={autoReplyEnabled}
+            onCheckedChange={onAutoReplyEnabledChange}
+          />
+        </div>
+        {autoReplyEnabled && (
+          <p className="text-xs text-muted-foreground mt-1.5 pl-6">
+            AI will automatically reply to routine patient messages in this sequence
+          </p>
+        )}
       </div>
 
       <div className="border-t pt-4">

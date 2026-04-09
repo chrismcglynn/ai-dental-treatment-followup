@@ -6,6 +6,7 @@ import {
   getSequencePerformance,
   getPendingTreatmentsCount,
   getAnalyticsStats,
+  getAutoReplyStats,
   getChannelBreakdown,
   getSequenceConversions,
   getFunnelData,
@@ -18,6 +19,7 @@ import {
   type ChannelBreakdownItem,
   type SequenceConversionRow,
   type FunnelStageItem,
+  type AutoReplyStats,
 } from "@/types/app.types";
 import { usePracticeStore } from "@/stores/practice-store";
 import { useSandbox } from "@/lib/sandbox";
@@ -44,6 +46,8 @@ export const analyticsKeys = {
     [...analyticsKeys.all(practiceId), "sequence-conversions", days] as const,
   funnel: (practiceId: string, days: number) =>
     [...analyticsKeys.all(practiceId), "funnel", days] as const,
+  autoReply: (practiceId: string, days: number) =>
+    [...analyticsKeys.all(practiceId), "auto-reply", days] as const,
 };
 
 export function useDashboardStats() {
@@ -197,6 +201,23 @@ export function useFunnelData(days = 30) {
         return sandboxStore.getFunnelData() as FunnelStageItem[];
       }
       return getFunnelData(activePracticeId!, days);
+    },
+    enabled: !!activePracticeId,
+  });
+}
+
+export function useAutoReplyStats(days = 30) {
+  const activePracticeId = usePracticeStore((s) => s.activePracticeId);
+  const { isSandbox, sandboxStore } = useSandbox();
+
+  return useQuery({
+    queryKey: analyticsKeys.autoReply(activePracticeId!, days),
+    queryFn: async (): Promise<AutoReplyStats> => {
+      if (isSandbox) {
+        await simulateDelay(300);
+        return sandboxStore.getAutoReplyStats() as AutoReplyStats;
+      }
+      return getAutoReplyStats(activePracticeId!, days);
     },
     enabled: !!activePracticeId,
   });

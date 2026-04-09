@@ -25,6 +25,9 @@ export interface Database {
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode: boolean;
           sandbox_seeded_at: string | null;
+          auto_reply_enabled: boolean;
+          max_auto_replies: number;
+          business_hours: Json;
           metadata: Json;
           created_at: string;
           updated_at: string;
@@ -44,6 +47,9 @@ export interface Database {
           subscription_status: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode?: boolean;
           sandbox_seeded_at?: string | null;
+          auto_reply_enabled?: boolean;
+          max_auto_replies?: number;
+          business_hours?: Json;
           metadata?: Json;
           created_at?: string;
           updated_at?: string;
@@ -63,6 +69,9 @@ export interface Database {
           subscription_status?: "trialing" | "active" | "past_due" | "canceled" | "free";
           sandbox_mode?: boolean;
           sandbox_seeded_at?: string | null;
+          auto_reply_enabled?: boolean;
+          max_auto_replies?: number;
+          business_hours?: Json;
           metadata?: Json;
           created_at?: string;
           updated_at?: string;
@@ -246,6 +255,7 @@ export interface Database {
           trigger_type: "manual" | "treatment_declined" | "no_show" | "schedule";
           patient_count: number;
           conversion_rate: number;
+          auto_reply_enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -259,6 +269,7 @@ export interface Database {
           trigger_type: "manual" | "treatment_declined" | "no_show" | "schedule";
           patient_count?: number;
           conversion_rate?: number;
+          auto_reply_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -272,6 +283,7 @@ export interface Database {
           trigger_type?: "manual" | "treatment_declined" | "no_show" | "schedule";
           patient_count?: number;
           conversion_rate?: number;
+          auto_reply_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -371,6 +383,7 @@ export interface Database {
           read_at: string | null;
           intent: string | null;
           intent_confidence: number | null;
+          sent_by: "staff" | "ai_auto" | "system";
           created_at: string;
         };
         Insert: {
@@ -391,6 +404,7 @@ export interface Database {
           read_at?: string | null;
           intent?: string | null;
           intent_confidence?: number | null;
+          sent_by?: "staff" | "ai_auto" | "system";
           created_at?: string;
         };
         Update: {
@@ -411,6 +425,7 @@ export interface Database {
           read_at?: string | null;
           intent?: string | null;
           intent_confidence?: number | null;
+          sent_by?: "staff" | "ai_auto" | "system";
           created_at?: string;
         };
       };
@@ -425,6 +440,10 @@ export interface Database {
           status: "open" | "closed" | "archived";
           assigned_to: string | null;
           latest_intent: string | null;
+          conversation_mode: "manual" | "auto_idle" | "auto_replying" | "escalated" | "staff_handling";
+          auto_reply_count: number;
+          escalation_reason: string | null;
+          escalated_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -438,6 +457,10 @@ export interface Database {
           status: "open" | "closed" | "archived";
           assigned_to?: string | null;
           latest_intent?: string | null;
+          conversation_mode?: "manual" | "auto_idle" | "auto_replying" | "escalated" | "staff_handling";
+          auto_reply_count?: number;
+          escalation_reason?: string | null;
+          escalated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -451,6 +474,10 @@ export interface Database {
           status?: "open" | "closed" | "archived";
           assigned_to?: string | null;
           latest_intent?: string | null;
+          conversation_mode?: "manual" | "auto_idle" | "auto_replying" | "escalated" | "staff_handling";
+          auto_reply_count?: number;
+          escalation_reason?: string | null;
+          escalated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -470,6 +497,8 @@ export interface Database {
       message_status: "queued" | "sent" | "delivered" | "failed" | "received";
       conversation_status: "open" | "closed" | "archived";
       enrollment_status: "active" | "completed" | "converted" | "opted_out" | "paused";
+      conversation_mode: "manual" | "auto_idle" | "auto_replying" | "escalated" | "staff_handling";
+      sent_by: "staff" | "ai_auto" | "system";
     };
   };
 }

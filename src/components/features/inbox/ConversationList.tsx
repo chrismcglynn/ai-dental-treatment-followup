@@ -9,6 +9,7 @@ import {
   HelpCircle,
   Clock,
   Ban,
+  Bot,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +112,13 @@ function ConversationItem({
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
             SMS
           </Badge>
-          {intentConfig && (
+          {conversation.conversation_mode === "escalated" && (
+            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <Bot className="h-3 w-3 shrink-0" />
+              <span className="text-[10px]">Escalated</span>
+            </span>
+          )}
+          {intentConfig && conversation.conversation_mode !== "escalated" && (
             <span className={cn("flex items-center gap-1", intentConfig.className)}>
               <intentConfig.icon className="h-3 w-3 shrink-0" />
               <span className="text-[10px]">{intentConfig.label}</span>
@@ -184,6 +191,9 @@ export function ConversationList({ pinnedConversation }: ConversationListProps) 
             </TabsTrigger>
             <TabsTrigger value="replied" className="flex-1 text-xs">
               Replied
+            </TabsTrigger>
+            <TabsTrigger value="escalated" className="flex-1 text-xs">
+              Escalated
             </TabsTrigger>
           </TabsList>
         </Tabs>

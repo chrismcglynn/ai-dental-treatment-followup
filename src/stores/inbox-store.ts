@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type InboxFilter = "all" | "urgent" | "unread" | "needs_reply" | "replied";
+export type InboxFilter = "all" | "urgent" | "unread" | "needs_reply" | "replied" | "escalated";
 
 interface InboxStore {
   selectedConversationId: string | null;

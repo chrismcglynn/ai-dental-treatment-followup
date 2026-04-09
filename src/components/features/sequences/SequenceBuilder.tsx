@@ -21,11 +21,13 @@ interface SequenceBuilderProps {
   initialName?: string;
   initialProcedures?: string[];
   initialSteps?: StepData[];
+  initialAutoReplyEnabled?: boolean;
   sequenceId?: string;
   onSave: (data: {
     name: string;
     procedures: string[];
     steps: StepData[];
+    autoReplyEnabled: boolean;
   }) => Promise<void>;
 }
 
@@ -33,6 +35,7 @@ export function SequenceBuilder({
   initialName = "",
   initialProcedures = [],
   initialSteps = [],
+  initialAutoReplyEnabled = false,
   sequenceId,
   onSave,
 }: SequenceBuilderProps) {
@@ -42,6 +45,7 @@ export function SequenceBuilder({
   const [name, setName] = useState(initialName);
   const [procedures, setProcedures] = useState<string[]>(initialProcedures);
   const [steps, setSteps] = useState<StepData[]>(initialSteps);
+  const [autoReplyEnabled, setAutoReplyEnabled] = useState(initialAutoReplyEnabled);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [previewStep, setPreviewStep] = useState<StepData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,7 +92,7 @@ export function SequenceBuilder({
     if (!name.trim()) return;
     setIsSaving(true);
     try {
-      await onSave({ name, procedures, steps });
+      await onSave({ name, procedures, steps, autoReplyEnabled });
       router.push("/sequences");
     } catch {
       // error handling done by parent
@@ -145,6 +149,8 @@ export function SequenceBuilder({
             onUpdateStep={updateStep}
             onAddStep={addStep}
             onPreviewStep={setPreviewStep}
+            autoReplyEnabled={autoReplyEnabled}
+            onAutoReplyEnabledChange={setAutoReplyEnabled}
           />
         </div>
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { callClaude } from "@/lib/ai/claude";
+import { checkEscalation } from "@/lib/ai/escalation";
+import { triggerAutoReply } from "@/lib/ai/auto-reply";
 
 export type IntentType =
   | "wants_to_book"
@@ -117,6 +119,18 @@ export async function POST(request: NextRequest) {
       confidence,
     });
 
+    // Check escalation for auto-reply-enabled sequences
+    if (conversationId && patientId && practiceId && intent !== "stop") {
+      await checkAndEscalate(supabase, {
+        conversationId,
+        patientId,
+        practiceId,
+        intent,
+        confidence,
+        body,
+      });
+    }
+
     return NextResponse.json({ intent, confidence });
   } catch (error) {
     console.error("classify-intent error:", error);
@@ -173,5 +187,107 @@ async function applyClassification(
       .eq("patient_id", patientId)
       .eq("practice_id", practiceId)
       .eq("status", "active");
+  }
+}
+
+/**
+ * Check if a conversation should be escalated based on the classified intent.
+ * Only runs for patients enrolled in auto-reply-enabled sequences.
+ */
+async function checkAndEscalate(
+  supabase: ReturnType<typeof createAdminClient>,
+  params: {
+    conversationId: string;
+    patientId: string;
+    practiceId: string;
+    intent: IntentType;
+    confidence: number;
+    body: string;
+  }
+) {
+  const { conversationId, patientId, practiceId, intent, confidence, body } = params;
+
+  try {
+    // Find active enrollment for this patient
+    const { data: enrollment } = await supabase
+      .from("sequence_enrollments")
+      .select("sequence_id")
+      .eq("patient_id", patientId)
+      .eq("practice_id", practiceId)
+      .eq("status", "active")
+      .limit(1)
+      .single();
+
+    if (!enrollment) return;
+
+    // Check if the sequence has auto-reply enabled
+    const [sequenceResult, practiceResult] = await Promise.all([
+      supabase
+        .from("sequences")
+        .select("auto_reply_enabled")
+        .eq("id", enrollment.sequence_id)
+        .single(),
+      supabase
+        .from("practices")
+        .select("auto_reply_enabled, max_auto_replies")
+        .eq("id", practiceId)
+        .single(),
+    ]);
+
+    const sequence = sequenceResult.data;
+    const practice = practiceResult.data;
+
+    // Both practice-level AND sequence-level must be enabled
+    if (!practice?.auto_reply_enabled || !sequence?.auto_reply_enabled) return;
+
+    // Get current conversation state
+    const { data: conversation } = await supabase
+      .from("conversations")
+      .select("auto_reply_count, conversation_mode")
+      .eq("id", conversationId)
+      .single();
+
+    if (!conversation) return;
+
+    // Already escalated or staff-handled — don't re-evaluate
+    if (
+      conversation.conversation_mode === "escalated" ||
+      conversation.conversation_mode === "staff_handling"
+    ) {
+      return;
+    }
+
+    const maxAutoReplies = practice.max_auto_replies ?? 3;
+
+    const result = checkEscalation({
+      intent,
+      confidence,
+      body,
+      autoReplyCount: conversation.auto_reply_count,
+      maxAutoReplies,
+    });
+
+    if (result.shouldEscalate) {
+      await supabase
+        .from("conversations")
+        .update({
+          conversation_mode: "escalated",
+          escalation_reason: result.reason,
+          escalated_at: new Date().toISOString(),
+        })
+        .eq("id", conversationId);
+    } else {
+      // No escalation — trigger auto-reply for safe intents
+      triggerAutoReply({
+        conversationId,
+        patientId,
+        practiceId,
+        intent,
+        body,
+      });
+    }
+  } catch (err) {
+    // Escalation check is non-critical — log and continue
+    console.error("Escalation check failed:", err);
   }
 }
