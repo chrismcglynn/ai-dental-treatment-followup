@@ -122,6 +122,27 @@ function nowISO(): string {
   return new Date().toISOString();
 }
 
+/** Returns true if the patient has a message (in the given direction) within the last `ms` milliseconds */
+function hasRecentMessage(
+  store: SandboxStore,
+  patientId: string,
+  direction: "outbound" | "inbound",
+  ms: number
+): boolean {
+  const cutoff = Date.now() - ms;
+  return store.messages.some(
+    (m) =>
+      m.patient_id === patientId &&
+      m.direction === direction &&
+      new Date(m.created_at).getTime() > cutoff
+  );
+}
+
+// Minimum gap between outbound messages to the same patient (5 min)
+const OUTBOUND_COOLDOWN_MS = 5 * 60 * 1000;
+// Minimum gap between inbound replies from the same patient (3 min)
+const INBOUND_COOLDOWN_MS = 3 * 60 * 1000;
+
 // ─── Event handlers ──────────────────────────────────────────────────────────
 
 type EventResult = {
@@ -187,13 +208,50 @@ function handleSequenceStepSent(store: SandboxStore): EventResult | null {
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
 
-  const enrollment = pick(activeEnrollments);
+  // Filter out enrollments where:
+  // - the patient was messaged recently (cooldown)
+  // - the patient's conversation is in a non-idle state (escalated, staff handling, etc.)
+  const pausedModes = new Set(["escalated", "staff_handling", "auto_replying"]);
+  const eligible = activeEnrollments.filter((e) => {
+    if (hasRecentMessage(store, e.patient_id, "outbound", OUTBOUND_COOLDOWN_MS)) return false;
+    const convo = store.conversations.find((c) => c.patient_id === e.patient_id);
+    if (convo && pausedModes.has(convo.conversation_mode)) return false;
+    return true;
+  });
+  if (eligible.length === 0) return null;
+
+  const enrollment = pick(eligible);
   const patient = store.patients.find((p) => p.id === enrollment.patient_id);
   if (!patient) return null;
 
   const channel = pick(CHANNELS);
   const now = nowISO();
   const patientName = `${patient.first_name} ${patient.last_name}`;
+
+  const smsTemplates = [
+    `Hi ${patient.first_name}, this is Riverside Family Dental. You have a treatment plan ready to schedule. View details here: https://retaine.io/portal/t/${simId("link")}`,
+    `Hi ${patient.first_name}! Just a friendly reminder from Riverside Family Dental — your treatment plan is waiting. Tap here to view & book: https://retaine.io/portal/t/${simId("link")}`,
+    `Hi ${patient.first_name}, Dr. Anderson's office here. We wanted to follow up on the treatment we discussed. Details: https://retaine.io/portal/t/${simId("link")} — reply or call us anytime!`,
+    `Hey ${patient.first_name}, Riverside Family Dental checking in. Ready to get your treatment scheduled? View your plan: https://retaine.io/portal/t/${simId("link")}`,
+  ];
+
+  const voicemailTemplates = [
+    `Hi ${patient.first_name}, this is Riverside Family Dental following up on your treatment plan. Check your text or email for a secure link to view your plan details, or give us a call back. Have a great day!`,
+    `Hi ${patient.first_name}, this is Dr. Anderson's office calling about your treatment plan. We sent you a link by text — take a look when you get a chance, or call us back at your convenience.`,
+    `Hey ${patient.first_name}, just a quick call from Riverside Family Dental. We'd love to help you get your treatment scheduled — give us a ring back or check your texts for a booking link. Thanks!`,
+  ];
+
+  const emailSubjects = [
+    "Follow-up on your treatment plan",
+    "Your treatment plan at Riverside Family Dental",
+    `${patient.first_name}, your plan is ready to schedule`,
+  ];
+
+  const body = channel === "voicemail"
+    ? pick(voicemailTemplates)
+    : channel === "sms"
+    ? pick(smsTemplates)
+    : `Dear ${patient.first_name},\n\nWe're reaching out about your treatment plan at Riverside Family Dental. View your details here:\nhttps://retaine.io/portal/t/${simId("link")}\n\nBest regards,\nRiverside Family Dental`;
 
   const message: Message = {
     id: simId("message"),
@@ -204,10 +262,8 @@ function handleSequenceStepSent(store: SandboxStore): EventResult | null {
     channel,
     direction: "outbound",
     status: "sent",
-    subject: channel === "email" ? "Follow-up on your treatment plan" : null,
-    body: channel === "voicemail"
-      ? `Hi ${patient.first_name}, this is Riverside Family Dental following up on your treatment plan. Check your text or email for a secure link to view your plan details, or give us a call back. Have a great day!`
-      : `Hi ${patient.first_name}, this is Riverside Family Dental. You have a treatment plan ready to schedule. View details here: https://retaine.io/portal/t/${simId("link")}`,
+    subject: channel === "email" ? pick(emailSubjects) : null,
+    body,
     external_id: `sandbox-sim-${Date.now()}`,
     error: null,
     sent_at: now,
@@ -274,7 +330,13 @@ function handlePatientReplied(store: SandboxStore): EventResult | null {
   const activeEnrollments = store.enrollments.filter((e) => e.status === "active");
   if (activeEnrollments.length === 0) return null;
 
-  const enrollment = pick(activeEnrollments);
+  // Filter out patients who already replied recently
+  const eligible = activeEnrollments.filter(
+    (e) => !hasRecentMessage(store, e.patient_id, "inbound", INBOUND_COOLDOWN_MS)
+  );
+  if (eligible.length === 0) return null;
+
+  const enrollment = pick(eligible);
   const patient = store.patients.find((p) => p.id === enrollment.patient_id);
   if (!patient) return null;
 
@@ -456,7 +518,13 @@ function handleAiAutoReply(store: SandboxStore): EventResult | null {
 
   if (eligibleConversations.length === 0) return null;
 
-  const conversation = pick(eligibleConversations);
+  // Filter out patients who were already sent a message recently
+  const cooledDown = eligibleConversations.filter(
+    (c) => !hasRecentMessage(store, c.patient_id, "outbound", OUTBOUND_COOLDOWN_MS)
+  );
+  if (cooledDown.length === 0) return null;
+
+  const conversation = pick(cooledDown);
   const patient = store.patients.find((p) => p.id === conversation.patient_id);
   if (!patient) return null;
 

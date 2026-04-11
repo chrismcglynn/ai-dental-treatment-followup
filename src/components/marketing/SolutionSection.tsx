@@ -9,7 +9,7 @@ const steps = [
   {
     icon: MessageSquare,
     title: "AI-powered multi-channel outreach",
-    body: "AI generates personalized SMS, email, and voicemail messages tailored to each procedure and patient. When patients reply, AI classifies their intent and drafts a response — your team just clicks send.",
+    body: "AI generates personalized SMS, email, and voicemail messages tailored to each procedure and patient. When patients reply, AI classifies their intent and auto-replies to routine messages instantly — escalating clinical or financial questions to your team with full context.",
   },
   {
     icon: CalendarCheck,

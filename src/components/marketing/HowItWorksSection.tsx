@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatedConversationMockup } from "./AnimatedConversationMockup";
+import { EscalationFlowMockup } from "./EscalationFlowMockup";
 
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -586,9 +588,14 @@ const rows = [
     visual: <PendingTriageMockup />,
   },
   {
-    title: "AI reads every reply so your team doesn't have to triage.",
-    body: "When patients respond, AI instantly classifies their intent — booking requests, questions, opt-outs — and drafts a context-aware reply your team can send in one click. Every conversation lives in a unified inbox with real-time updates, intent badges, and delivery status. No more digging through texting apps or guessing what patients want.",
-    visual: <InboxMockup />,
+    title: "AI handles the conversation — your team handles the exceptions.",
+    body: "When patients reply, AI reads the message, classifies intent, and auto-replies in seconds. Routine responses like \"not ready yet\" or \"sounds good\" are handled automatically with a natural 30-second delay. Clinical questions, insurance inquiries, and scheduling requests are instantly escalated to your team with full context. Your staff only sees what actually needs a human.",
+    visual: <AnimatedConversationMockup />,
+  },
+  {
+    title: "Built-in guardrails you can trust.",
+    body: "AI only auto-replies during your business hours and respects a per-conversation reply cap. Clinical concerns like pain, swelling, or bleeding are always escalated — never auto-replied. Insurance and scheduling questions go straight to your team. Every AI reply is tagged so you can audit at a glance. Staff can take over any conversation with one click, and return it to AI when they're done.",
+    visual: <EscalationFlowMockup />,
   },
   {
     title: "Know exactly what's working.",
